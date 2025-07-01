@@ -27,14 +27,14 @@ jobs:
       - name: Run update script
         run: python p3.py
 
-      - name: Debug: Show remotes and config
+      - name: Debug Show remotes and config
         run: |
           echo "Git remotes:"
           git remote -v
           echo "Git config:"
           git config --list
 
-      - name: Debug: Show PAT env
+      - name: Debug Show PAT env
         run: |
           echo "PAT length: ${#GH_PAT}"
           echo "PAT starts with: ${GH_PAT:0:4}..."
@@ -45,7 +45,7 @@ jobs:
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
 
-      - name: Debug: Who am I?
+      - name: Debug Who am I?
         run: |
           git config user.name 'aruslan'
           git config user.email 'aruslan@users.noreply.github.com'
