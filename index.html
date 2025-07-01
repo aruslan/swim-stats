@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Anna's Swim Times</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 2em auto; }
+    table { border-collapse: collapse; margin: 2em 0; width: 100%; }
+    th, td { border: 1px solid #aaa; padding: 0.5em; }
+    th { background: #f4f4f4; }
+    tr:nth-child(even) { background: #fafafa; }
+  </style>
+</head>
+<body>
+  <h1>Anna's Swim Times</h1>
+  <table id="swim-table">
+    <thead>
+      <tr>
+        <th>Event</th>
+        <th>Time</th>
+        <th>Date</th>
+        <th>Meet</th>
+        <th>Time Standard</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <script>
+    fetch('times.json')
+      .then(response => response.json())
+      .then(data => {
+        const tbody = document.querySelector('#swim-table tbody');
+        data.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${row.event}</td><td>${row.time}</td><td>${row.date}</td><td>${row.meet}</td><td>${row.time_standard}</td>`;
+          tbody.appendChild(tr);
+        });
+      });
+  </script>
+</body>
+</html>
