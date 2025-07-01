@@ -57,7 +57,7 @@ def fetch_swimmer(page, swimmer):
 def main():
     all_results = []
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)  # Change to True for automation
+        browser = p.chromium.launch(headless=True)  # Change to True for automation
         page = browser.new_page()
         for swimmer in SWIMMERS:
             all_results += fetch_swimmer(page, swimmer)
