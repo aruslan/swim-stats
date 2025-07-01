@@ -2,8 +2,6 @@ name: Update Swim Times
 
 on:
   schedule:
-    # Every 273 minutes (~4.5 hours)
-    # 00:00, 04:00, 09:00, 13:00, 18:00 UTC
     - cron: '0 0,4,9,13,18 * * *'
   workflow_dispatch:
 
@@ -29,11 +27,31 @@ jobs:
       - name: Run update script
         run: python p3.py
 
-      - name: Show GH_PAT
+      - name: Debug: Show remotes and config
+        run: |
+          echo "Git remotes:"
+          git remote -v
+          echo "Git config:"
+          git config --list
+
+      - name: Debug: Show PAT env
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
-        run: echo "PAT starts with: ${GH_PAT:0:4}... (not showing full for security)"
- 
+        run: |
+          echo "PAT length: ${#GH_PAT}"
+          echo "PAT starts with: ${GH_PAT:0:4}..."
+          if [ -z "$GH_PAT" ]; then
+            echo "ERROR: GH_PAT is empty!"
+            exit 1
+          fi
+
+      - name: Debug: Who am I?
+        run: |
+          git config user.name 'aruslan'
+          git config user.email 'aruslan@users.noreply.github.com'
+          echo "Git user.name: $(git config user.name)"
+          echo "Git user.email: $(git config user.email)"
+
       - name: Commit and push changes
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
@@ -42,4 +60,6 @@ jobs:
           git config user.email 'aruslan@users.noreply.github.com'
           git add times.json
           git commit -m "Update swim times [auto]" || echo "No changes to commit"
+          git remote -v
+          echo "About to push with PAT: ${GH_PAT:0:4}..."
           git push https://$GH_PAT@github.com/aruslan/swim-stats.git HEAD:main
