@@ -14,10 +14,10 @@ const STROKE_TO_B = STROKE_LABELS;
 const EVENTS = [50,100,200,400];
 const FORMATS = ["LCM","SCY"];
 const FONT_SIZE = 12;
-const WIDTHS = [100,60,60];
+const WIDTHS = [80, 80, 60];
 
 // === PARAMETER PARSING ===
-let param = (args.widgetParameter || "AA,FR").toUpperCase().replace(/\s+/g,"");
+let param = (args.widgetParameter || "AA,BR").toUpperCase().replace(/\s+/g,"");
 let [swimmerKey, strokeCode] = param.split(",");
 if (!SWIMMERS[swimmerKey]) swimmerKey = "AA";
 if (!STROKES.includes(strokeCode)) strokeCode = STROKES[0];
@@ -99,14 +99,13 @@ async function createWidget() {
     const row = left.addStack();
     row.size = new Size(0, 19);
 
-    // Event + format right-aligned in its own stack with fixed width, no padding/spacer
+    // Event + format right-aligned in its own stack with fixed width, right-aligned
     const c1 = row.addStack();
     c1.size = new Size(WIDTHS[0],19);
-    c1.setPadding(0,0,0,0);
+    c1.addSpacer();
     const l1 = c1.addText(`${ev} ${fmtType}`);
     l1.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
     l1.textColor = Color.white();
-    l1.rightAlignText();
 
     // Swim time bold, right-aligned
     const timeStr = candidate ? candidate.time : "";
@@ -117,47 +116,69 @@ async function createWidget() {
     const l2 = c2.addText(fmt(timeStr));
     l2.font = Font.boldMonospacedSystemFont(FONT_SIZE);
     l2.textColor = Color.white();
-    l2.rightAlignText();
 
     // Delta always shown regular color, right-aligned
     const c3 = row.addStack();
     c3.size = new Size(WIDTHS[2],19);
+    c3.addSpacer();
     let deltaText = "";
     let color = Color.white();
     if (candidate && b != null) {
       const diff = parseTime(candidate.time) - b;
-      deltaText = diff <= 0 ? diff.toFixed(2) : "+" + diff.toFixed(2);
+      deltaText = diff <= 0 ? "B " + diff.toFixed(2) : "+" + diff.toFixed(2);
       color = diff <= 0 ? new Color("#00AA00") : new Color("#FF0000");
     }
     const l3 = c3.addText(deltaText);
     l3.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
     l3.textColor = color;
-    l3.rightAlignText();
   }
 
-  // === RIGHT STROKE TABS (custom order) ===
+  // === RIGHT STROKE TABS (centered column) ===
   const right = root.addStack();
-  right.size = new Size(0.25 * 320, 0);
+  right.size = new Size(60, 0); // Fixed column width to fit longest label
   right.layoutVertically();
-  const code = right.addText(swimmerKey);
-  code.font = Font.boldSystemFont(FONT_SIZE + 4);
-  code.textColor = Color.white();
-  code.centerAlignText();
+  right.centerAlignContent();
+
+  // Swimmer's first name centered
+  const firstName = swimmerName.split(" ")[0];
+  const nameContainer = right.addStack();
+  nameContainer.size = new Size(60, 22);
+  nameContainer.centerAlignContent();
+  const nameText = nameContainer.addText(firstName);
+  nameText.font = Font.boldSystemFont(FONT_SIZE + 4);
+  nameText.textColor = Color.white();
+  nameText.centerAlignText();
+
   right.addSpacer(6);
+
+  // Short labels for strokes
+  function getShortLabel(sc) {
+    switch (sc) {
+      case "FR": return "Free";
+      case "BK": return "Back";
+      case "BR": return "Breast";
+      case "FL": return "Fly";
+      case "IM": return "IM";
+      default: return sc;
+    }
+  }
+
   for (let sc of STROKES) {
     const srow = right.addStack();
-    srow.size = new Size(35,17);
-    const lab = srow.addText(sc);
+    srow.size = new Size(60, 20);
+    srow.centerAlignContent();
+    const lab = srow.addText(getShortLabel(sc));
     lab.font = Font.mediumSystemFont(FONT_SIZE);
+    lab.centerAlignText();
     if (sc === strokeCode) {
       srow.backgroundColor = new Color("#39C570");
       lab.textColor = Color.white();
-      srow.cornerRadius = 6;
+      srow.cornerRadius = 7;
     } else {
       lab.textColor = new Color("#888");
     }
-    srow.setPadding(1,6,1,6);
-    right.addSpacer(2);
+    srow.setPadding(1,8,1,8);
+    right.addSpacer(3);
   }
 
   return widget;
