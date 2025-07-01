@@ -1,0 +1,172 @@
+// === CONFIG ===
+const SWIMMERS = { "AA": {name:"Anna Abdikeeva"}, "VD": {name:"Valerie Dronova"}, "IR": {name:"Imari Racine"} };
+
+// CUSTOM ORDER FOR STROKES
+const STROKES = ["BR", "FR", "FL", "BK", "IM"]; // <<== your preferred order
+const STROKE_LABELS = {
+  "FR":"Freestyle",
+  "BK":"Backstroke",
+  "BR":"Breaststroke",
+  "FL":"Butterfly",
+  "IM":"IM"
+};
+const STROKE_TO_B = STROKE_LABELS;
+const EVENTS = [50,100,200,400];
+const FORMATS = ["LCM","SCY"];
+const FONT_SIZE = 12;
+const WIDTHS = [100,60,60];
+
+// === PARAMETER PARSING ===
+let param = (args.widgetParameter || "AA,FR").toUpperCase().replace(/\s+/g,"");
+let [swimmerKey, strokeCode] = param.split(",");
+if (!SWIMMERS[swimmerKey]) swimmerKey = "AA";
+if (!STROKES.includes(strokeCode)) strokeCode = STROKES[0];
+const swimmerName = SWIMMERS[swimmerKey].name;
+
+// === DATA URLs ===
+const TIMES_URL = "https://aruslan.github.io/swim-stats/times.json";
+const B_URL = "https://aruslan.github.io/swim-stats/b_times_11_12.json";
+
+// === HELPERS ===
+function parseTime(s) {
+  if (!s) return Infinity;
+  if (s.includes(':')) {
+    let [m,sec] = s.split(':');
+    return parseInt(m)*60 + parseFloat(sec);
+  }
+  return parseFloat(s);
+}
+function fmt(s) { return s || "—"; }
+function showError(msg, detail="") {
+  let w = new ListWidget();
+  w.backgroundColor = new Color("#000");
+  let t = w.addText("⚠️ " + msg);
+  t.font = Font.boldSystemFont(FONT_SIZE);
+  t.textColor = Color.red();
+  if (detail) {
+    let d = w.addText(detail);
+    d.font = Font.systemFont(FONT_SIZE - 2);
+    d.textColor = new Color("#888");
+  }
+  return w;
+}
+
+// === MAIN ===
+async function createWidget() {
+  let timesData, B_TIMES;
+  try {
+    [timesData, B_TIMES] = await Promise.all([
+      new Request(TIMES_URL).loadJSON(),
+      new Request(B_URL).loadJSON()
+    ]);
+  } catch (e) {
+    return showError("Failed loading data", e.message);
+  }
+
+  if (!Array.isArray(timesData)) return showError("Invalid times.json");
+  if (!B_TIMES || typeof B_TIMES !== "object") return showError("Invalid B-times JSON");
+
+  const swimmerTimes = timesData.filter(r => r.name === swimmerName);
+
+  const widget = new ListWidget();
+  widget.backgroundColor = new Color("#000");
+  widget.setPadding(10,10,10,10);
+
+  const root = widget.addStack();
+  root.layoutHorizontally();
+
+  const left = root.addStack();
+  left.size = new Size(0.75 * 320, 0);
+  left.layoutVertically();
+
+  // Compose all format/distance pairs, sorted by format first, then distance
+  let combos = [];
+  for (let fmtType of FORMATS) {
+    for (let ev of EVENTS) {
+      combos.push({fmtType, ev});
+    }
+  }
+
+  for (let {fmtType, ev} of combos) {
+    const strokeFull = STROKE_TO_B[strokeCode];
+    const b = B_TIMES[strokeFull]?.[fmtType]?.[String(ev)];
+    if (b == null) continue; // Only show events with B-time standard
+
+    const wanted = `${ev} ${strokeCode} ${fmtType}`;
+    const candidate = swimmerTimes.filter(r => r.event === wanted)
+                       .sort((a,b2) => parseTime(a.time) - parseTime(b2.time))[0];
+
+    const row = left.addStack();
+    row.size = new Size(0, 19);
+
+    // Event + format right-aligned in its own stack with fixed width, no padding/spacer
+    const c1 = row.addStack();
+    c1.size = new Size(WIDTHS[0],19);
+    c1.setPadding(0,0,0,0);
+    const l1 = c1.addText(`${ev} ${fmtType}`);
+    l1.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
+    l1.textColor = Color.white();
+    l1.rightAlignText();
+
+    // Swim time bold, right-aligned
+    const timeStr = candidate ? candidate.time : "";
+    const c2 = row.addStack();
+    c2.size = new Size(WIDTHS[1],19);
+    c2.layoutHorizontally();
+    c2.addSpacer();
+    const l2 = c2.addText(fmt(timeStr));
+    l2.font = Font.boldMonospacedSystemFont(FONT_SIZE);
+    l2.textColor = Color.white();
+    l2.rightAlignText();
+
+    // Delta always shown regular color, right-aligned
+    const c3 = row.addStack();
+    c3.size = new Size(WIDTHS[2],19);
+    let deltaText = "";
+    let color = Color.white();
+    if (candidate && b != null) {
+      const diff = parseTime(candidate.time) - b;
+      deltaText = diff <= 0 ? diff.toFixed(2) : "+" + diff.toFixed(2);
+      color = diff <= 0 ? new Color("#00AA00") : new Color("#FF0000");
+    }
+    const l3 = c3.addText(deltaText);
+    l3.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
+    l3.textColor = color;
+    l3.rightAlignText();
+  }
+
+  // === RIGHT STROKE TABS (custom order) ===
+  const right = root.addStack();
+  right.size = new Size(0.25 * 320, 0);
+  right.layoutVertically();
+  const code = right.addText(swimmerKey);
+  code.font = Font.boldSystemFont(FONT_SIZE + 4);
+  code.textColor = Color.white();
+  code.centerAlignText();
+  right.addSpacer(6);
+  for (let sc of STROKES) {
+    const srow = right.addStack();
+    srow.size = new Size(35,17);
+    const lab = srow.addText(sc);
+    lab.font = Font.mediumSystemFont(FONT_SIZE);
+    if (sc === strokeCode) {
+      srow.backgroundColor = new Color("#39C570");
+      lab.textColor = Color.white();
+      srow.cornerRadius = 6;
+    } else {
+      lab.textColor = new Color("#888");
+    }
+    srow.setPadding(1,6,1,6);
+    right.addSpacer(2);
+  }
+
+  return widget;
+}
+
+// === RUN ===
+(async () => {
+  const widget = await createWidget();
+  if (config.runsInWidget) Script.setWidget(widget);
+  else await widget.presentMedium();
+  Script.complete();
+})();

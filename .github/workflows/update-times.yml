@@ -1,0 +1,36 @@
+name: Update Swim Times
+
+on:
+  schedule:
+    # Every 273 minutes (~4.55 hours)
+    # That's 5 times per day; cron doesn't allow "every N minutes" over 1 hour, so we do this:
+    - cron: '0 0,4,9,13,18 * * *'  # 00:00, 04:00, 09:00, 13:00, 18:00 UTC
+  workflow_dispatch: # allow manual run
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run update script
+        run: |
+          python p3.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add times.json
+          git commit -m "Update swim times [auto]" || echo "No changes to commit"
+          git push
