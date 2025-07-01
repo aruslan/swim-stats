@@ -29,6 +29,11 @@ jobs:
       - name: Run update script
         run: python p3.py
 
+      - name: Show GH_PAT
+        run: echo "PAT starts with: ${GH_PAT:0:4}... (not showing full for security)"
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+
       - name: Commit and push changes
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
