@@ -2,61 +2,136 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Anna's Swim Times</title>
+  <title>Swim Times</title>
   <style>
-    body { font-family: sans-serif; max-width: 800px; margin: 2em auto; }
+    body { font-family: sans-serif; max-width: 900px; margin: 2em auto; }
+    select { font-size: 1em; margin-bottom: 1em; }
     table { border-collapse: collapse; margin: 2em 0; width: 100%; }
     th, td { border: 1px solid #aaa; padding: 0.5em; }
     th { background: #f4f4f4; }
     tr:nth-child(even) { background: #fafafa; }
+    tr.btime { background: #c6f5c1; }
   </style>
 </head>
 <body>
-  <h1>Anna's Swim Times</h1>
+  <h1>Swim Times</h1>
+  <label for="swimmer-select"><strong>Filter by swimmer:</strong></label>
+  <select id="swimmer-select"></select>
   <table id="swim-table">
     <thead>
       <tr>
+        <th>Name</th>
         <th>Event</th>
-        <th>Time</th>
         <th>Date</th>
+        <th>Time</th>
         <th>Meet</th>
         <th>Time Standard</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
-<script>
-  function parseDate(d) {
-    if (!d) return new Date(0);
-    if (d.includes('-')) return new Date(d);
-    let [m, d2, y] = d.split('/');
-    return new Date(`${y}-${m.padStart(2, '0')}-${d2.padStart(2, '0')}`);
-  }
+  <h2>Compare Best Times by Event</h2>
+  <table id="compare-table">
+    <thead>
+      <tr>
+        <th>Event</th>
+        <th>Swimmer</th>
+        <th>Best Time</th>
+        <th>Date</th>
+        <th>Meet</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <script>
+    function parseDate(d) {
+      if (!d) return new Date(0);
+      if (d.includes('-')) return new Date(d);
+      let [m, d2, y] = d.split('/');
+      return new Date(`${y}-${m.padStart(2, '0')}-${d2.padStart(2, '0')}`);
+    }
 
-  fetch('times.json')
-    .then(response => response.json())
-    .then(data => {
-      data.sort((a, b) => {
-        if (a.event !== b.event) {
-          return a.event.localeCompare(b.event);
-        }
-        return parseDate(b.date) - parseDate(a.date);
-      });
+    function parseTime(timeStr) {
+      // e.g. "34.56", "1:10.32"
+      if (!timeStr) return Infinity;
+      const parts = timeStr.split(':').map(Number);
+      if (parts.length === 2) {
+        return parts[0] * 60 + parts[1];
+      }
+      return parseFloat(timeStr);
+    }
 
-      const tbody = document.querySelector('#swim-table tbody');
-      data.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${row.event}</td>
-                        <td>${row.date}</td>
-                        <td>${row.time}</td>
-                        <td>${row.meet}</td>
-                        <td>${row.time_standard}</td>`;
-        if (row.time_standard === "B") {
-          tr.style.background = "#c6f5c1"; // light green
+    fetch('times.json')
+      .then(r => r.json())
+      .then(data => {
+        // Swimmer dropdown
+        const swimmers = Array.from(new Set(data.map(r => r.name))).sort();
+        const select = document.getElementById('swimmer-select');
+        select.innerHTML = `<option value="All">All Swimmers</option>` +
+          swimmers.map(s => `<option value="${s}">${s}</option>`).join('');
+
+        // Table rendering
+        function renderTable(filter) {
+          const tbody = document.querySelector('#swim-table tbody');
+          tbody.innerHTML = '';
+          data
+            .filter(r => filter === "All" || r.name === filter)
+            .sort((a, b) => {
+              if (a.name !== b.name) return a.name.localeCompare(b.name);
+              if (a.event !== b.event) return a.event.localeCompare(b.event);
+              return parseDate(b.date) - parseDate(a.date);
+            })
+            .forEach(row => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `<td>${row.name}</td>
+                              <td>${row.event}</td>
+                              <td>${row.date}</td>
+                              <td>${row.time}</td>
+                              <td>${row.meet}</td>
+                              <td>${row.time_standard}</td>`;
+              if (row.time_standard === "B") tr.className = "btime";
+              tbody.appendChild(tr);
+            });
         }
-        tbody.appendChild(tr);
+
+        // Comparison table: Best time per event per swimmer
+        function renderCompareTable() {
+          const tbody = document.querySelector('#compare-table tbody');
+          tbody.innerHTML = '';
+          // {event: {swimmer: row}}
+          const best = {};
+          data.forEach(row => {
+            if (!best[row.event]) best[row.event] = {};
+            const swimmerBest = best[row.event][row.name];
+            if (!swimmerBest || parseTime(row.time) < parseTime(swimmerBest.time)) {
+              best[row.event][row.name] = row;
+            }
+          });
+          // Gather all event/swimmer combinations
+          const rows = [];
+          Object.keys(best).sort().forEach(event => {
+            Object.keys(best[event]).sort().forEach(swimmer => {
+              const row = best[event][swimmer];
+              rows.push({
+                event, swimmer, time: row.time, date: row.date, meet: row.meet
+              });
+            });
+          });
+          rows.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${r.event}</td>
+                            <td>${r.swimmer}</td>
+                            <td>${r.time}</td>
+                            <td>${r.date}</td>
+                            <td>${r.meet}</td>`;
+            tbody.appendChild(tr);
+          });
+        }
+
+        select.addEventListener('change', () => renderTable(select.value));
+        renderTable("All");
+        renderCompareTable();
       });
-    });
-</script>
+  </script>
 </body>
 </html>
