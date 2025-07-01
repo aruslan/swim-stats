@@ -25,17 +25,38 @@
     </thead>
     <tbody></tbody>
   </table>
-  <script>
-    fetch('times.json')
-      .then(response => response.json())
-      .then(data => {
-        const tbody = document.querySelector('#swim-table tbody');
-        data.forEach(row => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${row.event}</td><td>${row.time}</td><td>${row.date}</td><td>${row.meet}</td><td>${row.time_standard}</td>`;
-          tbody.appendChild(tr);
-        });
+<script>
+  function parseDate(d) {
+    if (!d) return new Date(0);
+    if (d.includes('-')) return new Date(d);
+    let [m, d2, y] = d.split('/');
+    return new Date(`${y}-${m.padStart(2, '0')}-${d2.padStart(2, '0')}`);
+  }
+
+  fetch('times.json')
+    .then(response => response.json())
+    .then(data => {
+      data.sort((a, b) => {
+        if (a.event !== b.event) {
+          return a.event.localeCompare(b.event);
+        }
+        return parseDate(b.date) - parseDate(a.date);
       });
-  </script>
+
+      const tbody = document.querySelector('#swim-table tbody');
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.event}</td>
+                        <td>${row.date}</td>
+                        <td>${row.time}</td>
+                        <td>${row.meet}</td>
+                        <td>${row.time_standard}</td>`;
+        if (row.time_standard === "B") {
+          tr.style.background = "#c6f5c1"; // light green
+        }
+        tbody.appendChild(tr);
+      });
+    });
+</script>
 </body>
 </html>
