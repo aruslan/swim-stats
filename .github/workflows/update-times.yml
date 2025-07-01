@@ -2,10 +2,10 @@ name: Update Swim Times
 
 on:
   schedule:
-    # Every 273 minutes (~4.55 hours)
-    # That's 5 times per day; cron doesn't allow "every N minutes" over 1 hour, so we do this:
-    - cron: '0 0,4,9,13,18 * * *'  # 00:00, 04:00, 09:00, 13:00, 18:00 UTC
-  workflow_dispatch: # allow manual run
+    # Every 273 minutes (~4.5 hours)
+    # 00:00, 04:00, 09:00, 13:00, 18:00 UTC
+    - cron: '0 0,4,9,13,18 * * *'
+  workflow_dispatch:
 
 jobs:
   update:
@@ -27,15 +27,14 @@ jobs:
         run: playwright install
 
       - name: Run update script
-        run: |
-          python p3.py
+        run: python p3.py
 
       - name: Commit and push changes
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git config user.name 'aruslan'
+          git config user.email 'aruslan@users.noreply.github.com'
           git add times.json
           git commit -m "Update swim times [auto]" || echo "No changes to commit"
           git push https://$GH_PAT@github.com/aruslan/swim-stats.git HEAD:main
