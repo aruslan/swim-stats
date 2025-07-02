@@ -1,6 +1,38 @@
 [
   {
     "name": "Anna Abdikeeva",
+    "event": "50 FR SCY",
+    "time": "36.01",
+    "date": "07/01/2025",
+    "meet": "2025 PCC @ BAC Dual Meet",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "100 FR SCY",
+    "time": "1:19.44",
+    "date": "07/01/2025",
+    "meet": "2025 PCC @ BAC Dual Meet",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "100 FR SCY",
+    "time": "1:19.44",
+    "date": "07/01/2025",
+    "meet": "2025 PCC @ BAC Dual Meet",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "50 BR SCY",
+    "time": "41.09",
+    "date": "07/01/2025",
+    "meet": "2025 PCC @ BAC Dual Meet",
+    "time_standard": "B"
+  },
+  {
+    "name": "Anna Abdikeeva",
     "event": "50 FR LCM",
     "time": "41.59",
     "date": "06/29/2025",
@@ -114,6 +146,14 @@
   {
     "name": "Valerie Dronova",
     "event": "50 FR SCY",
+    "time": "35.36",
+    "date": "07/01/2025",
+    "meet": "2025 PCC @ BAC Dual Meet",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Valerie Dronova",
+    "event": "50 FR SCY",
     "time": "36.88",
     "date": "03/29/2025",
     "meet": "2025 PC ALTO Short Course T/F Invitational",
@@ -125,6 +165,14 @@
     "time": "2:57.53",
     "date": "03/29/2025",
     "meet": "2025 PC ALTO Short Course T/F Invitational",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Valerie Dronova",
+    "event": "50 BK SCY",
+    "time": "44.06",
+    "date": "07/01/2025",
+    "meet": "2025 PCC @ BAC Dual Meet",
     "time_standard": "Slower than B"
   },
   {
@@ -210,6 +258,14 @@
   {
     "name": "Imari Racine",
     "event": "50 FR SCY",
+    "time": "31.10",
+    "date": "07/01/2025",
+    "meet": "2025 PCC @ BAC Dual Meet",
+    "time_standard": "BB"
+  },
+  {
+    "name": "Imari Racine",
+    "event": "50 FR SCY",
     "time": "33.67",
     "date": "10/26/2024",
     "meet": "2024 PC BAC TYR Spooky Fall Classic Short Course CBA+",
@@ -222,6 +278,22 @@
     "date": "11/16/2024",
     "meet": "2024 PC DACA Short Course CBA+",
     "time_standard": "Slower than B"
+  },
+  {
+    "name": "Imari Racine",
+    "event": "100 FR SCY",
+    "time": "1:11.09",
+    "date": "07/01/2025",
+    "meet": "2025 PCC @ BAC Dual Meet",
+    "time_standard": "B"
+  },
+  {
+    "name": "Imari Racine",
+    "event": "100 FR SCY",
+    "time": "1:11.09",
+    "date": "07/01/2025",
+    "meet": "2025 PCC @ BAC Dual Meet",
+    "time_standard": "B"
   },
   {
     "name": "Imari Racine",
@@ -334,6 +406,14 @@
     "date": "11/16/2024",
     "meet": "2024 PC DACA Short Course CBA+",
     "time_standard": "Slower than B"
+  },
+  {
+    "name": "Imari Racine",
+    "event": "50 BR SCY",
+    "time": "41.99",
+    "date": "07/01/2025",
+    "meet": "2025 PCC @ BAC Dual Meet",
+    "time_standard": "B"
   },
   {
     "name": "Imari Racine",
