@@ -44,94 +44,159 @@
     <tbody></tbody>
   </table>
   <script>
-    function parseDate(d) {
-      if (!d) return new Date(0);
-      if (d.includes('-')) return new Date(d);
-      let [m, d2, y] = d.split('/');
-      return new Date(`${y}-${m.padStart(2, '0')}-${d2.padStart(2, '0')}`);
-    }
+  function parseDate(d) {
+    if (!d) return new Date(0);
+    if (d.includes('-')) return new Date(d);
+    let [m, d2, y] = d.split('/');
+    return new Date(`${y}-${m.padStart(2, '0')}-${d2.padStart(2, '0')}`);
+  }
 
-    function parseTime(timeStr) {
-      // e.g. "34.56", "1:10.32"
-      if (!timeStr) return Infinity;
-      const parts = timeStr.split(':').map(Number);
-      if (parts.length === 2) {
-        return parts[0] * 60 + parts[1];
+  function parseTime(timeStr) {
+    // e.g. "34.56", "1:10.32"
+    if (!timeStr) return Infinity;
+    const parts = timeStr.split(':').map(Number);
+    if (parts.length === 2) {
+      return parts[0] * 60 + parts[1];
+    }
+    return parseFloat(timeStr);
+  }
+
+  fetch('times.json')
+    .then(r => r.json())
+    .then(data => {
+      // Swimmer dropdown
+      const swimmers = Array.from(new Set(data.map(r => r.name))).sort();
+      const select = document.getElementById('swimmer-select');
+      select.innerHTML = `<option value="All">All Swimmers</option>` +
+        swimmers.map(s => `<option value="${s}">${s}</option>`).join('');
+
+      // --- Sorting state ---
+      const sortState = {
+        col: null, // e.g. 0 for name
+        dir: 0     // 0: no sort, 1: asc, -1: desc
+      };
+      const headerDefs = [
+        {label: "Name", key: "name", parser: x => x},
+        {label: "Event", key: "event", parser: x => x},
+        {label: "Date", key: "date", parser: parseDate},
+        {label: "Time", key: "time", parser: parseTime},
+        {label: "Meet", key: "meet", parser: x => x},
+        {label: "Time Standard", key: "time_standard", parser: x => x}
+      ];
+
+      // --- Table rendering ---
+      function renderTable(filter) {
+        const tbody = document.querySelector('#swim-table tbody');
+        tbody.innerHTML = '';
+        let rows = data.filter(r => filter === "All" || r.name === filter);
+
+        // Apply sort
+        if (sortState.col !== null && sortState.dir !== 0) {
+          const {key, parser} = headerDefs[sortState.col];
+          rows = rows.slice().sort((a, b) => {
+            let va = parser(a[key]), vb = parser(b[key]);
+            if (va < vb) return -sortState.dir;
+            if (va > vb) return sortState.dir;
+            return 0;
+          });
+        } else {
+          // Default sort (by name, event, then date descending)
+          rows = rows.slice().sort((a, b) => {
+            if (a.name !== b.name) return a.name.localeCompare(b.name);
+            if (a.event !== b.event) return a.event.localeCompare(b.event);
+            return parseDate(b.date) - parseDate(a.date);
+          });
+        }
+
+        rows.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${row.name}</td>
+                          <td>${row.event}</td>
+                          <td>${row.date}</td>
+                          <td>${row.time}</td>
+                          <td>${row.meet}</td>
+                          <td>${row.time_standard}</td>`;
+          if (row.time_standard === "B") tr.className = "btime";
+          tbody.appendChild(tr);
+        });
       }
-      return parseFloat(timeStr);
-    }
 
-    fetch('times.json')
-      .then(r => r.json())
-      .then(data => {
-        // Swimmer dropdown
-        const swimmers = Array.from(new Set(data.map(r => r.name))).sort();
-        const select = document.getElementById('swimmer-select');
-        select.innerHTML = `<option value="All">All Swimmers</option>` +
-          swimmers.map(s => `<option value="${s}">${s}</option>`).join('');
-
-        // Table rendering
-        function renderTable(filter) {
-          const tbody = document.querySelector('#swim-table tbody');
-          tbody.innerHTML = '';
-          data
-            .filter(r => filter === "All" || r.name === filter)
-            .sort((a, b) => {
-              if (a.name !== b.name) return a.name.localeCompare(b.name);
-              if (a.event !== b.event) return a.event.localeCompare(b.event);
-              return parseDate(b.date) - parseDate(a.date);
-            })
-            .forEach(row => {
-              const tr = document.createElement('tr');
-              tr.innerHTML = `<td>${row.name}</td>
-                              <td>${row.event}</td>
-                              <td>${row.date}</td>
-                              <td>${row.time}</td>
-                              <td>${row.meet}</td>
-                              <td>${row.time_standard}</td>`;
-              if (row.time_standard === "B") tr.className = "btime";
-              tbody.appendChild(tr);
-            });
-        }
-
-        // Comparison table: Best time per event per swimmer
-        function renderCompareTable() {
-          const tbody = document.querySelector('#compare-table tbody');
-          tbody.innerHTML = '';
-          // {event: {swimmer: row}}
-          const best = {};
-          data.forEach(row => {
-            if (!best[row.event]) best[row.event] = {};
-            const swimmerBest = best[row.event][row.name];
-            if (!swimmerBest || parseTime(row.time) < parseTime(swimmerBest.time)) {
-              best[row.event][row.name] = row;
-            }
-          });
-          // Gather all event/swimmer combinations
-          const rows = [];
-          Object.keys(best).sort().forEach(event => {
-            Object.keys(best[event]).sort().forEach(swimmer => {
-              const row = best[event][swimmer];
-              rows.push({
-                event, swimmer, time: row.time, date: row.date, meet: row.meet
-              });
-            });
-          });
-          rows.forEach(r => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${r.event}</td>
-                            <td>${r.swimmer}</td>
-                            <td>${r.time}</td>
-                            <td>${r.date}</td>
-                            <td>${r.meet}</td>`;
-            tbody.appendChild(tr);
-          });
-        }
-
-        select.addEventListener('change', () => renderTable(select.value));
-        renderTable("All");
-        renderCompareTable();
+      // --- Header sorting controls ---
+      const thead = document.querySelector('#swim-table thead tr');
+      // Remove any old listeners/arrows
+      Array.from(thead.children).forEach((th, idx) => {
+        th.style.cursor = "pointer";
+        th.innerHTML = headerDefs[idx].label; // clean any arrows
+        th.onclick = null;
       });
-  </script>
+
+      // Add click handler and sort indicators
+      function updateHeaders() {
+        Array.from(thead.children).forEach((th, idx) => {
+          let arrow = "";
+          if (sortState.col === idx) {
+            if (sortState.dir === 1) arrow = " ▲";
+            else if (sortState.dir === -1) arrow = " ▼";
+          }
+          th.innerHTML = headerDefs[idx].label + arrow;
+        });
+      }
+      Array.from(thead.children).forEach((th, idx) => {
+        th.onclick = () => {
+          if (sortState.col !== idx) {
+            sortState.col = idx;
+            sortState.dir = 1; // ascending
+          } else if (sortState.dir === 1) {
+            sortState.dir = -1; // descending
+          } else if (sortState.dir === -1) {
+            sortState.dir = 0; // no sort
+            sortState.col = null;
+          }
+          updateHeaders();
+          renderTable(select.value);
+        };
+      });
+
+      updateHeaders();
+
+      // --- Comparison table: Best time per event per swimmer ---
+      function renderCompareTable() {
+        const tbody = document.querySelector('#compare-table tbody');
+        tbody.innerHTML = '';
+        // {event: {swimmer: row}}
+        const best = {};
+        data.forEach(row => {
+          if (!best[row.event]) best[row.event] = {};
+          const swimmerBest = best[row.event][row.name];
+          if (!swimmerBest || parseTime(row.time) < parseTime(swimmerBest.time)) {
+            best[row.event][row.name] = row;
+          }
+        });
+        // Gather all event/swimmer combinations
+        const rows = [];
+        Object.keys(best).sort().forEach(event => {
+          Object.keys(best[event]).sort().forEach(swimmer => {
+            const row = best[event][swimmer];
+            rows.push({
+              event, swimmer, time: row.time, date: row.date, meet: row.meet
+            });
+          });
+        });
+        rows.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${r.event}</td>
+                          <td>${r.swimmer}</td>
+                          <td>${r.time}</td>
+                          <td>${r.date}</td>
+                          <td>${r.meet}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+
+      select.addEventListener('change', () => renderTable(select.value));
+      renderTable("All");
+      renderCompareTable();
+    });
+</script>
 </body>
 </html>
