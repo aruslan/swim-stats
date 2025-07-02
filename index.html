@@ -162,6 +162,7 @@ let currentStroke = STROKES[0];
 
 function parseTime(s) {
   if (!s) return Infinity;
+  s = String(s);
   if (s.includes(':')) {
     let [m,sec] = s.split(':');
     return parseInt(m)*60 + parseFloat(sec);
