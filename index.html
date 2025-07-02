@@ -2,136 +2,229 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Swim Times</title>
+  <title>Swim Stats</title>
+  <meta name="viewport" content="width=400, initial-scale=1">
   <style>
-    body { font-family: sans-serif; max-width: 900px; margin: 2em auto; }
-    select { font-size: 1em; margin-bottom: 1em; }
-    table { border-collapse: collapse; margin: 2em 0; width: 100%; }
-    th, td { border: 1px solid #aaa; padding: 0.5em; }
-    th { background: #f4f4f4; }
-    tr:nth-child(even) { background: #fafafa; }
-    tr.btime { background: #c6f5c1; }
+    body {
+      background: #000;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      display: flex;
+      flex-direction: row;
+      margin: 30px 0;
+      background: #111;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px #000a;
+      overflow: hidden;
+      min-width: 380px;
+    }
+    .left {
+      padding: 24px 0 24px 24px;
+    }
+    .table {
+      border-collapse: collapse;
+      min-width: 240px;
+    }
+    .table th, .table td {
+      font-size: 15px;
+      padding: 2px 8px;
+      text-align: right;
+    }
+    .table th { color: #aaa; font-weight: 600;}
+    .official { color: #fff; font-weight: bold;}
+    .unofficial { color: #aaa; font-weight: bold;}
+    .delta-good { color: #39c570; }
+    .delta-bad { color: #ff3333; }
+    .delta-empty { color: #fff;}
+    .right {
+      background: #000;
+      padding: 24px 24px 24px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 80px;
+      border-left: 2px solid #222;
+    }
+    .name {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+      margin-top: 6px;
+      text-align: center;
+    }
+    .stroke-btn {
+      display: block;
+      width: 60px;
+      margin: 3px 0;
+      padding: 5px 0;
+      border: none;
+      border-radius: 9px;
+      background: none;
+      color: #aaa;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .12s, color .12s;
+      text-align: center;
+    }
+    .stroke-btn.active {
+      background: #39c570;
+      color: #fff;
+    }
+    .stroke-btn:focus { outline: none; }
   </style>
 </head>
 <body>
-  <h1>Swim Times</h1>
-  <label for="swimmer-select"><strong>Filter by swimmer:</strong></label>
-  <select id="swimmer-select"></select>
-  <table id="swim-table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Event</th>
-        <th>Date</th>
-        <th>Time</th>
-        <th>Meet</th>
-        <th>Time Standard</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-  <h2>Compare Best Times by Event</h2>
-  <table id="compare-table">
-    <thead>
-      <tr>
-        <th>Event</th>
-        <th>Swimmer</th>
-        <th>Best Time</th>
-        <th>Date</th>
-        <th>Meet</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-  <script>
-    function parseDate(d) {
-      if (!d) return new Date(0);
-      if (d.includes('-')) return new Date(d);
-      let [m, d2, y] = d.split('/');
-      return new Date(`${y}-${m.padStart(2, '0')}-${d2.padStart(2, '0')}`);
-    }
+<div class="container">
+  <div class="left">
+    <div class="name" id="swimmerName"></div>
+    <table class="table" id="statsTable">
+      <thead>
+        <tr>
+          <th>Event</th>
+          <th>Time</th>
+          <th>Δ</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="right" id="strokesCol">
+    <!-- Buttons will be injected here -->
+  </div>
+</div>
+<script>
+const SWIMMERS = {
+  "AA": {name:"Anna Abdikeeva"},
+  "VD": {name:"Valerie Dronova"},
+  "IR": {name:"Imari Racine"}
+};
+const STROKES = ["BR", "FR", "FL", "BK", "IM"];
+const STROKE_LABELS = {
+  "FR":"Freestyle",
+  "BK":"Backstroke",
+  "BR":"Breaststroke",
+  "FL":"Butterfly",
+  "IM":"IM"
+};
+const STROKE_BTN_LABELS = {
+  "FR":"Free", "BK":"Back", "BR":"Breast", "FL":"Fly", "IM":"IM"
+};
+const EVENTS = [50, 100, 200, 400];
+const FORMATS = ["LCM", "SCY"];
+const WIDTHS = [80, 80, 60];
+const swimmerKey = "AA"; // CHANGE if needed (or make dynamic)
+const swimmerName = SWIMMERS[swimmerKey].name;
+const TIMES_URL = "https://aruslan.github.io/swim-stats/times.json";
+const UNOFFICIAL_URL = "https://aruslan.github.io/swim-stats/unofficial_times.json";
+const B_URL = "https://aruslan.github.io/swim-stats/b_times_11_12.json";
 
-    function parseTime(timeStr) {
-      // e.g. "34.56", "1:10.32"
-      if (!timeStr) return Infinity;
-      const parts = timeStr.split(':').map(Number);
-      if (parts.length === 2) {
-        return parts[0] * 60 + parts[1];
+// Helpers
+function parseTime(s) {
+  if (!s) return Infinity;
+  if (s.includes(':')) {
+    let [m,sec] = s.split(':');
+    return parseInt(m)*60 + parseFloat(sec);
+  }
+  return parseFloat(s);
+}
+function fmt(s) { return s || "—"; }
+
+let bTimes = {}, officialTimes = [], unofficialTimes = [];
+
+async function fetchAllData() {
+  const [times, unofficial, b] = await Promise.all([
+    fetch(TIMES_URL).then(r=>r.json()),
+    fetch(UNOFFICIAL_URL).then(r=>r.json()),
+    fetch(B_URL).then(r=>r.json())
+  ]);
+  bTimes = b;
+  officialTimes = times.filter(r=>r.name === swimmerName).map(r=>({...r, unofficial:false}));
+  unofficialTimes = unofficial.filter(r=>r.name === swimmerName).map(r=>({...r, unofficial:true}));
+}
+
+function renderTable(strokeCode) {
+  const strokeFull = STROKE_LABELS[strokeCode];
+  let rows = '';
+  for (let fmtType of FORMATS) {
+    for (let ev of EVENTS) {
+      const b = bTimes[strokeFull]?.[fmtType]?.[String(ev)];
+      if (b == null) continue;
+      const eventKey = `${ev} ${strokeCode} ${fmtType}`;
+      // Merge, sort by time
+      const times = officialTimes.concat(unofficialTimes).filter(r=>r.event === eventKey);
+      if (!times.length) {
+        rows += `<tr>
+          <td>${ev} ${fmtType}</td>
+          <td>—</td>
+          <td></td>
+        </tr>`;
+        continue;
       }
-      return parseFloat(timeStr);
+      const candidate = times.sort((a,b)=>parseTime(a.time)-parseTime(b.time))[0];
+      // Color
+      const timeClass = candidate.unofficial ? 'unofficial' : 'official';
+      // Delta
+      let delta = '', deltaClass = 'delta-empty';
+      if (b != null) {
+        const diff = parseTime(candidate.time) - b;
+        if (candidate.time && candidate.time !== "—") {
+          if (diff <= 0) {
+            delta = "B " + diff.toFixed(2);
+            deltaClass = "delta-good";
+          } else {
+            delta = "+" + diff.toFixed(2);
+            deltaClass = "delta-bad";
+          }
+        }
+      }
+      rows += `<tr>
+        <td>${ev} ${fmtType}</td>
+        <td class="${timeClass}">${fmt(candidate.time)}</td>
+        <td class="${deltaClass}">${delta}</td>
+      </tr>`;
     }
+  }
+  document.querySelector('#statsTable tbody').innerHTML = rows;
+}
 
-    fetch('times.json')
-      .then(r => r.json())
-      .then(data => {
-        // Swimmer dropdown
-        const swimmers = Array.from(new Set(data.map(r => r.name))).sort();
-        const select = document.getElementById('swimmer-select');
-        select.innerHTML = `<option value="All">All Swimmers</option>` +
-          swimmers.map(s => `<option value="${s}">${s}</option>`).join('');
+function renderStrokes(currentStroke) {
+  const col = document.getElementById('strokesCol');
+  col.innerHTML = '';
+  // Name
+  const nameDiv = document.createElement('div');
+  nameDiv.className = 'name';
+  nameDiv.innerText = swimmerName.split(' ')[0];
+  col.appendChild(nameDiv);
+  // Buttons
+  STROKES.forEach(sc => {
+    const btn = document.createElement('button');
+    btn.className = 'stroke-btn' + (sc === currentStroke ? ' active' : '');
+    btn.innerText = STROKE_BTN_LABELS[sc];
+    btn.onclick = () => {
+      renderTable(sc);
+      renderStrokes(sc);
+    };
+    col.appendChild(btn);
+  });
+}
 
-        // Table rendering
-        function renderTable(filter) {
-          const tbody = document.querySelector('#swim-table tbody');
-          tbody.innerHTML = '';
-          data
-            .filter(r => filter === "All" || r.name === filter)
-            .sort((a, b) => {
-              if (a.name !== b.name) return a.name.localeCompare(b.name);
-              if (a.event !== b.event) return a.event.localeCompare(b.event);
-              return parseDate(b.date) - parseDate(a.date);
-            })
-            .forEach(row => {
-              const tr = document.createElement('tr');
-              tr.innerHTML = `<td>${row.name}</td>
-                              <td>${row.event}</td>
-                              <td>${row.date}</td>
-                              <td>${row.time}</td>
-                              <td>${row.meet}</td>
-                              <td>${row.time_standard}</td>`;
-              if (row.time_standard === "B") tr.className = "btime";
-              tbody.appendChild(tr);
-            });
-        }
+async function main() {
+  document.getElementById('swimmerName').innerText = swimmerName.split(' ')[0];
+  await fetchAllData();
+  let currentStroke = STROKES[0];
+  renderTable(currentStroke);
+  renderStrokes(currentStroke);
+}
 
-        // Comparison table: Best time per event per swimmer
-        function renderCompareTable() {
-          const tbody = document.querySelector('#compare-table tbody');
-          tbody.innerHTML = '';
-          // {event: {swimmer: row}}
-          const best = {};
-          data.forEach(row => {
-            if (!best[row.event]) best[row.event] = {};
-            const swimmerBest = best[row.event][row.name];
-            if (!swimmerBest || parseTime(row.time) < parseTime(swimmerBest.time)) {
-              best[row.event][row.name] = row;
-            }
-          });
-          // Gather all event/swimmer combinations
-          const rows = [];
-          Object.keys(best).sort().forEach(event => {
-            Object.keys(best[event]).sort().forEach(swimmer => {
-              const row = best[event][swimmer];
-              rows.push({
-                event, swimmer, time: row.time, date: row.date, meet: row.meet
-              });
-            });
-          });
-          rows.forEach(r => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${r.event}</td>
-                            <td>${r.swimmer}</td>
-                            <td>${r.time}</td>
-                            <td>${r.date}</td>
-                            <td>${r.meet}</td>`;
-            tbody.appendChild(tr);
-          });
-        }
-
-        select.addEventListener('change', () => renderTable(select.value));
-        renderTable("All");
-        renderCompareTable();
-      });
-  </script>
+main();
+</script>
 </body>
 </html>
