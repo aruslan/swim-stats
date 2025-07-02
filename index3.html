@@ -32,7 +32,7 @@
       box-shadow: 0 4px 20px #000a;
       overflow: visible;
       width: 100%;
-      max-width: 800px;
+      max-width: 700px;
     }
     .left {
       padding: 24px 0 24px 24px;
@@ -45,23 +45,31 @@
     }
     .table {
       border-collapse: collapse;
-      min-width: 380px;
       width: 100%;
       background: transparent;
+      table-layout: fixed;
     }
     .table th, .table td {
       font-size: 15px;
-      padding: 2px 8px;
+      padding: 2px 4px;
       text-align: right;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .table th { color: #aaa; font-weight: 600;}
+    th.event-col, td.event-col {
+      width: 80px; max-width: 90px; min-width: 50px; font-size: 14px; text-align: left;
+    }
     th.format-col, td.format-col {
-      width: 42px; min-width: 38px; max-width: 50px;
-      font-size: 13px; padding-left: 2px; padding-right: 2px;
+      width: 38px; max-width: 46px; min-width: 32px; font-size: 12.5px; text-align: right;
+      padding-left: 2px; padding-right: 2px;
+    }
+    th.time-col, td.time-col {
+      width: 56px; max-width: 70px; min-width: 38px; font-size: 14px; text-align: right;
     }
     th.delta-col, td.delta-col {
-      width: 46px; min-width: 36px; max-width: 60px;
+      width: 45px; max-width: 60px; min-width: 30px;
       text-align: center; font-size: 13px; padding-left: 2px; padding-right: 2px;
     }
     .official { color: #fff; font-weight: bold;}
@@ -121,6 +129,8 @@
       .left { padding: 12px 0 12px 6px; }
       .right { padding: 12px 8px 12px 0; min-width: 60px;}
       .table-scroll { max-width: 100vw;}
+      th.event-col, td.event-col { width: 64px; }
+      th.time-col, td.time-col { width: 42px; }
     }
   </style>
 </head>
@@ -131,9 +141,9 @@
       <table class="table" id="statsTable">
         <thead>
           <tr>
-            <th>Event</th>
+            <th class="event-col">Event</th>
             <th class="format-col">Fmt</th>
-            <th>Time</th>
+            <th class="time-col">Time</th>
             <th class="level-cell"></th>
             <th class="delta-col">
               <button id="deltaModeBtn" class="delta-btn" title="Switch mode">Δ</button>
@@ -297,9 +307,9 @@ function renderTable() {
     const { text: delta, cls: deltaClass } = getDelta(timeSec, bSec, bbSec, deltaMode);
 
     rows += `<tr>
-      <td>${ev} ${stroke}</td>
+      <td class="event-col">${ev} ${stroke}</td>
       <td class="format-col">${fmtType}</td>
-      <td class="${timeClass}">${fmt(timeVal)}</td>
+      <td class="time-col ${timeClass}">${fmt(timeVal)}</td>
       <td class="level-cell">${levelHTML}</td>
       <td class="delta-col ${deltaClass}">${delta}</td>
     </tr>`;
