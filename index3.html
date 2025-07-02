@@ -3,50 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <title>Swim Stats</title>
-  <meta name="viewport" content="width=400, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { background: #000; color: #fff; font-family: system-ui,sans-serif; margin:0; padding:0; display:flex; justify-content:center;}
-    .container { display:flex; flex-direction:row; margin:30px 0; background:#111; border-radius:20px; box-shadow:0 4px 20px #000a; overflow:hidden; min-width:620px;}
-    .left { padding:24px 0 24px 24px;}
-    .table { border-collapse:collapse; min-width:380px;}
-    .table th, .table td { font-size:15px; padding:2px 8px; text-align:right;}
-    .table th { color:#aaa; font-weight:600;}
-    .official { color:#fff; font-weight:bold;}
-    .unofficial { color:#aaa; font-weight:bold;}
-    .level-cell { width:26px; text-align:center; padding-left:0; padding-right:0;}
-    .level-bb, .level-b { color:#39c570; font-weight:bold; font-size:15px;}
-    .delta-good { color:#39c570; }
-    .delta-bad { color:#ff3333; }
-    .delta-empty { color:#fff;}
-    .stroke-highlight { background:#244 !important; }
-    .right { background:#000; padding:24px 24px 24px 0; display:flex; flex-direction:column; align-items:center; min-width:80px; border-left:2px solid #222;}
-    .name-btn { font-size:22px; font-weight:700; letter-spacing:1px; margin-bottom:24px; margin-top:6px; text-align:center; background:none; border:none; color:#fff; width:60px; padding:8px 0; cursor:pointer; border-radius:8px; transition:background .1s;}
-    .name-btn:hover, .name-btn:focus { background:#232; outline:none;}
-    .stroke-btn { display:block; width:60px; margin:3px 0; padding:5px 0; border:none; border-radius:9px; background:none; color:#aaa; font-size:15px; font-weight:600; cursor:pointer; transition:background .12s, color .12s; text-align:center;}
-    .stroke-btn.active { background:#39c570; color:#fff;}
-    .stroke-btn:focus { outline:none;}
+    html, body {
+      background: #000;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      box-sizing: border-box;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      width: 100vw;
+    }
+    .container {
+      display: flex;
+      flex-direction: row;
+      margin: 30px 0;
+      background: #111;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px #000a;
+      overflow: visible;
+      width: 100%;
+      max-width: 800px;
+    }
+    .left {
+      padding: 24px 0 24px 24px;
+      flex: 1 1 0;
+      min-width: 0;
+    }
+    .table-scroll {
+      overflow-x: auto;
+      max-width: 100vw;
+    }
+    .table {
+      border-collapse: collapse;
+      min-width: 380px;
+      width: 100%;
+      background: transparent;
+    }
+    .table th, .table td {
+      font-size: 15px;
+      padding: 2px 8px;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .table th { color: #aaa; font-weight: 600;}
+    .official { color: #fff; font-weight: bold;}
+    .unofficial { color: #aaa; font-weight: bold;}
+    .level-cell { width: 26px; text-align: center; padding-left: 0; padding-right: 0;}
+    .level-bb, .level-b { color: #39c570; font-weight: bold; font-size: 15px;}
+    .delta-good { color: #39c570; }
+    .delta-bad { color: #ff3333; }
+    .delta-empty { color: #fff;}
+    .right {
+      background: #000;
+      padding: 24px 24px 24px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 80px;
+      border-left: 2px solid #222;
+    }
+    .name-btn {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+      margin-top: 6px;
+      text-align: center;
+      background: none;
+      border: none;
+      color: #fff;
+      width: 60px;
+      padding: 8px 0;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background .1s;
+    }
+    .name-btn:hover, .name-btn:focus { background: #232; outline: none;}
+    .stroke-btn {
+      display: block;
+      width: 60px;
+      margin: 3px 0;
+      padding: 5px 0;
+      border: none;
+      border-radius: 9px;
+      background: none;
+      color: #aaa;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .12s, color .12s;
+      text-align: center;
+    }
+    .stroke-btn.active { background: #39c570; color: #fff;}
+    .stroke-btn:focus { outline: none;}
     .delta-btn { all:unset; cursor:pointer; color:#aaa; font-size:15px; padding:0 6px; border-radius:5px; transition:background .1s;}
     .delta-btn:hover, .delta-btn:focus { background:#232;}
-    .format-label { color:#8bc; font-size:13px; margin-right:8px;}
+    @media (max-width: 700px) {
+      .container { margin: 6vw 0; border-radius: 0; box-shadow: none; max-width: 100vw;}
+      .left { padding: 12px 0 12px 6px; }
+      .right { padding: 12px 8px 12px 0; min-width: 60px;}
+    }
   </style>
 </head>
 <body>
 <div class="container">
   <div class="left">
-    <table class="table" id="statsTable">
-      <thead>
-        <tr>
-          <th>Event</th>
-          <th>Format</th>
-          <th>Time</th>
-          <th class="level-cell"></th>
-          <th>
-            <button id="deltaModeBtn" class="delta-btn" title="Switch mode">Δ</button>
-          </th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div class="table-scroll">
+      <table class="table" id="statsTable">
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Format</th>
+            <th>Time</th>
+            <th class="level-cell"></th>
+            <th>
+              <button id="deltaModeBtn" class="delta-btn" title="Switch mode">Δ</button>
+            </th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
   <div class="right" id="strokesCol"></div>
 </div>
@@ -82,7 +169,7 @@ const BB_URL = "./bb_times_11_12.json";
 let bTimes = {}, bbTimes = {}, allOfficialTimes = [], allUnofficialTimes = [];
 let officialTimes = [], unofficialTimes = [];
 let deltaMode = "targets";
-let highlightedStroke = null;
+let currentStroke = STROKES[0];
 
 function parseTime(s) {
   if (!s) return Infinity;
@@ -118,21 +205,17 @@ function setSwimmer(index) {
   unofficialTimes = allUnofficialTimes.filter(r => r.name === swimmerName).map(r=>({...r, unofficial:true}));
 }
 
-// Get all (stroke,format,distance) where B time exists
-function getAllBEvents() {
+function getAllBEventsForStroke(stroke) {
   const result = [];
-  for (let stroke of STROKES) {
-    const strokeFull = STROKE_LABELS[stroke];
-    for (let fmtType of FORMATS_ORDERED) {
-      const bByEvent = bTimes[strokeFull]?.[fmtType] || {};
-      for (let ev in bByEvent) {
-        result.push({ stroke, strokeFull, fmtType, ev: Number(ev) });
-      }
+  const strokeFull = STROKE_LABELS[stroke];
+  for (let fmtType of FORMATS_ORDERED) {
+    const bByEvent = bTimes[strokeFull]?.[fmtType] || {};
+    for (let ev in bByEvent) {
+      result.push({ stroke, strokeFull, fmtType, ev: Number(ev) });
     }
   }
-  // sort by stroke, then format, then distance
+  // sort by format, then distance
   result.sort((a, b) => {
-    if (a.stroke !== b.stroke) return STROKES.indexOf(a.stroke) - STROKES.indexOf(b.stroke);
     if (a.fmtType !== b.fmtType) return FORMATS_ORDERED.indexOf(a.fmtType) - FORMATS_ORDERED.indexOf(b.fmtType);
     return a.ev - b.ev;
   });
@@ -174,7 +257,7 @@ function getDelta(timeSec, bSec, bbSec, mode) {
 }
 
 function renderTable() {
-  const allEvents = getAllBEvents();
+  const allEvents = getAllBEventsForStroke(currentStroke);
   let rows = '';
   for (let e of allEvents) {
     const { stroke, strokeFull, fmtType, ev } = e;
@@ -204,10 +287,7 @@ function renderTable() {
     // Delta
     const { text: delta, cls: deltaClass } = getDelta(timeSec, bSec, bbSec, deltaMode);
 
-    // Highlight row if stroke is highlighted
-    const trClass = (highlightedStroke && highlightedStroke === stroke) ? "stroke-highlight" : "";
-
-    rows += `<tr class="${trClass}">
+    rows += `<tr>
       <td>${ev} ${stroke}</td>
       <td>${fmtType}</td>
       <td class="${timeClass}">${fmt(timeVal)}</td>
@@ -236,10 +316,10 @@ function renderStrokes() {
   // Stroke buttons
   STROKES.forEach(sc => {
     const btn = document.createElement('button');
-    btn.className = 'stroke-btn' + (highlightedStroke === sc ? ' active' : '');
+    btn.className = 'stroke-btn' + (sc === currentStroke ? ' active' : '');
     btn.innerText = STROKE_BTN_LABELS[sc];
     btn.onclick = () => {
-      highlightedStroke = (highlightedStroke === sc) ? null : sc;
+      currentStroke = sc;
       renderTable();
       renderStrokes();
     };
@@ -249,6 +329,7 @@ function renderStrokes() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   await fetchAllData();
+  currentStroke = STROKES[0];
   renderTable();
   renderStrokes();
   document.getElementById('deltaModeBtn').onclick = () => {
