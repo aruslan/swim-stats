@@ -215,7 +215,6 @@ function getStandards(strokeFull, fmtType, ev) {
   };
 }
 
-// Helper: get the list of event distances per stroke & format, in your desired order
 function getEventList(strokeFull, fmtType) {
   if (strokeFull === "Freestyle") {
     if (fmtType === "SCY") return [50,100,200,500,1000,1650];
@@ -234,13 +233,12 @@ function getEventList(strokeFull, fmtType) {
 function renderTable(strokeCode) {
   const strokeFull = STROKE_LABELS[strokeCode];
   let rows = '';
-  // Order: LCM first, SCY second
   const FORMATS_ORDERED = ["LCM", "SCY"];
   for (let fmtType of FORMATS_ORDERED) {
     const evList = getEventList(strokeFull, fmtType);
     for (let ev of evList) {
       const {b, bb} = getStandards(strokeFull, fmtType, ev);
-      if (b == null) continue; // Only show events with B standard
+      if (b == null) continue;
       const eventKey = `${ev} ${strokeCode} ${fmtType}`;
       const times = officialTimes.concat(unofficialTimes).filter(r=>r.event === eventKey);
       let timeVal = '', timeSec = Infinity, candidate = null, levelHTML = '';
@@ -262,7 +260,7 @@ function renderTable(strokeCode) {
         levelHTML = "";
       }
 
-      // Delta column logic
+      // Delta column logic (NEW!)
       let delta = '', deltaClass = 'delta-empty';
       if (!timeVal) {
         delta = '';
@@ -271,10 +269,10 @@ function renderTable(strokeCode) {
           delta = "+" + (timeSec - bSec).toFixed(2);
           deltaClass = "delta-bad";
         } else if (timeSec > bbSec) {
-          delta = "B " + (timeSec - bSec).toFixed(2);
+          delta = "-" + (bSec - timeSec).toFixed(2);
           deltaClass = "delta-good";
         } else {
-          delta = "BB " + (timeSec - bbSec).toFixed(2);
+          delta = "-" + (bbSec - timeSec).toFixed(2);
           deltaClass = "delta-good";
         }
       } else {
