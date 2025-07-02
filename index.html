@@ -91,6 +91,18 @@
       color: #fff;
     }
     .stroke-btn:focus { outline: none; }
+    .delta-btn {
+      all: unset;
+      cursor: pointer;
+      color: #aaa;
+      font-size: 15px;
+      padding: 0 6px;
+      border-radius: 5px;
+      transition: background .1s;
+    }
+    .delta-btn:hover, .delta-btn:focus {
+      background: #232;
+    }
   </style>
 </head>
 <body>
@@ -101,7 +113,9 @@
         <tr>
           <th>Event</th>
           <th>Time</th>
-          <th>Δ</th>
+          <th>
+            <button id="deltaModeBtn" class="delta-btn" title="Switch mode">Δ</button>
+          </th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -118,7 +132,7 @@ const SWIMMERS = {
   "IR": {name:"Imari Racine"}
 };
 const SWIMMER_KEYS = Object.keys(SWIMMERS);
-let swimmerIndex = 0; // Start at Anna
+let swimmerIndex = 0;
 let swimmerKey = SWIMMER_KEYS[swimmerIndex];
 let swimmerName = SWIMMERS[swimmerKey].name;
 
@@ -133,16 +147,18 @@ const STROKE_LABELS = {
 const STROKE_BTN_LABELS = {
   "FR":"Free", "BK":"Back", "BR":"Breast", "FL":"Fly", "IM":"IM"
 };
-const EVENTS = [50, 100, 200, 400];
-const FORMATS = ["LCM", "SCY"];
+const EVENTS = [50, 100, 200, 400, 500, 800, 1000, 1500, 1650];
+const FORMATS = ["SCY", "LCM"];
 
 const TIMES_URL = "./times.json";
 const UNOFFICIAL_URL = "./unofficial_times.json";
 const B_URL = "./b_times_11_12.json";
+const BB_URL = "./bb_times_11_12.json";
 
-// Data stores
-let bTimes = {}, allOfficialTimes = [], allUnofficialTimes = [];
+let bTimes = {}, bbTimes = {}, allOfficialTimes = [], allUnofficialTimes = [];
 let officialTimes = [], unofficialTimes = [];
+let deltaMode = "accomplishments";
+let currentStroke = STROKES[0];
 
 function parseTime(s) {
   if (!s) return Infinity;
@@ -153,17 +169,20 @@ function parseTime(s) {
   return parseFloat(s);
 }
 function fmt(s) { return s || "—"; }
+function parseSec(s) { return parseTime(s); }
 
 async function fetchAllData() {
-  const [times, unofficial, b] = await Promise.all([
+  const [times, unofficial, b, bb] = await Promise.all([
     fetch(TIMES_URL).then(r=>r.json()),
     fetch(UNOFFICIAL_URL).then(r=>r.json()),
-    fetch(B_URL).then(r=>r.json())
+    fetch(B_URL).then(r=>r.json()),
+    fetch(BB_URL).then(r=>r.json())
   ]);
   bTimes = b;
+  bbTimes = bb;
   allOfficialTimes = times;
   allUnofficialTimes = unofficial;
-  setSwimmer(swimmerIndex); // initial
+  setSwimmer(swimmerIndex);
 }
 
 function setSwimmer(index) {
@@ -174,15 +193,33 @@ function setSwimmer(index) {
   unofficialTimes = allUnofficialTimes.filter(r => r.name === swimmerName).map(r=>({...r, unofficial:true}));
 }
 
+function getStandards(strokeFull, fmtType, ev) {
+  return {
+    b: bTimes[strokeFull]?.[fmtType]?.[String(ev)] || null,
+    bb: bbTimes[strokeFull]?.[fmtType]?.[String(ev)] || null
+  };
+}
+
 function renderTable(strokeCode) {
   const strokeFull = STROKE_LABELS[strokeCode];
   let rows = '';
   for (let fmtType of FORMATS) {
-    for (let ev of EVENTS) {
-      const b = bTimes[strokeFull]?.[fmtType]?.[String(ev)];
-      if (b == null) continue;
+    // Get list of events per stroke and format
+    let evList = [];
+    if (strokeFull === "Freestyle") {
+      evList = fmtType === "SCY" ? [50,100,200,500,1000,1650] : [50,100,200,400,800,1500];
+    } else if (strokeFull === "Backstroke" || strokeFull === "Breaststroke" || strokeFull === "Butterfly") {
+      evList = [50,100,200];
+    } else if (strokeFull === "IM") {
+      evList = fmtType === "SCY" ? [100,200,400] : [200,400];
+    }
+    // Add relay events
+    if (strokeFull === "Freestyle Relay") evList = [200,400];
+    if (strokeFull === "Medley Relay") evList = [200,400];
+    for (let ev of evList) {
+      const {b, bb} = getStandards(strokeFull, fmtType, ev);
+      if (b == null && bb == null) continue;
       const eventKey = `${ev} ${strokeCode} ${fmtType}`;
-      // Merge, sort by time
       const times = officialTimes.concat(unofficialTimes).filter(r=>r.event === eventKey);
       if (!times.length) {
         rows += `<tr>
@@ -192,24 +229,49 @@ function renderTable(strokeCode) {
         </tr>`;
         continue;
       }
-      const candidate = times.sort((a,b)=>parseTime(a.time)-parseTime(b.time))[0];
+      const candidate = times.sort((a,b)=>parseSec(a.time)-parseSec(b.time))[0];
+      const timeVal = candidate.time;
+      const timeSec = parseSec(timeVal);
+      const bSec = b ? parseSec(b) : Infinity;
+      const bbSec = bb ? parseSec(bb) : Infinity;
       const timeClass = candidate.unofficial ? 'unofficial' : 'official';
       let delta = '', deltaClass = 'delta-empty';
-      if (b != null) {
-        const diff = parseTime(candidate.time) - b;
-        if (candidate.time && candidate.time !== "—") {
-          if (diff <= 0) {
-            delta = "B " + diff.toFixed(2);
-            deltaClass = "delta-good";
-          } else {
-            delta = "+" + diff.toFixed(2);
-            deltaClass = "delta-bad";
-          }
+      if (deltaMode === "accomplishments") {
+        if (timeSec > bSec) {
+          // Slower than B
+          delta = "+" + (timeSec - bSec).toFixed(2);
+          deltaClass = "delta-bad";
+        } else if (timeSec > bbSec) {
+          // Meets B, not BB
+          delta = "B " + (timeSec - bSec).toFixed(2);
+          deltaClass = "delta-good";
+        } else {
+          // Meets BB
+          delta = "BB " + (timeSec - bbSec).toFixed(2);
+          deltaClass = "delta-good";
         }
+      } else {
+        // Targets mode: show current level (green) and, if not BB, time to next level (plain white)
+        if (timeSec <= bbSec && bb) {
+          delta = `<span style="color:#39c570;font-weight:bold;">BB</span>`;
+        } else if (timeSec <= bSec && b) {
+          delta = `<span style="color:#39c570;font-weight:bold;">B</span>`;
+          if (bb) {
+            delta += `<span style="color:#fff;">; ${(timeSec - bbSec).toFixed(2)} to BB</span>`;
+          }
+        } else if (b) {
+          delta = `<span style="color:#fff;">${(timeSec - bSec).toFixed(2)} to B</span>`;
+          if (bb) {
+            delta += `<span style="color:#fff;">; ${(timeSec - bbSec).toFixed(2)} to BB</span>`;
+          }
+        } else {
+          delta = "";
+        }
+        deltaClass = "";
       }
       rows += `<tr>
         <td>${ev} ${fmtType}</td>
-        <td class="${timeClass}">${fmt(candidate.time)}</td>
+        <td class="${timeClass}">${fmt(timeVal)}</td>
         <td class="${deltaClass}">${delta}</td>
       </tr>`;
     }
@@ -225,7 +287,6 @@ function renderStrokes(currentStroke) {
   nameBtn.className = 'name-btn';
   nameBtn.innerText = SWIMMERS[swimmerKey].name.split(' ')[0];
   nameBtn.onclick = () => {
-    // Next swimmer, cycle back to zero
     const nextIndex = (swimmerIndex + 1) % SWIMMER_KEYS.length;
     setSwimmer(nextIndex);
     renderTable(currentStroke);
@@ -239,6 +300,7 @@ function renderStrokes(currentStroke) {
     btn.className = 'stroke-btn' + (sc === currentStroke ? ' active' : '');
     btn.innerText = STROKE_BTN_LABELS[sc];
     btn.onclick = () => {
+      window.currentStroke = sc;
       renderTable(sc);
       renderStrokes(sc);
     };
@@ -246,14 +308,16 @@ function renderStrokes(currentStroke) {
   });
 }
 
-async function main() {
+document.addEventListener("DOMContentLoaded", async () => {
   await fetchAllData();
-  let currentStroke = STROKES[0];
-  renderTable(currentStroke);
-  renderStrokes(currentStroke);
-}
-
-main();
+  window.currentStroke = STROKES[0];
+  renderTable(window.currentStroke);
+  renderStrokes(window.currentStroke);
+  document.getElementById('deltaModeBtn').onclick = () => {
+    deltaMode = (deltaMode === "accomplishments") ? "targets" : "accomplishments";
+    renderTable(window.currentStroke);
+  };
+});
 </script>
 </body>
 </html>
