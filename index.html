@@ -22,14 +22,14 @@
       border-radius: 20px;
       box-shadow: 0 4px 20px #000a;
       overflow: hidden;
-      min-width: 380px;
+      min-width: 420px;
     }
     .left {
       padding: 24px 0 24px 24px;
     }
     .table {
       border-collapse: collapse;
-      min-width: 240px;
+      min-width: 280px;
     }
     .table th, .table td {
       font-size: 15px;
@@ -39,6 +39,21 @@
     .table th { color: #aaa; font-weight: 600;}
     .official { color: #fff; font-weight: bold;}
     .unofficial { color: #aaa; font-weight: bold;}
+    .level-cell {
+      width: 26px;
+      text-align: center;
+      padding-left: 0; padding-right: 0;
+    }
+    .level-bb {
+      color: #39c570;
+      font-weight: bold;
+      font-size: 15px;
+    }
+    .level-b {
+      color: #39c570;
+      font-weight: bold;
+      font-size: 15px;
+    }
     .delta-good { color: #39c570; }
     .delta-bad { color: #ff3333; }
     .delta-empty { color: #fff;}
@@ -113,6 +128,7 @@
         <tr>
           <th>Event</th>
           <th>Time</th>
+          <th class="level-cell"></th>
           <th>
             <button id="deltaModeBtn" class="delta-btn" title="Switch mode">Δ</button>
           </th>
@@ -147,8 +163,6 @@ const STROKE_LABELS = {
 const STROKE_BTN_LABELS = {
   "FR":"Free", "BK":"Back", "BR":"Breast", "FL":"Fly", "IM":"IM"
 };
-const EVENTS = [50, 100, 200, 400, 500, 800, 1000, 1500, 1650];
-const FORMATS = ["SCY", "LCM"];
 
 const TIMES_URL = "./times.json";
 const UNOFFICIAL_URL = "./unofficial_times.json";
@@ -201,78 +215,83 @@ function getStandards(strokeFull, fmtType, ev) {
   };
 }
 
+// Helper: get the list of event distances per stroke & format, in your desired order
+function getEventList(strokeFull, fmtType) {
+  if (strokeFull === "Freestyle") {
+    if (fmtType === "SCY") return [50,100,200,500,1000,1650];
+    if (fmtType === "LCM") return [50,100,200,400,800,1500];
+  }
+  if (strokeFull === "Backstroke" || strokeFull === "Breaststroke" || strokeFull === "Butterfly") {
+    return [50,100,200];
+  }
+  if (strokeFull === "IM") {
+    if (fmtType === "SCY") return [100,200,400];
+    if (fmtType === "LCM") return [200,400];
+  }
+  return [];
+}
+
 function renderTable(strokeCode) {
   const strokeFull = STROKE_LABELS[strokeCode];
   let rows = '';
-  for (let fmtType of FORMATS) {
-    // Get list of events per stroke and format
-    let evList = [];
-    if (strokeFull === "Freestyle") {
-      evList = fmtType === "SCY" ? [50,100,200,500,1000,1650] : [50,100,200,400,800,1500];
-    } else if (strokeFull === "Backstroke" || strokeFull === "Breaststroke" || strokeFull === "Butterfly") {
-      evList = [50,100,200];
-    } else if (strokeFull === "IM") {
-      evList = fmtType === "SCY" ? [100,200,400] : [200,400];
-    }
-    // Add relay events
-    if (strokeFull === "Freestyle Relay") evList = [200,400];
-    if (strokeFull === "Medley Relay") evList = [200,400];
+  // Order: LCM first, SCY second
+  const FORMATS_ORDERED = ["LCM", "SCY"];
+  for (let fmtType of FORMATS_ORDERED) {
+    const evList = getEventList(strokeFull, fmtType);
     for (let ev of evList) {
       const {b, bb} = getStandards(strokeFull, fmtType, ev);
-      if (b == null && bb == null) continue;
+      if (b == null) continue; // Only show events with B standard
       const eventKey = `${ev} ${strokeCode} ${fmtType}`;
       const times = officialTimes.concat(unofficialTimes).filter(r=>r.event === eventKey);
-      if (!times.length) {
-        rows += `<tr>
-          <td>${ev} ${fmtType}</td>
-          <td>—</td>
-          <td></td>
-        </tr>`;
-        continue;
+      let timeVal = '', timeSec = Infinity, candidate = null, levelHTML = '';
+      if (times.length) {
+        candidate = times.sort((a,b)=>parseSec(a.time)-parseSec(b.time))[0];
+        timeVal = candidate.time;
+        timeSec = parseSec(timeVal);
       }
-      const candidate = times.sort((a,b)=>parseSec(a.time)-parseSec(b.time))[0];
-      const timeVal = candidate.time;
-      const timeSec = parseSec(timeVal);
       const bSec = b ? parseSec(b) : Infinity;
       const bbSec = bb ? parseSec(bb) : Infinity;
-      const timeClass = candidate.unofficial ? 'unofficial' : 'official';
+      const timeClass = candidate && candidate.unofficial ? 'unofficial' : 'official';
+
+      // Level column logic
+      if (timeSec <= bbSec && bb) {
+        levelHTML = `<span class="level-bb">BB</span>`;
+      } else if (timeSec <= bSec && b) {
+        levelHTML = `<span class="level-b">B</span>`;
+      } else {
+        levelHTML = "";
+      }
+
+      // Delta column logic
       let delta = '', deltaClass = 'delta-empty';
-      if (deltaMode === "accomplishments") {
+      if (!timeVal) {
+        delta = '';
+      } else if (deltaMode === "accomplishments") {
         if (timeSec > bSec) {
-          // Slower than B
           delta = "+" + (timeSec - bSec).toFixed(2);
           deltaClass = "delta-bad";
         } else if (timeSec > bbSec) {
-          // Meets B, not BB
           delta = "B " + (timeSec - bSec).toFixed(2);
           deltaClass = "delta-good";
         } else {
-          // Meets BB
           delta = "BB " + (timeSec - bbSec).toFixed(2);
           deltaClass = "delta-good";
         }
       } else {
-        // Targets mode: show current level (green) and, if not BB, time to next level (plain white)
-        if (timeSec <= bbSec && bb) {
-          delta = `<span style="color:#39c570;font-weight:bold;">BB</span>`;
-        } else if (timeSec <= bSec && b) {
-          delta = `<span style="color:#39c570;font-weight:bold;">B</span>`;
-          if (bb) {
-            delta += `<span style="color:#fff;">; ${(timeSec - bbSec).toFixed(2)} to BB</span>`;
-          }
-        } else if (b) {
-          delta = `<span style="color:#fff;">${(timeSec - bSec).toFixed(2)} to B</span>`;
-          if (bb) {
-            delta += `<span style="color:#fff;">; ${(timeSec - bbSec).toFixed(2)} to BB</span>`;
-          }
+        // targets mode: only show closest "to next" (do NOT show multi deltas)
+        if (timeSec > bSec) {
+          delta = (timeSec - bSec).toFixed(2) + " to B";
+        } else if (timeSec > bbSec) {
+          delta = (timeSec - bbSec).toFixed(2) + " to BB";
         } else {
-          delta = "";
+          delta = ""; // Already BB or better, nothing to show
         }
         deltaClass = "";
       }
       rows += `<tr>
         <td>${ev} ${fmtType}</td>
         <td class="${timeClass}">${fmt(timeVal)}</td>
+        <td class="level-cell">${levelHTML}</td>
         <td class="${deltaClass}">${delta}</td>
       </tr>`;
     }
