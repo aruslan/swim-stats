@@ -5,119 +5,29 @@
   <title>Swim Stats</title>
   <meta name="viewport" content="width=400, initial-scale=1">
   <style>
-    body {
-      background: #000;
-      color: #fff;
-      font-family: system-ui, sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-    }
-    .container {
-      display: flex;
-      flex-direction: row;
-      margin: 30px 0;
-      background: #111;
-      border-radius: 20px;
-      box-shadow: 0 4px 20px #000a;
-      overflow: hidden;
-      min-width: 420px;
-    }
-    .left {
-      padding: 24px 0 24px 24px;
-    }
-    .table {
-      border-collapse: collapse;
-      min-width: 280px;
-    }
-    .table th, .table td {
-      font-size: 15px;
-      padding: 2px 8px;
-      text-align: right;
-    }
-    .table th { color: #aaa; font-weight: 600;}
-    .official { color: #fff; font-weight: bold;}
-    .unofficial { color: #aaa; font-weight: bold;}
-    .level-cell {
-      width: 26px;
-      text-align: center;
-      padding-left: 0; padding-right: 0;
-    }
-    .level-bb {
-      color: #39c570;
-      font-weight: bold;
-      font-size: 15px;
-    }
-    .level-b {
-      color: #39c570;
-      font-weight: bold;
-      font-size: 15px;
-    }
-    .delta-good { color: #39c570; }
-    .delta-bad { color: #ff3333; }
-    .delta-empty { color: #fff;}
-    .right {
-      background: #000;
-      padding: 24px 24px 24px 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 80px;
-      border-left: 2px solid #222;
-    }
-    .name-btn {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      margin-bottom: 24px;
-      margin-top: 6px;
-      text-align: center;
-      background: none;
-      border: none;
-      color: #fff;
-      width: 60px;
-      padding: 8px 0;
-      cursor: pointer;
-      border-radius: 8px;
-      transition: background .1s;
-    }
-    .name-btn:hover, .name-btn:focus {
-      background: #232;
-      outline: none;
-    }
-    .stroke-btn {
-      display: block;
-      width: 60px;
-      margin: 3px 0;
-      padding: 5px 0;
-      border: none;
-      border-radius: 9px;
-      background: none;
-      color: #aaa;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background .12s, color .12s;
-      text-align: center;
-    }
-    .stroke-btn.active {
-      background: #39c570;
-      color: #fff;
-    }
-    .stroke-btn:focus { outline: none; }
-    .delta-btn {
-      all: unset;
-      cursor: pointer;
-      color: #aaa;
-      font-size: 15px;
-      padding: 0 6px;
-      border-radius: 5px;
-      transition: background .1s;
-    }
-    .delta-btn:hover, .delta-btn:focus {
-      background: #232;
-    }
+    body { background: #000; color: #fff; font-family: system-ui,sans-serif; margin:0; padding:0; display:flex; justify-content:center;}
+    .container { display:flex; flex-direction:row; margin:30px 0; background:#111; border-radius:20px; box-shadow:0 4px 20px #000a; overflow:hidden; min-width:620px;}
+    .left { padding:24px 0 24px 24px;}
+    .table { border-collapse:collapse; min-width:380px;}
+    .table th, .table td { font-size:15px; padding:2px 8px; text-align:right;}
+    .table th { color:#aaa; font-weight:600;}
+    .official { color:#fff; font-weight:bold;}
+    .unofficial { color:#aaa; font-weight:bold;}
+    .level-cell { width:26px; text-align:center; padding-left:0; padding-right:0;}
+    .level-bb, .level-b { color:#39c570; font-weight:bold; font-size:15px;}
+    .delta-good { color:#39c570; }
+    .delta-bad { color:#ff3333; }
+    .delta-empty { color:#fff;}
+    .stroke-highlight { background:#244 !important; }
+    .right { background:#000; padding:24px 24px 24px 0; display:flex; flex-direction:column; align-items:center; min-width:80px; border-left:2px solid #222;}
+    .name-btn { font-size:22px; font-weight:700; letter-spacing:1px; margin-bottom:24px; margin-top:6px; text-align:center; background:none; border:none; color:#fff; width:60px; padding:8px 0; cursor:pointer; border-radius:8px; transition:background .1s;}
+    .name-btn:hover, .name-btn:focus { background:#232; outline:none;}
+    .stroke-btn { display:block; width:60px; margin:3px 0; padding:5px 0; border:none; border-radius:9px; background:none; color:#aaa; font-size:15px; font-weight:600; cursor:pointer; transition:background .12s, color .12s; text-align:center;}
+    .stroke-btn.active { background:#39c570; color:#fff;}
+    .stroke-btn:focus { outline:none;}
+    .delta-btn { all:unset; cursor:pointer; color:#aaa; font-size:15px; padding:0 6px; border-radius:5px; transition:background .1s;}
+    .delta-btn:hover, .delta-btn:focus { background:#232;}
+    .format-label { color:#8bc; font-size:13px; margin-right:8px;}
   </style>
 </head>
 <body>
@@ -127,6 +37,7 @@
       <thead>
         <tr>
           <th>Event</th>
+          <th>Format</th>
           <th>Time</th>
           <th class="level-cell"></th>
           <th>
@@ -137,9 +48,7 @@
       <tbody></tbody>
     </table>
   </div>
-  <div class="right" id="strokesCol">
-    <!-- Buttons and name will be injected here -->
-  </div>
+  <div class="right" id="strokesCol"></div>
 </div>
 <script>
 const SWIMMERS = {
@@ -163,6 +72,7 @@ const STROKE_LABELS = {
 const STROKE_BTN_LABELS = {
   "FR":"Free", "BK":"Back", "BR":"Breast", "FL":"Fly", "IM":"IM"
 };
+const FORMATS_ORDERED = ["LCM", "SCY"];
 
 const TIMES_URL = "./times.json";
 const UNOFFICIAL_URL = "./unofficial_times.json";
@@ -171,8 +81,8 @@ const BB_URL = "./bb_times_11_12.json";
 
 let bTimes = {}, bbTimes = {}, allOfficialTimes = [], allUnofficialTimes = [];
 let officialTimes = [], unofficialTimes = [];
-let deltaMode = "accomplishments";
-let currentStroke = STROKES[0];
+let deltaMode = "targets";
+let highlightedStroke = null;
 
 function parseTime(s) {
   if (!s) return Infinity;
@@ -208,96 +118,107 @@ function setSwimmer(index) {
   unofficialTimes = allUnofficialTimes.filter(r => r.name === swimmerName).map(r=>({...r, unofficial:true}));
 }
 
+// Get all (stroke,format,distance) where B time exists
+function getAllBEvents() {
+  const result = [];
+  for (let stroke of STROKES) {
+    const strokeFull = STROKE_LABELS[stroke];
+    for (let fmtType of FORMATS_ORDERED) {
+      const bByEvent = bTimes[strokeFull]?.[fmtType] || {};
+      for (let ev in bByEvent) {
+        result.push({ stroke, strokeFull, fmtType, ev: Number(ev) });
+      }
+    }
+  }
+  // sort by stroke, then format, then distance
+  result.sort((a, b) => {
+    if (a.stroke !== b.stroke) return STROKES.indexOf(a.stroke) - STROKES.indexOf(b.stroke);
+    if (a.fmtType !== b.fmtType) return FORMATS_ORDERED.indexOf(a.fmtType) - FORMATS_ORDERED.indexOf(b.fmtType);
+    return a.ev - b.ev;
+  });
+  return result;
+}
+
 function getStandards(strokeFull, fmtType, ev) {
   return {
     b: bTimes[strokeFull]?.[fmtType]?.[String(ev)] || null,
     bb: bbTimes[strokeFull]?.[fmtType]?.[String(ev)] || null
   };
 }
-
-function getEventList(strokeFull, fmtType) {
-  if (strokeFull === "Freestyle") {
-    if (fmtType === "SCY") return [50,100,200,500,1000,1650];
-    if (fmtType === "LCM") return [50,100,200,400,800,1500];
+function getLevel(timeSec, bSec, bbSec) {
+  if (timeSec <= bbSec && isFinite(bbSec)) return "BB";
+  if (timeSec <= bSec && isFinite(bSec)) return "B";
+  return "";
+}
+function getDelta(timeSec, bSec, bbSec, mode) {
+  if (!isFinite(timeSec) || !isFinite(bSec)) return { text: "", cls: "delta-empty" };
+  if (mode === "targets") {
+    if (timeSec > bSec) {
+      return { text: `B+${(timeSec-bSec).toFixed(2)}`, cls: "delta-empty" };
+    } else if (isFinite(bbSec) && timeSec > bbSec) {
+      return { text: `BB+${(timeSec-bbSec).toFixed(2)}`, cls: "delta-empty" };
+    } else {
+      return { text: "", cls: "delta-empty" };
+    }
+  } else {
+    if (timeSec > bSec) {
+      return { text: "+"+(timeSec-bSec).toFixed(2), cls: "delta-bad" };
+    } else if (isFinite(bbSec) && timeSec > bbSec) {
+      return { text: "-"+(bSec-timeSec).toFixed(2), cls: "delta-good" };
+    } else if (isFinite(bbSec) && timeSec <= bbSec) {
+      return { text: "-"+(bbSec-timeSec).toFixed(2), cls: "delta-good" };
+    } else {
+      return { text: "", cls: "delta-empty" };
+    }
   }
-  if (strokeFull === "Backstroke" || strokeFull === "Breaststroke" || strokeFull === "Butterfly") {
-    return [50,100,200];
-  }
-  if (strokeFull === "IM") {
-    if (fmtType === "SCY") return [100,200,400];
-    if (fmtType === "LCM") return [200,400];
-  }
-  return [];
 }
 
-function renderTable(strokeCode) {
-  const strokeFull = STROKE_LABELS[strokeCode];
+function renderTable() {
+  const allEvents = getAllBEvents();
   let rows = '';
-  const FORMATS_ORDERED = ["LCM", "SCY"];
-  for (let fmtType of FORMATS_ORDERED) {
-    const evList = getEventList(strokeFull, fmtType);
-    for (let ev of evList) {
-      const {b, bb} = getStandards(strokeFull, fmtType, ev);
-      if (b == null) continue;
-      const eventKey = `${ev} ${strokeCode} ${fmtType}`;
-      const times = officialTimes.concat(unofficialTimes).filter(r=>r.event === eventKey);
-      let timeVal = '', timeSec = Infinity, candidate = null, levelHTML = '';
-      if (times.length) {
-        candidate = times.sort((a,b)=>parseSec(a.time)-parseSec(b.time))[0];
-        timeVal = candidate.time;
-        timeSec = parseSec(timeVal);
-      }
-      const bSec = b ? parseSec(b) : Infinity;
-      const bbSec = bb ? parseSec(bb) : Infinity;
-      const timeClass = candidate && candidate.unofficial ? 'unofficial' : 'official';
-
-      // Level column logic
-      if (timeSec <= bbSec && bb) {
-        levelHTML = `<span class="level-bb">BB</span>`;
-      } else if (timeSec <= bSec && b) {
-        levelHTML = `<span class="level-b">B</span>`;
-      } else {
-        levelHTML = "";
-      }
-
-      // Delta column logic (NEW!)
-      let delta = '', deltaClass = 'delta-empty';
-      if (!timeVal) {
-        delta = '';
-      } else if (deltaMode === "accomplishments") {
-        if (timeSec > bSec) {
-          delta = "+" + (timeSec - bSec).toFixed(2);
-          deltaClass = "delta-bad";
-        } else if (timeSec > bbSec) {
-          delta = "-" + (bSec - timeSec).toFixed(2);
-          deltaClass = "delta-good";
-        } else {
-          delta = "-" + (bbSec - timeSec).toFixed(2);
-          deltaClass = "delta-good";
-        }
-      } else {
-        // targets mode: only show closest "to next" (do NOT show multi deltas)
-        if (timeSec > bSec) {
-          delta = (timeSec - bSec).toFixed(2) + " to B";
-        } else if (timeSec > bbSec) {
-          delta = (timeSec - bbSec).toFixed(2) + " to BB";
-        } else {
-          delta = ""; // Already BB or better, nothing to show
-        }
-        deltaClass = "";
-      }
-      rows += `<tr>
-        <td>${ev} ${fmtType}</td>
-        <td class="${timeClass}">${fmt(timeVal)}</td>
-        <td class="level-cell">${levelHTML}</td>
-        <td class="${deltaClass}">${delta}</td>
-      </tr>`;
+  for (let e of allEvents) {
+    const { stroke, strokeFull, fmtType, ev } = e;
+    const {b, bb} = getStandards(strokeFull, fmtType, ev);
+    const eventKey = `${ev} ${stroke} ${fmtType}`;
+    const times = officialTimes.concat(unofficialTimes).filter(r=>r.event === eventKey);
+    let timeVal = '', timeSec = Infinity, candidate = null, levelHTML = '';
+    if (times.length) {
+      candidate = times.sort((a,b)=>parseSec(a.time)-parseSec(b.time))[0];
+      timeVal = candidate.time;
+      timeSec = parseSec(timeVal);
     }
+    const bSec = b ? parseSec(b) : Infinity;
+    const bbSec = bb ? parseSec(bb) : Infinity;
+    const timeClass = candidate && candidate.unofficial ? 'unofficial' : 'official';
+
+    // Level
+    let level = getLevel(timeSec, bSec, bbSec);
+    if (level === "BB") {
+      levelHTML = `<span class="level-bb">BB</span>`;
+    } else if (level === "B") {
+      levelHTML = `<span class="level-b">B</span>`;
+    } else {
+      levelHTML = "";
+    }
+
+    // Delta
+    const { text: delta, cls: deltaClass } = getDelta(timeSec, bSec, bbSec, deltaMode);
+
+    // Highlight row if stroke is highlighted
+    const trClass = (highlightedStroke && highlightedStroke === stroke) ? "stroke-highlight" : "";
+
+    rows += `<tr class="${trClass}">
+      <td>${ev} ${stroke}</td>
+      <td>${fmtType}</td>
+      <td class="${timeClass}">${fmt(timeVal)}</td>
+      <td class="level-cell">${levelHTML}</td>
+      <td class="${deltaClass}">${delta}</td>
+    </tr>`;
   }
   document.querySelector('#statsTable tbody').innerHTML = rows;
 }
 
-function renderStrokes(currentStroke) {
+function renderStrokes() {
   const col = document.getElementById('strokesCol');
   col.innerHTML = '';
   // Name as a button
@@ -307,20 +228,20 @@ function renderStrokes(currentStroke) {
   nameBtn.onclick = () => {
     const nextIndex = (swimmerIndex + 1) % SWIMMER_KEYS.length;
     setSwimmer(nextIndex);
-    renderTable(currentStroke);
-    renderStrokes(currentStroke);
+    renderTable();
+    renderStrokes();
   };
   col.appendChild(nameBtn);
 
   // Stroke buttons
   STROKES.forEach(sc => {
     const btn = document.createElement('button');
-    btn.className = 'stroke-btn' + (sc === currentStroke ? ' active' : '');
+    btn.className = 'stroke-btn' + (highlightedStroke === sc ? ' active' : '');
     btn.innerText = STROKE_BTN_LABELS[sc];
     btn.onclick = () => {
-      window.currentStroke = sc;
-      renderTable(sc);
-      renderStrokes(sc);
+      highlightedStroke = (highlightedStroke === sc) ? null : sc;
+      renderTable();
+      renderStrokes();
     };
     col.appendChild(btn);
   });
@@ -328,12 +249,11 @@ function renderStrokes(currentStroke) {
 
 document.addEventListener("DOMContentLoaded", async () => {
   await fetchAllData();
-  window.currentStroke = STROKES[0];
-  renderTable(window.currentStroke);
-  renderStrokes(window.currentStroke);
+  renderTable();
+  renderStrokes();
   document.getElementById('deltaModeBtn').onclick = () => {
-    deltaMode = (deltaMode === "accomplishments") ? "targets" : "accomplishments";
-    renderTable(window.currentStroke);
+    deltaMode = (deltaMode === "targets") ? "accomplishments" : "targets";
+    renderTable();
   };
 });
 </script>
