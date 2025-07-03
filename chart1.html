@@ -44,12 +44,11 @@
       return new Date(`${y}-${m.padStart(2, '0')}-${d2.padStart(2, '0')}`);
     }
     // Parse swim time string to seconds
-    function parseTime(str) {
-  if (typeof str !== "string") {
-    console.warn("parseTime called with", str, typeof str);
-  }
+function parseTime(str) {
+  if (str == null) return null;              // null/undefined
+  if (typeof str === "number") return str;   // already parsed
+  str = String(str).trim();
   if (!str) return null;
-  str = String(str);
   if (str.includes(':')) {
     let [min, sec] = str.split(':');
     return parseInt(min) * 60 + parseFloat(sec);
