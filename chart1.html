@@ -49,7 +49,6 @@
       if (typeof t === "number" && !isNaN(t)) return t.toFixed(2);
       return orig;
     }
-    // Tooltip logic
     function getTooltipLines(ctx) {
       const pt = ctx.raw;
       if (!pt || !pt.raw) return [];
@@ -63,7 +62,7 @@
       const v = parseTime(pt.y);
       const b = parseTime(pt.b);
       const bb = parseTime(pt.bb);
-      // If both exist, show both if relevant
+      // Show deltas if B/BB present:
       if (isFinite(b) && v > b) {
         lines.push(`Δ to B: ${(v - b).toFixed(2)} sec`);
       } else if (isFinite(b)) {
@@ -98,7 +97,7 @@
     });
 
     function getEventParts(evStr) {
-      // e.g. "100 BR LCM"
+      // e.g. "100 FR LCM"
       let m = evStr.match(/^(\d+)\s+([A-Z]+)\s+([A-Z]+)$/);
       if (!m) return {};
       return { dist: m[1], stroke: m[2], fmt: m[3] };
@@ -111,7 +110,6 @@
         "FL": "Butterfly",
         "IM": "IM"
       }[stroke] || stroke;
-      // always look up string keys!
       return {
         b: bTimes?.[stFull]?.[fmt]?.[String(dist)] ?? null,
         bb: bbTimes?.[stFull]?.[fmt]?.[String(dist)] ?? null
@@ -153,10 +151,16 @@
           x: r.dateX, y: r.y, raw: r, b: r.b, bb: r.bb
         }));
 
-        // Recompute B/BB for THIS event, as a float, only if present and finite
-        let any = arr[0];
-        let yB = (any && isFinite(parseTime(any.b))) ? parseTime(any.b) : null;
-        let yBB = (any && isFinite(parseTime(any.bb))) ? parseTime(any.bb) : null;
+        // Find first valid B/BB for this event!
+        let yB = null, yBB = null;
+        for (const r of arr) {
+          const bval = parseTime(r.b);
+          if (isFinite(bval)) { yB = bval; break; }
+        }
+        for (const r of arr) {
+          const bbval = parseTime(r.bb);
+          if (isFinite(bbval)) { yBB = bbval; break; }
+        }
 
         // Only draw standards if value is meaningful (> 0, < Infinity)
         const block = document.createElement('div');
