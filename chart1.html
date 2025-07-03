@@ -45,12 +45,11 @@
       return parseFloat(str);
     }
     function fmtSwimTime(t, orig) {
-      // If original has ":" return as-is, else round to 2 decimals
       if (orig && typeof orig === "string" && orig.includes(':')) return orig;
       if (typeof t === "number" && !isNaN(t)) return t.toFixed(2);
       return orig;
     }
-    // --- Tooltip logic for clean deltas ---
+    // --- Tooltip logic ---
     function getTooltipLines(ctx) {
       const pt = ctx.raw;
       if (!pt || !pt.raw) return [];
@@ -60,23 +59,38 @@
       lines.push(`Time: ${fmtSwimTime(pt.y, r.time)} sec`);
       lines.push(`Meet: ${r.meet}`);
       if (r.time_standard) lines.push(`Standard: ${r.time_standard}`);
-      // Delta to B/BB
+      // Delta to B/BB logic:
       const v = pt.y;
       const b = parseTime(pt.b);
       const bb = parseTime(pt.bb);
-
-      if (isFinite(b)) {
-        lines.push(`Δ to B: ${Math.abs(v - b).toFixed(2)} sec`);
-      }
-      if (isFinite(bb)) {
-        lines.push(`Δ to BB: ${Math.abs(v - bb).toFixed(2)} sec`);
+      // If no standards, don't show deltas
+      if (isFinite(b) && isFinite(bb)) {
+        if (v > b) {
+          lines.push(`Δ to B: ${(v - b).toFixed(2)} sec`);
+        } else if (v > bb) {
+          lines.push(`Δ to B: 0.00 sec`);
+          lines.push(`Δ to BB: ${(v - bb).toFixed(2)} sec`);
+        } else {
+          lines.push(`Δ to B: 0.00 sec`);
+          lines.push(`Δ to BB: 0.00 sec`);
+        }
+      } else if (isFinite(b)) {
+        if (v > b) {
+          lines.push(`Δ to B: ${(v - b).toFixed(2)} sec`);
+        } else {
+          lines.push(`Δ to B: 0.00 sec`);
+        }
+      } else if (isFinite(bb)) {
+        if (v > bb) {
+          lines.push(`Δ to BB: ${(v - bb).toFixed(2)} sec`);
+        } else {
+          lines.push(`Δ to BB: 0.00 sec`);
+        }
       }
       return lines;
     }
 
-    // --- Main ---
     let swimmerData, bTimes, bbTimes;
-    // Fetch data and build chart
     Promise.all([
       fetch('times.json').then(r=>r.json()),
       fetch('b_times_11_12.json').then(r=>r.json()),
@@ -89,13 +103,11 @@
     });
 
     function getEventParts(evStr) {
-      // Example: "50 FR SCY" => {dist:"50", stroke:"FR", fmt:"SCY"}
       let m = evStr.match(/^(\d+)\s+([A-Z]+)\s+([A-Z]+)$/);
       if (!m) return {};
       return { dist: m[1], stroke: m[2], fmt: m[3] };
     }
     function getStandards(stroke, fmt, dist) {
-      // B/BB time from standards
       const stFull = {
         "FR": "Freestyle",
         "BK": "Backstroke",
@@ -110,7 +122,6 @@
     }
 
     function setupPage() {
-      // Build swimmer select
       const swimmers = Array.from(new Set(swimmerData.map(r => r.name))).sort();
       const select = document.getElementById('swimmer-select');
       select.innerHTML = swimmers.map(s => `<option value="${s}">${s}</option>`).join('');
@@ -140,24 +151,19 @@
       chartsDiv.innerHTML = '';
 
       Object.entries(byEvent).forEach(([ev, arr], idx) => {
-        // Sort by date
         arr.sort((a, b) => a.dateX - b.dateX);
-        // Build datasets
         const dataPoints = arr.map(r => ({
           x: r.dateX, y: r.y, raw: r
         }));
 
-        // Get B and BB line
         const any = arr[0];
         let yB = any && isFinite(parseTime(any.b)) ? parseTime(any.b) : null;
         let yBB = any && isFinite(parseTime(any.bb)) ? parseTime(any.bb) : null;
 
-        // Chart block
         const block = document.createElement('div');
         block.className = 'chart-block';
         block.innerHTML = `<div class="chart-title">${ev}</div><canvas id="chart${idx}" height="220"></canvas>`;
         chartsDiv.appendChild(block);
-        // Build chart
         new Chart(block.querySelector('canvas').getContext('2d'), {
           type: 'line',
           data: {
@@ -198,11 +204,9 @@
               tooltip: {
                 callbacks: {
                   label: function(ctx) {
-                    // Only custom for the first dataset (main times)
                     if (ctx.datasetIndex === 0) {
-                      return getTooltipLines(ctx).join('\n');
+                      return getTooltipLines(ctx);
                     }
-                    // For B/BB just show their label
                     return `${ctx.dataset.label}: ${ctx.parsed.y}`;
                   }
                 }
