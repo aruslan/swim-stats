@@ -2,238 +2,260 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Swim Time Progression</title>
+  <title>Swim Progression Charts</title>
   <meta name="viewport" content="width=600, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   <style>
-    body { background: #fff; color: #222; font-family: system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh;}
-    .container { max-width: 900px; margin: 32px auto; background: #f7f7f7; padding: 24px 12px 32px 12px; border-radius: 16px; box-shadow: 0 4px 20px #0002;}
-    select { font-size: 1em; margin-bottom: 1.5em; margin-right: 1em; padding: 0.2em 0.5em;}
-    h1 { font-size: 2em; font-weight: 800; margin: 0 0 24px 0; text-align: center;}
-    .chart-block { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; margin-bottom: 32px; padding: 24px 18px 10px 18px;}
-    .chart-title { font-size: 1.18em; font-weight: 700; text-align: left; margin-bottom: 0.6em; margin-top: 0.2em; color: #1976d2; letter-spacing: 0.04em;}
-    @media (max-width: 700px) {
-      .container { padding: 5px 0; }
-      .chart-block { padding: 8px 0 2px 0; }
-    }
+    body { background: #fff; color: #222; font-family: system-ui, sans-serif; margin: 0; padding: 0 0 4em 0; }
+    .container { max-width: 800px; margin: 2em auto; }
+    .chart-block { background: #f9f9f9; margin-bottom: 2em; border-radius: 16px; box-shadow: 0 2px 10px #0001; padding: 1.5em; }
+    .chart-title { font-weight: bold; margin-bottom: 1em; font-size: 1.2em;}
+    .swimmer-select { font-size: 1em; margin-bottom: 1.5em; }
+    canvas { max-width: 100%; height: 260px !important; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>Swim Time Progression</h1>
-    <label for="swimmer-select"><b>Swimmer:</b></label>
-    <select id="swimmer-select"></select>
-    <div id="charts"></div>
-  </div>
-  <script>
-    function parseDate(str) {
-      if (!str) return null;
-      if (typeof str !== "string") return null;
-      if (str.includes('-')) return new Date(str);
-      let [m, d, y] = str.split('/');
-      return new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`);
-    }
-    function parseTime(str) {
-      if (str == null) return null;
-      if (typeof str === "number") return str;
-      str = String(str);
-      if (str.includes(':')) {
-        let [m, s] = str.split(':');
-        return parseInt(m) * 60 + parseFloat(s);
-      }
-      return parseFloat(str);
-    }
-    function fmtSwimTime(t, orig) {
-      if (orig && typeof orig === "string" && orig.includes(':')) return orig;
-      if (typeof t === "number" && !isNaN(t)) return t.toFixed(2);
-      return orig;
-    }
-    function getTooltipLines(ctx) {
-      const pt = ctx.raw;
-      if (!pt || !pt.raw) return [];
-      const r = pt.raw;
-      const lines = [];
-      lines.push(`Date: ${r.date}`);
-      lines.push(`Time: ${fmtSwimTime(pt.y, r.time)} sec`);
-      lines.push(`Meet: ${r.meet}`);
-      if (r.time_standard) lines.push(`Standard: ${r.time_standard}`);
-      // Delta to B/BB logic:
-      const v = parseTime(pt.y);
-      const b = parseTime(pt.b);
-      const bb = parseTime(pt.bb);
-      // Show deltas if B/BB present:
-      if (isFinite(b) && v > b) {
-        lines.push(`Δ to B: ${(v - b).toFixed(2)} sec`);
-      } else if (isFinite(b)) {
-        lines.push(`Δ to B: 0.00 sec`);
-        if (isFinite(bb)) {
-          if (v > bb) {
-            lines.push(`Δ to BB: ${(v - bb).toFixed(2)} sec`);
-          } else {
-            lines.push(`Δ to BB: 0.00 sec`);
-          }
-        }
-      } else if (isFinite(bb)) {
-        if (v > bb) {
-          lines.push(`Δ to BB: ${(v - bb).toFixed(2)} sec`);
-        } else {
-          lines.push(`Δ to BB: 0.00 sec`);
-        }
-      }
-      return lines;
-    }
+<div class="container">
+  <h1>Swim Progression Charts</h1>
+  <label><strong>Swimmer:</strong>
+    <select id="swimmer-select" class="swimmer-select"></select>
+  </label>
+  <div id="charts"></div>
+</div>
+<script>
+const STROKE_CODES = {
+  "Freestyle": "FR", "Backstroke": "BK", "Breaststroke": "BR", "Butterfly": "FL", "IM": "IM"
+};
+const SWIMMER_ORDER = ["Anna Abdikeeva", "Imari Racine", "Valerie Dronova"];
 
-    let swimmerData, bTimes, bbTimes;
-    Promise.all([
-      fetch('times.json').then(r=>r.json()),
-      fetch('b_times_11_12.json').then(r=>r.json()),
-      fetch('bb_times_11_12.json').then(r=>r.json()),
-    ]).then(([times, b, bb]) => {
-      swimmerData = times;
-      bTimes = b;
-      bbTimes = bb;
-      setupPage();
+function parseDate(d) {
+  if (!d) return new Date(0);
+  if (d instanceof Date) return d;
+  if (typeof d === "number") return new Date(d);
+  if (d.includes('-')) return new Date(d);
+  let [m, d2, y] = d.split('/');
+  return new Date(`${y}-${m.padStart(2, '0')}-${d2.padStart(2, '0')}`);
+}
+
+function parseTime(timeStr) {
+  // Accepts number, string in "M:SS.xx" or "SS.xx"
+  if (typeof timeStr === "number") return timeStr;
+  if (!timeStr) return NaN;
+  const str = String(timeStr).trim();
+  if (str.includes(':')) {
+    let [m, s] = str.split(':');
+    return parseInt(m) * 60 + parseFloat(s);
+  }
+  return parseFloat(str);
+}
+
+function fmtTime(secs) {
+  if (!isFinite(secs) || secs == null) return "—";
+  if (secs >= 60) {
+    let m = Math.floor(secs / 60), s = (secs % 60).toFixed(2).padStart(5, '0');
+    return `${m}:${s}`;
+  }
+  return secs.toFixed(2);
+}
+
+function fmtDate(d) {
+  if (!d) return "";
+  const dt = (d instanceof Date) ? d : parseDate(d);
+  return `${dt.getMonth()+1}/${dt.getDate()}/${String(dt.getFullYear()).slice(2)}`;
+}
+
+// Async main
+(async function() {
+  const [times, bTimes, bbTimes] = await Promise.all([
+    fetch('./times.json').then(r=>r.json()),
+    fetch('./b_times_11_12.json').then(r=>r.json()),
+    fetch('./bb_times_11_12.json').then(r=>r.json())
+  ]);
+
+  // --- Swimmer dropdown
+  const swimmers = Array.from(new Set(times.map(r=>r.name)));
+  swimmers.sort((a,b) => {
+    // Anna first, then as in order above, then others alpha
+    if (a === SWIMMER_ORDER[0]) return -1;
+    if (b === SWIMMER_ORDER[0]) return 1;
+    const ia = SWIMMER_ORDER.indexOf(a), ib = SWIMMER_ORDER.indexOf(b);
+    if (ia !== -1 && ib !== -1) return ia - ib;
+    if (ia !== -1) return -1;
+    if (ib !== -1) return 1;
+    return a.localeCompare(b);
+  });
+  const select = document.getElementById('swimmer-select');
+  select.innerHTML = swimmers.map(s =>
+    `<option value="${s}">${s}</option>`).join('');
+  select.value = SWIMMER_ORDER[0];
+
+  // --- Render all charts for swimmer
+  function renderAll(swimmer) {
+    const swimmerTimes = times.filter(r => r.name === swimmer);
+    // Group by [distance] [stroke code] [format]
+    const eventsByGroup = {};
+    swimmerTimes.forEach(r => {
+      // E.g. "100 FR LCM"
+      let [dist, stroke, fmt] = r.event.split(' ');
+      if (!dist || !stroke || !fmt) return; // skip
+      const groupKey = `${dist} ${stroke} ${fmt}`;
+      if (!eventsByGroup[groupKey]) eventsByGroup[groupKey] = [];
+      eventsByGroup[groupKey].push(r);
     });
 
-    function getEventParts(evStr) {
-      // e.g. "100 FR LCM"
-      let m = evStr.match(/^(\d+)\s+([A-Z]+)\s+([A-Z]+)$/);
-      if (!m) return {};
-      return { dist: m[1], stroke: m[2], fmt: m[3] };
-    }
-    function getStandards(stroke, fmt, dist) {
-      const stFull = {
-        "FR": "Freestyle",
-        "BK": "Backstroke",
-        "BR": "Breaststroke",
-        "FL": "Butterfly",
-        "IM": "IM"
-      }[stroke] || stroke;
-      return {
-        b: bTimes?.[stFull]?.[fmt]?.[String(dist)] ?? null,
-        bb: bbTimes?.[stFull]?.[fmt]?.[String(dist)] ?? null
+    const chartsDiv = document.getElementById('charts');
+    chartsDiv.innerHTML = '';
+
+    // --- For each event group, plot chart ---
+    Object.entries(eventsByGroup).forEach(([groupKey, swims], i) => {
+      let [distance, stroke, format] = groupKey.split(' ');
+      // Find full stroke name
+      let strokeFull = null;
+      for (const [full, code] of Object.entries(STROKE_CODES)) {
+        if (code === stroke) strokeFull = full;
       }
-    }
+      // Lookup standards
+      let bVal = undefined, bbVal = undefined;
+      if (strokeFull && bTimes[strokeFull] && bTimes[strokeFull][format]) {
+        bVal = bTimes[strokeFull][format][distance];
+        bbVal = bbTimes[strokeFull]?.[format]?.[distance];
+      }
 
-    function setupPage() {
-      const swimmers = Array.from(new Set(swimmerData.map(r => r.name))).sort();
-      const select = document.getElementById('swimmer-select');
-      select.innerHTML = swimmers.map(s => `<option value="${s}">${s}</option>`).join('');
-      select.value = swimmers[0];
-      select.onchange = () => renderCharts(select.value);
-      renderCharts(select.value);
-    }
+      // --- Debug logging for standards ---
+      console.log(`Processing group: ${groupKey}`);
+      console.log(`  Parsed: distance=${distance}, stroke=${stroke}, format=${format}, strokeFull=${strokeFull}`);
+      console.log(`  B standard: ${bVal}`);
+      console.log(`  BB standard: ${bbVal}`);
 
-    function renderCharts(swimmerName) {
-      const byEvent = {};
-      swimmerData.filter(r => r.name === swimmerName).forEach(r => {
-        let {dist, stroke, fmt} = getEventParts(r.event);
-        if (!(dist && stroke && fmt)) return;
-        const key = `${dist} ${stroke} ${fmt}`;
-        if (!byEvent[key]) byEvent[key] = [];
-        const standards = getStandards(stroke, fmt, dist);
-        byEvent[key].push({
-          ...r,
-          dateX: parseDate(r.date),
-          y: parseTime(r.time),
-          b: standards.b,
-          bb: standards.bb
-        });
-      });
-      // Clear charts
-      const chartsDiv = document.getElementById('charts');
-      chartsDiv.innerHTML = '';
+      // Prepare chart data
+      const swimData = swims.map(r => ({
+        x: parseDate(r.date),
+        y: parseTime(r.time),
+        date: r.date,
+        meet: r.meet,
+        time: r.time,
+        time_standard: r.time_standard
+      })).sort((a, b) => a.x - b.x);
 
-      Object.entries(byEvent).forEach(([ev, arr], idx) => {
-        arr.sort((a, b) => a.dateX - b.dateX);
-        const dataPoints = arr.map(r => ({
-          x: r.dateX, y: r.y, raw: r, b: r.b, bb: r.bb
-        }));
+      // Build chart block
+      const block = document.createElement('div');
+      block.className = 'chart-block';
+      const title = document.createElement('div');
+      title.className = 'chart-title';
+      title.textContent = `${distance} ${stroke} ${format}`;
+      block.appendChild(title);
 
-        // Find first valid B/BB for this event!
-        let yB = null, yBB = null;
-        for (const r of arr) {
-          const bval = parseTime(r.b);
-          if (isFinite(bval)) { yB = bval; break; }
-        }
-        for (const r of arr) {
-          const bbval = parseTime(r.bb);
-          if (isFinite(bbval)) { yBB = bbval; break; }
-        }
+      const canvas = document.createElement('canvas');
+      canvas.width = 600;
+      canvas.height = 250;
+      block.appendChild(canvas);
+      chartsDiv.appendChild(block);
 
-        // Only draw standards if value is meaningful (> 0, < Infinity)
-        const block = document.createElement('div');
-        block.className = 'chart-block';
-        block.innerHTML = `<div class="chart-title">${ev}</div><canvas id="chart${idx}" height="220"></canvas>`;
-        chartsDiv.appendChild(block);
-        new Chart(block.querySelector('canvas').getContext('2d'), {
-          type: 'line',
-          data: {
-            datasets: [
-              {
-                label: swimmerName,
-                data: dataPoints,
-                borderColor: '#1976d2',
-                backgroundColor: '#8ec9f8',
-                pointRadius: 5,
-                pointHoverRadius: 7,
-                tension: 0.17,
-                fill: false
-              },
-              ...(yB ? [{
-                label: "B Standard",
-                data: dataPoints.map(p => ({x:p.x, y:yB})),
-                borderColor: '#53cb67',
-                borderDash: [8, 6],
-                pointRadius: 0,
-                borderWidth: 2,
-                fill: false
-              }] : []),
-              ...(yBB ? [{
-                label: "BB Standard",
-                data: dataPoints.map(p => ({x:p.x, y:yBB})),
-                borderColor: '#f5a623',
-                borderDash: [3, 5],
-                pointRadius: 0,
-                borderWidth: 2,
-                fill: false
-              }] : [])
-            ]
-          },
-          options: {
-            plugins: {
-              legend: { display: true, position: "top" },
-              tooltip: {
-                callbacks: {
-                  label: function(ctx) {
-                    if (ctx.datasetIndex === 0) {
-                      // Show as array to force multi-line tooltip
-                      return getTooltipLines(ctx);
-                    }
-                    // Standard lines show single label
-                    return `${ctx.dataset.label}: ${ctx.parsed.y}`;
+      // Chart.js chart
+      new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+          datasets: [
+            {
+              label: `${distance} ${stroke} ${format}`,
+              data: swimData,
+              tension: 0.25,
+              fill: false,
+              pointRadius: 6,
+              pointHoverRadius: 8,
+              borderColor: '#3366cc',
+              backgroundColor: '#3366cc',
+              showLine: false,
+            },
+            ...(bVal !== undefined ? [{
+              label: 'B Standard',
+              data: swimData.map(d => ({x: d.x, y: bVal})),
+              borderColor: '#39c570',
+              borderDash: [5,5],
+              borderWidth: 2,
+              pointRadius: 0,
+              fill: false,
+              order: 0,
+            }] : []),
+            ...(bbVal !== undefined ? [{
+              label: 'BB Standard',
+              data: swimData.map(d => ({x: d.x, y: bbVal})),
+              borderColor: '#ffa726',
+              borderDash: [4,4],
+              borderWidth: 2,
+              pointRadius: 0,
+              fill: false,
+              order: 0,
+            }] : [])
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: items => {
+                  const d = items[0].raw;
+                  return `Date: ${fmtDate(d.x)}`;
+                },
+                label: ctx => {
+                  const d = ctx.raw;
+                  if (!d || d.y == null) return '';
+                  let lines = [
+                    `Time: ${fmtTime(d.y)}`,
+                    `Meet: ${d.meet}`,
+                  ];
+                  // Delta to standards
+                  if (bVal !== undefined && d.y > bVal) {
+                    lines.push(`Delta to B: ${(d.y - bVal).toFixed(2)} sec`);
                   }
+                  if (bVal !== undefined && d.y <= bVal) {
+                    lines.push(`Met B Standard!`);
+                  }
+                  if (bbVal !== undefined && d.y > bbVal && d.y <= bVal) {
+                    lines.push(`Delta to BB: ${(d.y - bbVal).toFixed(2)} sec`);
+                  }
+                  if (bbVal !== undefined && d.y <= bbVal) {
+                    lines.push(`Met BB Standard!`);
+                  }
+                  return lines;
                 }
               }
-            },
-            scales: {
-              x: {
-                type: 'time',
-                time: { unit: 'day', tooltipFormat: 'M/d/yy', displayFormats: { day: 'M/d/yy' } },
-                title: { display: true, text: 'Date', font: { weight: 'bold'} },
-                grid: { color: '#f0f0f0' }
+            }
+          },
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'day',
+                displayFormats: {
+                  day: 'M/d/yy'
+                },
+                tooltipFormat: 'M/d/yy'
               },
-              y: {
-                beginAtZero: false,
-                title: { display: true, text: 'Time (sec)', font: { weight: 'bold'} },
-                grid: { color: '#f0f0f0' }
+              title: { display: true, text: 'Date' },
+              ticks: { color: "#222", autoSkip: true, maxTicksLimit: 10 }
+            },
+            y: {
+              title: { display: true, text: 'Time (sec)' },
+              ticks: {
+                callback: val => fmtTime(val),
+                color: "#222"
               }
             }
           }
-        });
+        }
       });
-    }
-  </script>
+    });
+  }
+
+  // Initial render
+  renderAll(select.value);
+  select.addEventListener('change', () => renderAll(select.value));
+
+})();
+</script>
 </body>
 </html>
