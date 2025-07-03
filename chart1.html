@@ -47,7 +47,6 @@
     }
     function fmtSwimTime(seconds, orig) {
       if (!isFinite(seconds) || seconds == null) return orig || "";
-      // Show MM:SS.ss if >=60s, else SS.ss
       if (seconds >= 60) {
         let m = Math.floor(seconds / 60);
         let s = (seconds - m*60).toFixed(2).padStart(5, "0");
@@ -74,7 +73,7 @@
       fetch(B_URL).then(r => r.json()),
       fetch(BB_URL).then(r => r.json())
     ]).then(([data, bTimes, bbTimes]) => {
-      // 1. Swimmer selector
+      // Swimmer selector
       const swimmers = Array.from(new Set(data.map(r => r.name))).sort();
       const select = document.getElementById('swimmer-select');
       select.innerHTML = swimmers.map(s => `<option value="${s}">${s}</option>`).join('');
@@ -180,9 +179,8 @@
             fill: false
           });
 
-          // Tooltip callback
+          // Tooltip callbacks: Use 'afterBody' for multi-line
           function getTooltipLines(ctx) {
-            // Only for data points
             const pt = ctx.raw;
             if (!pt || !pt.raw) return [];
             const r = pt.raw;
@@ -191,24 +189,22 @@
             lines.push(`Time: ${fmtSwimTime(pt.y, r.time)} sec`);
             lines.push(`Meet: ${r.meet}`);
             if (r.time_standard) lines.push(`Standard: ${r.time_standard}`);
-            // Deltas
+            // Delta: show only to next level (as positive, to reach it)
             const v = pt.y;
             const b = parseTime(pt.b);
             const bb = parseTime(pt.bb);
-            if (b || bb) {
-              if (bb && isFinite(bb)) {
-                if (v > bb) lines.push(`Δ to BB: +${(v-bb).toFixed(2)} sec`);
-                else lines.push(`At or above BB!`);
-              }
-              if (b && isFinite(b)) {
-                if (v > b) lines.push(`Δ to B: +${(v-b).toFixed(2)} sec`);
-                else if (v > bb) lines.push(`At or above B!`);
-              }
+            if (bb && isFinite(bb) && v > bb) {
+              lines.push(`Δ to BB: ${(v-bb).toFixed(2)} sec`);
+            } else if (b && isFinite(b) && v > b) {
+              lines.push(`Δ to B: ${(v-b).toFixed(2)} sec`);
+            } else if (bb && isFinite(bb) && v <= bb) {
+              lines.push(`At or above BB!`);
+            } else if (b && isFinite(b) && v <= b) {
+              lines.push(`At or above B!`);
             }
             return lines;
           }
 
-          // Create chart
           charts.push(new Chart(canvas.getContext('2d'), {
             type: 'line',
             data: { datasets },
@@ -221,10 +217,13 @@
                 tooltip: {
                   callbacks: {
                     label: function(context) {
-                      // Only show tooltip for swim times (dots), not B/BB lines
                       if (context.dataset.label !== "Swim time") return false;
-                      // Compose custom tooltip for point
-                      return getTooltipLines(context).join('\n');
+                      // Show only time as single line
+                      return `Time: ${fmtSwimTime(context.parsed.y, context.raw?.raw?.time)} sec`;
+                    },
+                    afterBody: function(contexts) {
+                      // Only called once per point (contexts is an array)
+                      return getTooltipLines(contexts[0]);
                     }
                   }
                 }
