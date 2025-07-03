@@ -57,11 +57,23 @@ def fetch_swimmer(page, swimmer):
 def main():
     all_results = []
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)  # Change to True for automation
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         for swimmer in SWIMMERS:
             all_results += fetch_swimmer(page, swimmer)
         browser.close()
+    # Sort for stable output: by name, event, date, meet, time
+    def sortkey(r):
+        # 'date' is "MM/DD/YYYY"
+        m, d, y = (int(x) for x in r['date'].split('/'))
+        return (
+            r['name'],
+            r['event'],
+            y, m, d,
+            r['meet'],
+            r['time'],
+        )
+    all_results.sort(key=sortkey)
     with open('times.json', 'w') as f:
         json.dump(all_results, f, indent=2)
     print(f"Saved {len(all_results)} results to times.json")
