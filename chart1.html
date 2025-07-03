@@ -2,17 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Swim Progression Chart</title>
+  <title>Swim Time Progression</title>
   <meta name="viewport" content="width=600, initial-scale=1">
   <style>
     body { background: #fff; color: #222; font-family: system-ui, sans-serif; margin: 0; padding: 0; min-height: 100vh;}
-    .container { max-width: 900px; margin: 32px auto; background: #f7f7f7; padding: 24px 16px 32px 16px; border-radius: 16px; box-shadow: 0 4px 20px #0002;}
+    .container { max-width: 900px; margin: 32px auto; background: #f7f7f7; padding: 24px 12px 32px 12px; border-radius: 16px; box-shadow: 0 4px 20px #0002;}
     select { font-size: 1em; margin-bottom: 1.5em; margin-right: 1em; padding: 0.2em 0.5em;}
     h1 { font-size: 2em; font-weight: 800; margin: 0 0 24px 0; text-align: center;}
-    .chart-block { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; margin-bottom: 28px; padding: 20px 10px 10px 10px;}
-    .chart-title { font-size: 1.15em; font-weight: 700; text-align: left; margin-bottom: 0.5em; margin-top: 0.2em; color: #1976d2; letter-spacing: 0.04em;}
+    .chart-block { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; margin-bottom: 32px; padding: 24px 18px 10px 18px;}
+    .chart-title { font-size: 1.18em; font-weight: 700; text-align: left; margin-bottom: 0.6em; margin-top: 0.2em; color: #1976d2; letter-spacing: 0.04em;}
     @media (max-width: 700px) {
-      .container { padding: 8px 2px; }
+      .container { padding: 5px 0; }
       .chart-block { padding: 8px 0 2px 0; }
     }
   </style>
@@ -49,7 +49,7 @@
       if (typeof t === "number" && !isNaN(t)) return t.toFixed(2);
       return orig;
     }
-    // --- Tooltip logic ---
+    // Tooltip logic
     function getTooltipLines(ctx) {
       const pt = ctx.raw;
       if (!pt || !pt.raw) return [];
@@ -60,25 +60,20 @@
       lines.push(`Meet: ${r.meet}`);
       if (r.time_standard) lines.push(`Standard: ${r.time_standard}`);
       // Delta to B/BB logic:
-      const v = pt.y;
+      const v = parseTime(pt.y);
       const b = parseTime(pt.b);
       const bb = parseTime(pt.bb);
-      // If no standards, don't show deltas
-      if (isFinite(b) && isFinite(bb)) {
-        if (v > b) {
-          lines.push(`Δ to B: ${(v - b).toFixed(2)} sec`);
-        } else if (v > bb) {
-          lines.push(`Δ to B: 0.00 sec`);
-          lines.push(`Δ to BB: ${(v - bb).toFixed(2)} sec`);
-        } else {
-          lines.push(`Δ to B: 0.00 sec`);
-          lines.push(`Δ to BB: 0.00 sec`);
-        }
+      // If both exist, show both if relevant
+      if (isFinite(b) && v > b) {
+        lines.push(`Δ to B: ${(v - b).toFixed(2)} sec`);
       } else if (isFinite(b)) {
-        if (v > b) {
-          lines.push(`Δ to B: ${(v - b).toFixed(2)} sec`);
-        } else {
-          lines.push(`Δ to B: 0.00 sec`);
+        lines.push(`Δ to B: 0.00 sec`);
+        if (isFinite(bb)) {
+          if (v > bb) {
+            lines.push(`Δ to BB: ${(v - bb).toFixed(2)} sec`);
+          } else {
+            lines.push(`Δ to BB: 0.00 sec`);
+          }
         }
       } else if (isFinite(bb)) {
         if (v > bb) {
@@ -103,6 +98,7 @@
     });
 
     function getEventParts(evStr) {
+      // e.g. "100 BR LCM"
       let m = evStr.match(/^(\d+)\s+([A-Z]+)\s+([A-Z]+)$/);
       if (!m) return {};
       return { dist: m[1], stroke: m[2], fmt: m[3] };
@@ -115,9 +111,10 @@
         "FL": "Butterfly",
         "IM": "IM"
       }[stroke] || stroke;
+      // always look up string keys!
       return {
-        b: bTimes?.[stFull]?.[fmt]?.[dist] ?? null,
-        bb: bbTimes?.[stFull]?.[fmt]?.[dist] ?? null
+        b: bTimes?.[stFull]?.[fmt]?.[String(dist)] ?? null,
+        bb: bbTimes?.[stFull]?.[fmt]?.[String(dist)] ?? null
       }
     }
 
@@ -153,13 +150,15 @@
       Object.entries(byEvent).forEach(([ev, arr], idx) => {
         arr.sort((a, b) => a.dateX - b.dateX);
         const dataPoints = arr.map(r => ({
-          x: r.dateX, y: r.y, raw: r
+          x: r.dateX, y: r.y, raw: r, b: r.b, bb: r.bb
         }));
 
-        const any = arr[0];
-        let yB = any && isFinite(parseTime(any.b)) ? parseTime(any.b) : null;
-        let yBB = any && isFinite(parseTime(any.bb)) ? parseTime(any.bb) : null;
+        // Recompute B/BB for THIS event, as a float, only if present and finite
+        let any = arr[0];
+        let yB = (any && isFinite(parseTime(any.b))) ? parseTime(any.b) : null;
+        let yBB = (any && isFinite(parseTime(any.bb))) ? parseTime(any.bb) : null;
 
+        // Only draw standards if value is meaningful (> 0, < Infinity)
         const block = document.createElement('div');
         block.className = 'chart-block';
         block.innerHTML = `<div class="chart-title">${ev}</div><canvas id="chart${idx}" height="220"></canvas>`;
@@ -175,14 +174,14 @@
                 backgroundColor: '#8ec9f8',
                 pointRadius: 5,
                 pointHoverRadius: 7,
-                tension: 0.16,
+                tension: 0.17,
                 fill: false
               },
               ...(yB ? [{
                 label: "B Standard",
                 data: dataPoints.map(p => ({x:p.x, y:yB})),
                 borderColor: '#53cb67',
-                borderDash: [8, 5],
+                borderDash: [8, 6],
                 pointRadius: 0,
                 borderWidth: 2,
                 fill: false
@@ -205,8 +204,10 @@
                 callbacks: {
                   label: function(ctx) {
                     if (ctx.datasetIndex === 0) {
+                      // Show as array to force multi-line tooltip
                       return getTooltipLines(ctx);
                     }
+                    // Standard lines show single label
                     return `${ctx.dataset.label}: ${ctx.parsed.y}`;
                   }
                 }
@@ -216,11 +217,13 @@
               x: {
                 type: 'time',
                 time: { unit: 'day', tooltipFormat: 'M/d/yy', displayFormats: { day: 'M/d/yy' } },
-                title: { display: true, text: 'Date', font: { weight: 'bold'} }
+                title: { display: true, text: 'Date', font: { weight: 'bold'} },
+                grid: { color: '#f0f0f0' }
               },
               y: {
                 beginAtZero: false,
-                title: { display: true, text: 'Time (sec)', font: { weight: 'bold'} }
+                title: { display: true, text: 'Time (sec)', font: { weight: 'bold'} },
+                grid: { color: '#f0f0f0' }
               }
             }
           }
