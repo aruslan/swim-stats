@@ -38,8 +38,8 @@ function parseDate(d) {
   return new Date(`${y}-${m.padStart(2, '0')}-${d2.padStart(2, '0')}`);
 }
 
+// Accepts number, or string in "M:SS.xx" or "SS.xx"
 function parseTime(timeStr) {
-  // Accepts number, string in "M:SS.xx" or "SS.xx"
   if (typeof timeStr === "number") return timeStr;
   if (!timeStr) return NaN;
   const str = String(timeStr).trim();
@@ -49,7 +49,6 @@ function parseTime(timeStr) {
   }
   return parseFloat(str);
 }
-
 function fmtTime(secs) {
   if (!isFinite(secs) || secs == null) return "—";
   if (secs >= 60) {
@@ -58,7 +57,6 @@ function fmtTime(secs) {
   }
   return secs.toFixed(2);
 }
-
 function fmtDate(d) {
   if (!d) return "";
   const dt = (d instanceof Date) ? d : parseDate(d);
@@ -73,10 +71,9 @@ function fmtDate(d) {
     fetch('./bb_times_11_12.json').then(r=>r.json())
   ]);
 
-  // --- Swimmer dropdown
+  // Swimmer dropdown (Anna first, then as in SWIMMER_ORDER, then alphabetically)
   const swimmers = Array.from(new Set(times.map(r=>r.name)));
   swimmers.sort((a,b) => {
-    // Anna first, then as in order above, then others alpha
     if (a === SWIMMER_ORDER[0]) return -1;
     if (b === SWIMMER_ORDER[0]) return 1;
     const ia = SWIMMER_ORDER.indexOf(a), ib = SWIMMER_ORDER.indexOf(b);
@@ -90,13 +87,11 @@ function fmtDate(d) {
     `<option value="${s}">${s}</option>`).join('');
   select.value = SWIMMER_ORDER[0];
 
-  // --- Render all charts for swimmer
   function renderAll(swimmer) {
     const swimmerTimes = times.filter(r => r.name === swimmer);
     // Group by [distance] [stroke code] [format]
     const eventsByGroup = {};
     swimmerTimes.forEach(r => {
-      // E.g. "100 FR LCM"
       let [dist, stroke, fmt] = r.event.split(' ');
       if (!dist || !stroke || !fmt) return; // skip
       const groupKey = `${dist} ${stroke} ${fmt}`;
@@ -107,26 +102,23 @@ function fmtDate(d) {
     const chartsDiv = document.getElementById('charts');
     chartsDiv.innerHTML = '';
 
-    // --- For each event group, plot chart ---
-    Object.entries(eventsByGroup).forEach(([groupKey, swims], i) => {
+    Object.entries(eventsByGroup).forEach(([groupKey, swims]) => {
       let [distance, stroke, format] = groupKey.split(' ');
       // Find full stroke name
       let strokeFull = null;
       for (const [full, code] of Object.entries(STROKE_CODES)) {
         if (code === stroke) strokeFull = full;
       }
-      // Lookup standards
+      // Lookup standards: handle string/number for times in B/BB JSONs
       let bVal = undefined, bbVal = undefined;
       if (strokeFull && bTimes[strokeFull] && bTimes[strokeFull][format]) {
-        bVal = bTimes[strokeFull][format][distance];
-        bbVal = bbTimes[strokeFull]?.[format]?.[distance];
+        let bRaw = bTimes[strokeFull][format][distance];
+        bVal = (typeof bRaw === "number") ? bRaw : parseTime(bRaw);
       }
-
-      // --- Debug logging for standards ---
-      console.log(`Processing group: ${groupKey}`);
-      console.log(`  Parsed: distance=${distance}, stroke=${stroke}, format=${format}, strokeFull=${strokeFull}`);
-      console.log(`  B standard: ${bVal}`);
-      console.log(`  BB standard: ${bbVal}`);
+      if (strokeFull && bbTimes[strokeFull] && bbTimes[strokeFull][format]) {
+        let bbRaw = bbTimes[strokeFull][format][distance];
+        bbVal = (typeof bbRaw === "number") ? bbRaw : parseTime(bbRaw);
+      }
 
       // Prepare chart data
       const swimData = swims.map(r => ({
@@ -152,7 +144,6 @@ function fmtDate(d) {
       block.appendChild(canvas);
       chartsDiv.appendChild(block);
 
-      // Chart.js chart
       new Chart(canvas.getContext('2d'), {
         type: 'line',
         data: {
@@ -168,7 +159,7 @@ function fmtDate(d) {
               backgroundColor: '#3366cc',
               showLine: false,
             },
-            ...(bVal !== undefined ? [{
+            ...(bVal !== undefined && isFinite(bVal) ? [{
               label: 'B Standard',
               data: swimData.map(d => ({x: d.x, y: bVal})),
               borderColor: '#39c570',
@@ -178,7 +169,7 @@ function fmtDate(d) {
               fill: false,
               order: 0,
             }] : []),
-            ...(bbVal !== undefined ? [{
+            ...(bbVal !== undefined && isFinite(bbVal) ? [{
               label: 'BB Standard',
               data: swimData.map(d => ({x: d.x, y: bbVal})),
               borderColor: '#ffa726',
@@ -207,20 +198,25 @@ function fmtDate(d) {
                     `Time: ${fmtTime(d.y)}`,
                     `Meet: ${d.meet}`,
                   ];
-                  // Delta to standards
-                  if (bVal !== undefined && d.y > bVal) {
-                    lines.push(`Delta to B: ${(d.y - bVal).toFixed(2)} sec`);
+                  // Delta to standards logic (all positive, only where relevant)
+                  if (bVal !== undefined && isFinite(bVal)) {
+                    if (d.y > bVal) {
+                      lines.push(`Delta to B: ${(d.y - bVal).toFixed(2)} sec`);
+                    } else {
+                      lines.push(`Met B Standard!`);
+                    }
                   }
-                  if (bVal !== undefined && d.y <= bVal) {
-                    lines.push(`Met B Standard!`);
+                  if (bbVal !== undefined && isFinite(bbVal)) {
+                    if (d.y > bbVal) {
+                      // Only show Delta to BB if worse than BB (and B also shown above)
+                      if (!bVal || d.y <= bVal) {
+                        lines.push(`Delta to BB: ${(d.y - bbVal).toFixed(2)} sec`);
+                      }
+                    } else {
+                      lines.push(`Met BB Standard!`);
+                    }
                   }
-                  if (bbVal !== undefined && d.y > bbVal && d.y <= bVal) {
-                    lines.push(`Delta to BB: ${(d.y - bbVal).toFixed(2)} sec`);
-                  }
-                  if (bbVal !== undefined && d.y <= bbVal) {
-                    lines.push(`Met BB Standard!`);
-                  }
-                  return lines;
+                  return lines.join('\n');
                 }
               }
             }
@@ -230,9 +226,7 @@ function fmtDate(d) {
               type: 'time',
               time: {
                 unit: 'day',
-                displayFormats: {
-                  day: 'M/d/yy'
-                },
+                displayFormats: { day: 'M/d/yy' },
                 tooltipFormat: 'M/d/yy'
               },
               title: { display: true, text: 'Date' },
