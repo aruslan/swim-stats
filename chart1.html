@@ -27,7 +27,6 @@
     <div id="charts"></div>
   </div>
   <script>
-    // Utility functions
     function parseDate(str) {
       if (!str) return null;
       if (typeof str !== "string") return null;
@@ -41,218 +40,189 @@
       str = String(str);
       if (str.includes(':')) {
         let [m, s] = str.split(':');
-        return parseInt(m)*60 + parseFloat(s);
+        return parseInt(m) * 60 + parseFloat(s);
       }
       return parseFloat(str);
     }
-    function fmtSwimTime(seconds, orig) {
-      if (!isFinite(seconds) || seconds == null) return orig || "";
-      if (seconds >= 60) {
-        let m = Math.floor(seconds / 60);
-        let s = (seconds - m*60).toFixed(2).padStart(5, "0");
-        return `${m}:${s}`;
+    function fmtSwimTime(t, orig) {
+      // If original has ":" return as-is, else round to 2 decimals
+      if (orig && typeof orig === "string" && orig.includes(':')) return orig;
+      if (typeof t === "number" && !isNaN(t)) return t.toFixed(2);
+      return orig;
+    }
+    // --- Tooltip logic for clean deltas ---
+    function getTooltipLines(ctx) {
+      const pt = ctx.raw;
+      if (!pt || !pt.raw) return [];
+      const r = pt.raw;
+      const lines = [];
+      lines.push(`Date: ${r.date}`);
+      lines.push(`Time: ${fmtSwimTime(pt.y, r.time)} sec`);
+      lines.push(`Meet: ${r.meet}`);
+      if (r.time_standard) lines.push(`Standard: ${r.time_standard}`);
+      // Delta to B/BB
+      const v = pt.y;
+      const b = parseTime(pt.b);
+      const bb = parseTime(pt.bb);
+
+      if (isFinite(b)) {
+        lines.push(`Δ to B: ${Math.abs(v - b).toFixed(2)} sec`);
       }
-      return seconds.toFixed(2);
+      if (isFinite(bb)) {
+        lines.push(`Δ to BB: ${Math.abs(v - bb).toFixed(2)} sec`);
+      }
+      return lines;
     }
 
-    // Data
-    const TIMES_URL = "times.json";
-    const B_URL = "b_times_11_12.json";
-    const BB_URL = "bb_times_11_12.json";
-    const STROKE_LABELS = { "FR": "Freestyle", "BK": "Backstroke", "BR": "Breaststroke", "FL": "Butterfly", "IM": "IM" };
-    function eventDetails(eventStr) {
-      const m = eventStr.match(/^(\d+)\s+([A-Z]+)\s+([A-Z]+)$/);
-      if (!m) return null;
-      return { distance: m[1], stroke: m[2], format: m[3] };
-    }
-
-    let charts = [];
-
+    // --- Main ---
+    let swimmerData, bTimes, bbTimes;
+    // Fetch data and build chart
     Promise.all([
-      fetch(TIMES_URL).then(r => r.json()),
-      fetch(B_URL).then(r => r.json()),
-      fetch(BB_URL).then(r => r.json())
-    ]).then(([data, bTimes, bbTimes]) => {
-      // Swimmer selector
-      const swimmers = Array.from(new Set(data.map(r => r.name))).sort();
+      fetch('times.json').then(r=>r.json()),
+      fetch('b_times_11_12.json').then(r=>r.json()),
+      fetch('bb_times_11_12.json').then(r=>r.json()),
+    ]).then(([times, b, bb]) => {
+      swimmerData = times;
+      bTimes = b;
+      bbTimes = bb;
+      setupPage();
+    });
+
+    function getEventParts(evStr) {
+      // Example: "50 FR SCY" => {dist:"50", stroke:"FR", fmt:"SCY"}
+      let m = evStr.match(/^(\d+)\s+([A-Z]+)\s+([A-Z]+)$/);
+      if (!m) return {};
+      return { dist: m[1], stroke: m[2], fmt: m[3] };
+    }
+    function getStandards(stroke, fmt, dist) {
+      // B/BB time from standards
+      const stFull = {
+        "FR": "Freestyle",
+        "BK": "Backstroke",
+        "BR": "Breaststroke",
+        "FL": "Butterfly",
+        "IM": "IM"
+      }[stroke] || stroke;
+      return {
+        b: bTimes?.[stFull]?.[fmt]?.[dist] ?? null,
+        bb: bbTimes?.[stFull]?.[fmt]?.[dist] ?? null
+      }
+    }
+
+    function setupPage() {
+      // Build swimmer select
+      const swimmers = Array.from(new Set(swimmerData.map(r => r.name))).sort();
       const select = document.getElementById('swimmer-select');
       select.innerHTML = swimmers.map(s => `<option value="${s}">${s}</option>`).join('');
-      const defaultSwimmer = swimmers.find(s => s.toLowerCase().includes("anna")) || swimmers[0];
-      select.value = defaultSwimmer;
-
-      // Allow URL param ?swimmer=Name
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('swimmer')) {
-        let val = decodeURIComponent(urlParams.get('swimmer'));
-        if (swimmers.includes(val)) select.value = val;
-      }
-
+      select.value = swimmers[0];
       select.onchange = () => renderCharts(select.value);
       renderCharts(select.value);
+    }
 
-      function renderCharts(swimmer) {
-        charts.forEach(ch => ch.destroy && ch.destroy());
-        charts = [];
-        const el = document.getElementById('charts');
-        el.innerHTML = "";
-
-        // Get all events for this swimmer, grouped by event
-        const records = data.filter(r => r.name === swimmer);
-        const events = {};
-        for (let rec of records) {
-          if (!events[rec.event]) events[rec.event] = [];
-          events[rec.event].push(rec);
-        }
-        // Sort events alphabetically by event string
-        const eventKeys = Object.keys(events).sort((a, b) => {
-          let pa = eventDetails(a), pb = eventDetails(b);
-          if (pa && pb) {
-            if (pa.stroke !== pb.stroke) return pa.stroke.localeCompare(pb.stroke);
-            if (parseInt(pa.distance) !== parseInt(pb.distance)) return parseInt(pa.distance) - parseInt(pb.distance);
-            return pa.format.localeCompare(pb.format);
-          }
-          return a.localeCompare(b);
+    function renderCharts(swimmerName) {
+      const byEvent = {};
+      swimmerData.filter(r => r.name === swimmerName).forEach(r => {
+        let {dist, stroke, fmt} = getEventParts(r.event);
+        if (!(dist && stroke && fmt)) return;
+        const key = `${dist} ${stroke} ${fmt}`;
+        if (!byEvent[key]) byEvent[key] = [];
+        const standards = getStandards(stroke, fmt, dist);
+        byEvent[key].push({
+          ...r,
+          dateX: parseDate(r.date),
+          y: parseTime(r.time),
+          b: standards.b,
+          bb: standards.bb
         });
+      });
+      // Clear charts
+      const chartsDiv = document.getElementById('charts');
+      chartsDiv.innerHTML = '';
 
-        for (let eventStr of eventKeys) {
-          const rawSeries = events[eventStr].sort((a, b) => parseDate(a.date) - parseDate(b.date));
-          // Find event details and B/BB
-          let ev = eventDetails(eventStr);
-          let yB = null, yBB = null;
-          if (ev && bTimes && bbTimes) {
-            yB = bTimes[STROKE_LABELS[ev.stroke]]?.[ev.format]?.[ev.distance];
-            yBB = bbTimes[STROKE_LABELS[ev.stroke]]?.[ev.format]?.[ev.distance];
-          }
+      Object.entries(byEvent).forEach(([ev, arr], idx) => {
+        // Sort by date
+        arr.sort((a, b) => a.dateX - b.dateX);
+        // Build datasets
+        const dataPoints = arr.map(r => ({
+          x: r.dateX, y: r.y, raw: r
+        }));
 
-          const series = rawSeries
-            .map(r => ({
-              x: parseDate(r.date),
-              y: parseTime(r.time),
-              raw: r,
-              b: yB, bb: yBB
-            }))
-            .filter(p => p.x && isFinite(p.y));
+        // Get B and BB line
+        const any = arr[0];
+        let yB = any && isFinite(parseTime(any.b)) ? parseTime(any.b) : null;
+        let yBB = any && isFinite(parseTime(any.bb)) ? parseTime(any.bb) : null;
 
-          if (!series.length) continue;
-
-          // Compose chart
-          const chartTitle = `${ev ? ev.distance : ''} ${ev ? STROKE_LABELS[ev.stroke] : eventStr} ${ev ? ev.format : ''}`.replace(/\s+/, ' ').trim();
-
-          const div = document.createElement('div');
-          div.className = "chart-block";
-          const title = document.createElement('div');
-          title.className = "chart-title";
-          title.textContent = chartTitle;
-          div.appendChild(title);
-          const canvas = document.createElement('canvas');
-          div.appendChild(canvas);
-          el.appendChild(div);
-
-          // Datasets
-          const datasets = [
-            {
-              label: "Swim time",
-              data: series,
-              borderColor: "#1976d2",
-              backgroundColor: "rgba(25,118,210,0.15)",
-              pointBackgroundColor: "#1976d2",
-              pointRadius: 4,
-              pointHoverRadius: 6,
-              tension: 0.2,
-              fill: false
-            }
-          ];
-          if (yB) datasets.push({
-            label: "B Standard",
-            data: series.map(pt => ({x: pt.x, y: parseTime(yB)})),
-            borderColor: "#39c570",
-            borderDash: [6,3],
-            pointRadius: 0,
-            fill: false
-          });
-          if (yBB) datasets.push({
-            label: "BB Standard",
-            data: series.map(pt => ({x: pt.x, y: parseTime(yBB)})),
-            borderColor: "#ffb600",
-            borderDash: [4,2],
-            pointRadius: 0,
-            fill: false
-          });
-
-          // Tooltip callbacks: Use 'afterBody' for multi-line
-          function getTooltipLines(ctx) {
-            const pt = ctx.raw;
-            if (!pt || !pt.raw) return [];
-            const r = pt.raw;
-            const lines = [];
-            lines.push(`Date: ${r.date}`);
-            lines.push(`Time: ${fmtSwimTime(pt.y, r.time)} sec`);
-            lines.push(`Meet: ${r.meet}`);
-            if (r.time_standard) lines.push(`Standard: ${r.time_standard}`);
-            // Delta: show only to next level (as positive, to reach it)
-            const v = pt.y;
-            const b = parseTime(pt.b);
-            const bb = parseTime(pt.bb);
-            if (bb && isFinite(bb) && v > bb) {
-              lines.push(`Δ to BB: ${(v-bb).toFixed(2)} sec`);
-            } else if (b && isFinite(b) && v > b) {
-              lines.push(`Δ to B: ${(v-b).toFixed(2)} sec`);
-            } else if (bb && isFinite(bb) && v <= bb) {
-              lines.push(`At or above BB!`);
-            } else if (b && isFinite(b) && v <= b) {
-              lines.push(`At or above B!`);
-            }
-            return lines;
-          }
-
-          charts.push(new Chart(canvas.getContext('2d'), {
-            type: 'line',
-            data: { datasets },
-            options: {
-              responsive: true,
-              aspectRatio: 1.9,
-              plugins: {
-                legend: { position: 'top', labels: { color: "#222", font: { size: 13, weight: 'bold' } } },
-                title: { display: false },
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      if (context.dataset.label !== "Swim time") return false;
-                      // Show only time as single line
-                      return `Time: ${fmtSwimTime(context.parsed.y, context.raw?.raw?.time)} sec`;
-                    },
-                    afterBody: function(contexts) {
-                      // Only called once per point (contexts is an array)
-                      return getTooltipLines(contexts[0]);
+        // Chart block
+        const block = document.createElement('div');
+        block.className = 'chart-block';
+        block.innerHTML = `<div class="chart-title">${ev}</div><canvas id="chart${idx}" height="220"></canvas>`;
+        chartsDiv.appendChild(block);
+        // Build chart
+        new Chart(block.querySelector('canvas').getContext('2d'), {
+          type: 'line',
+          data: {
+            datasets: [
+              {
+                label: swimmerName,
+                data: dataPoints,
+                borderColor: '#1976d2',
+                backgroundColor: '#8ec9f8',
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                tension: 0.16,
+                fill: false
+              },
+              ...(yB ? [{
+                label: "B Standard",
+                data: dataPoints.map(p => ({x:p.x, y:yB})),
+                borderColor: '#53cb67',
+                borderDash: [8, 5],
+                pointRadius: 0,
+                borderWidth: 2,
+                fill: false
+              }] : []),
+              ...(yBB ? [{
+                label: "BB Standard",
+                data: dataPoints.map(p => ({x:p.x, y:yBB})),
+                borderColor: '#f5a623',
+                borderDash: [3, 5],
+                pointRadius: 0,
+                borderWidth: 2,
+                fill: false
+              }] : [])
+            ]
+          },
+          options: {
+            plugins: {
+              legend: { display: true, position: "top" },
+              tooltip: {
+                callbacks: {
+                  label: function(ctx) {
+                    // Only custom for the first dataset (main times)
+                    if (ctx.datasetIndex === 0) {
+                      return getTooltipLines(ctx).join('\n');
                     }
+                    // For B/BB just show their label
+                    return `${ctx.dataset.label}: ${ctx.parsed.y}`;
                   }
                 }
+              }
+            },
+            scales: {
+              x: {
+                type: 'time',
+                time: { unit: 'day', tooltipFormat: 'M/d/yy', displayFormats: { day: 'M/d/yy' } },
+                title: { display: true, text: 'Date', font: { weight: 'bold'} }
               },
-              scales: {
-                x: {
-                  type: 'time',
-                  time: {
-                    unit: 'day',
-                    displayFormats: {
-                      day: 'M/d/yy',
-                      month: 'M/yy',
-                      year: 'yy'
-                    },
-                    tooltipFormat: 'M/d/yy'
-                  },
-                  title: { display: true, text: 'Date', color: '#222' },
-                  ticks: { color: '#222', autoSkip: false, maxRotation: 45, minRotation: 0 }
-                },
-                y: {
-                  title: { display: true, text: 'Time (seconds)', color: '#222' },
-                  ticks: { color: '#222' }
-                }
+              y: {
+                beginAtZero: false,
+                title: { display: true, text: 'Time (sec)', font: { weight: 'bold'} }
               }
             }
-          }));
-        }
-      }
-    });
+          }
+        });
+      });
+    }
   </script>
 </body>
 </html>
