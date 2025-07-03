@@ -103,7 +103,8 @@ function fmtDate(d) {
       for (const [full, code] of Object.entries(STROKE_CODES)) {
         if (code === stroke) strokeFull = full;
       }
-      // Handle B/BB as number always, for string or number in JSONs
+
+      // Parse standards robustly
       let bVal, bbVal;
       if (strokeFull && bTimes[strokeFull] && bTimes[strokeFull][format]) {
         let bRaw = bTimes[strokeFull][format][distance];
@@ -113,6 +114,7 @@ function fmtDate(d) {
         let bbRaw = bbTimes[strokeFull][format][distance];
         bbVal = (typeof bbRaw === "number") ? bbRaw : parseTime(bbRaw);
       }
+
       const swimData = swims.map(r => ({
         x: parseDate(r.date),
         y: parseTime(r.time),
@@ -148,7 +150,7 @@ function fmtDate(d) {
               pointHoverRadius: 8,
               borderColor: '#3366cc',
               backgroundColor: '#3366cc',
-              showLine: false,
+              showLine: true, // FIX: connect points
             },
             ...(isFinite(bVal) ? [{
               label: 'B Standard',
@@ -159,6 +161,7 @@ function fmtDate(d) {
               pointRadius: 0,
               fill: false,
               order: 0,
+              showLine: true
             }] : []),
             ...(isFinite(bbVal) ? [{
               label: 'BB Standard',
@@ -169,6 +172,7 @@ function fmtDate(d) {
               pointRadius: 0,
               fill: false,
               order: 0,
+              showLine: true
             }] : [])
           ]
         },
