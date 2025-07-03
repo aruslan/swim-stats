@@ -37,8 +37,6 @@ function parseDate(d) {
   let [m, d2, y] = d.split('/');
   return new Date(`${y}-${m.padStart(2, '0')}-${d2.padStart(2, '0')}`);
 }
-
-// Accepts number, or string in "M:SS.xx" or "SS.xx"
 function parseTime(timeStr) {
   if (typeof timeStr === "number") return timeStr;
   if (!timeStr) return NaN;
@@ -63,7 +61,6 @@ function fmtDate(d) {
   return `${dt.getMonth()+1}/${dt.getDate()}/${String(dt.getFullYear()).slice(2)}`;
 }
 
-// Async main
 (async function() {
   const [times, bTimes, bbTimes] = await Promise.all([
     fetch('./times.json').then(r=>r.json()),
@@ -71,7 +68,6 @@ function fmtDate(d) {
     fetch('./bb_times_11_12.json').then(r=>r.json())
   ]);
 
-  // Swimmer dropdown (Anna first, then as in SWIMMER_ORDER, then alphabetically)
   const swimmers = Array.from(new Set(times.map(r=>r.name)));
   swimmers.sort((a,b) => {
     if (a === SWIMMER_ORDER[0]) return -1;
@@ -89,11 +85,10 @@ function fmtDate(d) {
 
   function renderAll(swimmer) {
     const swimmerTimes = times.filter(r => r.name === swimmer);
-    // Group by [distance] [stroke code] [format]
     const eventsByGroup = {};
     swimmerTimes.forEach(r => {
       let [dist, stroke, fmt] = r.event.split(' ');
-      if (!dist || !stroke || !fmt) return; // skip
+      if (!dist || !stroke || !fmt) return;
       const groupKey = `${dist} ${stroke} ${fmt}`;
       if (!eventsByGroup[groupKey]) eventsByGroup[groupKey] = [];
       eventsByGroup[groupKey].push(r);
@@ -104,13 +99,12 @@ function fmtDate(d) {
 
     Object.entries(eventsByGroup).forEach(([groupKey, swims]) => {
       let [distance, stroke, format] = groupKey.split(' ');
-      // Find full stroke name
       let strokeFull = null;
       for (const [full, code] of Object.entries(STROKE_CODES)) {
         if (code === stroke) strokeFull = full;
       }
-      // Lookup standards: handle string/number for times in B/BB JSONs
-      let bVal = undefined, bbVal = undefined;
+      // Handle B/BB as number always, for string or number in JSONs
+      let bVal, bbVal;
       if (strokeFull && bTimes[strokeFull] && bTimes[strokeFull][format]) {
         let bRaw = bTimes[strokeFull][format][distance];
         bVal = (typeof bRaw === "number") ? bRaw : parseTime(bRaw);
@@ -119,8 +113,6 @@ function fmtDate(d) {
         let bbRaw = bbTimes[strokeFull][format][distance];
         bbVal = (typeof bbRaw === "number") ? bbRaw : parseTime(bbRaw);
       }
-
-      // Prepare chart data
       const swimData = swims.map(r => ({
         x: parseDate(r.date),
         y: parseTime(r.time),
@@ -130,7 +122,6 @@ function fmtDate(d) {
         time_standard: r.time_standard
       })).sort((a, b) => a.x - b.x);
 
-      // Build chart block
       const block = document.createElement('div');
       block.className = 'chart-block';
       const title = document.createElement('div');
@@ -159,7 +150,7 @@ function fmtDate(d) {
               backgroundColor: '#3366cc',
               showLine: false,
             },
-            ...(bVal !== undefined && isFinite(bVal) ? [{
+            ...(isFinite(bVal) ? [{
               label: 'B Standard',
               data: swimData.map(d => ({x: d.x, y: bVal})),
               borderColor: '#39c570',
@@ -169,7 +160,7 @@ function fmtDate(d) {
               fill: false,
               order: 0,
             }] : []),
-            ...(bbVal !== undefined && isFinite(bbVal) ? [{
+            ...(isFinite(bbVal) ? [{
               label: 'BB Standard',
               data: swimData.map(d => ({x: d.x, y: bbVal})),
               borderColor: '#ffa726',
@@ -198,25 +189,30 @@ function fmtDate(d) {
                     `Time: ${fmtTime(d.y)}`,
                     `Meet: ${d.meet}`,
                   ];
-                  // Delta to standards logic (all positive, only where relevant)
-                  if (bVal !== undefined && isFinite(bVal)) {
+                  // B/BB logic
+                  if (isFinite(bVal) && isFinite(bbVal)) {
                     if (d.y > bVal) {
-                      lines.push(`Delta to B: ${(d.y - bVal).toFixed(2)} sec`);
+                      lines.push(`Time to B: ${(d.y - bVal).toFixed(2)} sec`);
+                    } else if (d.y > bbVal) {
+                      lines.push(`Met B Standard!`);
+                      lines.push(`Time to BB: ${(d.y - bbVal).toFixed(2)} sec`);
+                    } else {
+                      lines.push(`Met BB Standard!`);
+                    }
+                  } else if (isFinite(bVal)) {
+                    if (d.y > bVal) {
+                      lines.push(`Time to B: ${(d.y - bVal).toFixed(2)} sec`);
                     } else {
                       lines.push(`Met B Standard!`);
                     }
-                  }
-                  if (bbVal !== undefined && isFinite(bbVal)) {
+                  } else if (isFinite(bbVal)) {
                     if (d.y > bbVal) {
-                      // Only show Delta to BB if worse than BB (and B also shown above)
-                      if (!bVal || d.y <= bVal) {
-                        lines.push(`Delta to BB: ${(d.y - bbVal).toFixed(2)} sec`);
-                      }
+                      lines.push(`Time to BB: ${(d.y - bbVal).toFixed(2)} sec`);
                     } else {
                       lines.push(`Met BB Standard!`);
                     }
                   }
-                  return lines.join('\n');
+                  return lines;
                 }
               }
             }
@@ -245,7 +241,6 @@ function fmtDate(d) {
     });
   }
 
-  // Initial render
   renderAll(select.value);
   select.addEventListener('change', () => renderAll(select.value));
 
