@@ -2,257 +2,274 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Swim Time Progression</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Swim Progression Chart</title>
+  <meta name="viewport" content="width=600, initial-scale=1">
   <style>
     body {
-      font-family: system-ui, sans-serif;
       background: #fff;
       color: #222;
+      font-family: system-ui, sans-serif;
       margin: 0;
-      padding: 0 0 48px 0;
+      padding: 0;
+      min-height: 100vh;
     }
     .container {
-      max-width: 800px;
-      margin: 30px auto;
+      max-width: 900px;
+      margin: 32px auto;
       background: #f7f7f7;
-      border-radius: 14px;
-      box-shadow: 0 4px 20px #0001;
-      padding: 24px 24px 16px 24px;
+      padding: 24px 16px 32px 16px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px #0002;
     }
-    h1, h2 { color: #2d3d50; }
-    label, select {
-      font-size: 1.1em;
-      margin-bottom: 1.2em;
-      display: inline-block;
+    select {
+      font-size: 1em;
+      margin-bottom: 1.5em;
+      margin-right: 1em;
+      padding: 0.2em 0.5em;
     }
-    .chart-section {
-      margin-bottom: 42px;
+    h1 {
+      font-size: 2em;
+      font-weight: 800;
+      margin: 0 0 24px 0;
+      text-align: center;
     }
-    canvas {
+    .chart-block {
       background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 12px #0002;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px #0001;
+      margin-bottom: 28px;
+      padding: 20px 10px 10px 10px;
+    }
+    .chart-title {
+      font-size: 1.15em;
+      font-weight: 700;
+      text-align: left;
+      margin-bottom: 0.5em;
+      margin-top: 0.2em;
+      color: #1976d2;
+      letter-spacing: 0.04em;
+    }
+    @media (max-width: 700px) {
+      .container { padding: 8px 2px; }
+      .chart-block { padding: 8px 0 2px 0; }
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  <!-- Chart.js and date adapter from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 </head>
 <body>
-<div class="container">
-  <h1>Swim Time Progression</h1>
-  <label for="swimmer-select"><strong>Select swimmer:</strong></label>
-  <select id="swimmer-select"></select>
-  <div id="charts"></div>
-</div>
-<script>
-// ---------- CONFIG ----------
-const TIMES_URL = "./times.json";
-const B_URL = "./b_times_11_12.json";
-const BB_URL = "./bb_times_11_12.json";
-
-// Parse "MM/DD/YYYY" to ISO date for Chart.js
-function toISODate(dateStr) {
-  if (!dateStr) return null;
-  if (typeof dateStr !== "string") return null;
-  if (dateStr.includes('-')) return dateStr;
-  const [m, d, y] = dateStr.split('/');
-  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-}
-// Parse time string to seconds
-function parseTime(str) {
-  if (str == null) return null;
-  str = String(str);
-  if (str.includes(':')) {
-    const [m, sec] = str.split(':');
-    return parseInt(m, 10) * 60 + parseFloat(sec);
-  }
-  return parseFloat(str);
-}
-
-// Map "50 FR LCM" to {distance, stroke, format}
-function parseEventKey(event) {
-  // e.g., "50 FR LCM"
-  const parts = event.split(" ");
-  if (parts.length === 3) {
-    return { distance: parts[0], stroke: parts[1], format: parts[2] };
-  }
-  return { distance: "", stroke: "", format: "" };
-}
-
-// Load all required data and render
-async function loadAndRender() {
-  const [times, bTimes, bbTimes] = await Promise.all([
-    fetch(TIMES_URL).then(r => r.json()),
-    fetch(B_URL).then(r => r.json()),
-    fetch(BB_URL).then(r => r.json())
-  ]);
-
-  // Unique swimmers, sort alphabetically
-  const swimmers = Array.from(new Set(times.map(r => r.name))).sort();
-
-  // -- SWIMMER SELECTION --
-  const select = document.getElementById('swimmer-select');
-  select.innerHTML = swimmers.map(name =>
-    `<option value="${name}">${name}</option>`
-  ).join('');
-
-  // Default: Anna, or first swimmer
-  const urlSwimmer = new URLSearchParams(location.search).get('swimmer');
-  let swimmerName = urlSwimmer || swimmers.find(n => n.includes("Anna")) || swimmers[0];
-  select.value = swimmerName;
-
-  select.onchange = () => {
-    renderCharts(select.value, times, bTimes, bbTimes);
-  };
-
-  // Initial render
-  renderCharts(swimmerName, times, bTimes, bbTimes);
-}
-
-// Find all event types for a swimmer
-function getEventTypesForSwimmer(times, swimmerName) {
-  return Array.from(
-    new Set(
-      times.filter(r => r.name === swimmerName)
-        .map(r => r.event)
-    )
-  );
-}
-
-// Render all charts for one swimmer
-function renderCharts(swimmerName, times, bTimes, bbTimes) {
-  const chartsDiv = document.getElementById('charts');
-  chartsDiv.innerHTML = ""; // Clear previous
-
-  const events = getEventTypesForSwimmer(times, swimmerName);
-
-  // For each event, create a chart
-  events.forEach(eventKey => {
-    const { distance, stroke, format } = parseEventKey(eventKey);
-    // Data for this swimmer and event, sorted by date
-    const records = times.filter(r =>
-      r.name === swimmerName && r.event === eventKey && r.date
-    ).sort((a, b) => new Date(toISODate(a.date)) - new Date(toISODate(b.date)));
-
-    if (records.length === 0) return; // nothing to show
-
-    // B/BB lines (if available)
-    // Get B/BB for this event type
-    const strokeMap = {
-      "FR": "Freestyle",
-      "BK": "Backstroke",
-      "BR": "Breaststroke",
-      "FL": "Butterfly",
-      "IM": "IM"
-    };
-    const sLabel = strokeMap[stroke] || stroke;
-    const bVal = bTimes?.[sLabel]?.[format]?.[distance] || null;
-    const bbVal = bbTimes?.[sLabel]?.[format]?.[distance] || null;
-
-    // Prepare datasets
-    const dataPoints = records.map(r => ({
-      x: toISODate(r.date),
-      y: parseTime(r.time),
-      label: `${r.meet} (${r.time})`
-    }));
-
-    // Build chart container and canvas
-    const section = document.createElement("div");
-    section.className = "chart-section";
-    section.innerHTML = `
-      <h2>${distance} ${stroke} (${format})</h2>
-      <canvas></canvas>
-    `;
-    chartsDiv.appendChild(section);
-    const ctx = section.querySelector('canvas').getContext('2d');
-
-    // Compose chart datasets
-    const datasets = [
-      {
-        label: "Swim time",
-        data: dataPoints,
-        borderColor: "#2196f3",
-        backgroundColor: "#2196f344",
-        pointBackgroundColor: "#2196f3",
-        pointRadius: 5,
-        tension: 0.15
+  <div class="container">
+    <h1>Swim Time Progression</h1>
+    <label for="swimmer-select"><b>Swimmer:</b></label>
+    <select id="swimmer-select"></select>
+    <div id="charts"></div>
+  </div>
+  <script>
+    // ====== Utility functions ======
+    function parseDate(str) {
+      // Handles MM/DD/YYYY or YYYY-MM-DD
+      if (!str) return null;
+      if (typeof str !== "string") return null;
+      if (str.includes('-')) return new Date(str);
+      let [m, d, y] = str.split('/');
+      return new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`);
+    }
+    function parseTime(str) {
+      // Handles e.g. "34.56", "1:10.32" or as number
+      if (str == null) return null;
+      if (typeof str === "number") return str;
+      str = String(str);
+      if (str.includes(':')) {
+        let [m, s] = str.split(':');
+        return parseInt(m)*60 + parseFloat(s);
       }
-    ];
-
-    // Add B/BB lines if present
-    if (bVal) {
-      datasets.push({
-        label: "B Standard",
-        data: dataPoints.map(dp => ({x: dp.x, y: parseTime(bVal)})),
-        borderColor: "#2ecc40",
-        backgroundColor: "#2ecc4044",
-        borderDash: [6, 6],
-        pointRadius: 0,
-        fill: false,
-        tension: 0
-      });
-    }
-    if (bbVal) {
-      datasets.push({
-        label: "BB Standard",
-        data: dataPoints.map(dp => ({x: dp.x, y: parseTime(bbVal)})),
-        borderColor: "#e67e22",
-        backgroundColor: "#e67e2244",
-        borderDash: [2, 8],
-        pointRadius: 0,
-        fill: false,
-        tension: 0
-      });
+      return parseFloat(str);
     }
 
-    // Chart.js config
-    new Chart(ctx, {
-      type: 'line',
-      data: { datasets },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'top',
-            labels: { color: "#222", font: { size: 13, weight: 'bold' } }
-          },
-          title: {
-            display: false
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                if (context.dataset.label === "Swim time") {
-                  const {label} = context.raw;
-                  return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} sec (${label})`;
+    // ====== Load all necessary data ======
+    const TIMES_URL = "times.json";
+    const B_URL = "b_times_11_12.json";
+    const BB_URL = "bb_times_11_12.json";
+
+    // Label converters for display
+    const STROKE_LABELS = {
+      "FR": "Freestyle", "BK": "Backstroke", "BR": "Breaststroke", "FL": "Butterfly", "IM": "IM"
+    };
+    function eventDetails(eventStr) {
+      // Parse "50 FR SCY" → {distance, stroke, format}
+      const m = eventStr.match(/^(\d+)\s+([A-Z]+)\s+([A-Z]+)$/);
+      if (!m) return null;
+      return { distance: m[1], stroke: m[2], format: m[3] };
+    }
+
+    // ===== Main App =====
+    let charts = [];
+
+    Promise.all([
+      fetch(TIMES_URL).then(r => r.json()),
+      fetch(B_URL).then(r => r.json()),
+      fetch(BB_URL).then(r => r.json())
+    ]).then(([data, bTimes, bbTimes]) => {
+      // 1. Swimmer selector
+      const swimmers = Array.from(new Set(data.map(r => r.name))).sort();
+      const select = document.getElementById('swimmer-select');
+      select.innerHTML = swimmers.map(s => `<option value="${s}">${s}</option>`).join('');
+      // Default to Anna if present, else first
+      const defaultSwimmer = swimmers.find(s => s.toLowerCase().includes("anna")) || swimmers[0];
+      select.value = defaultSwimmer;
+
+      // Allow URL param ?swimmer=Name
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('swimmer')) {
+        let val = decodeURIComponent(urlParams.get('swimmer'));
+        if (swimmers.includes(val)) select.value = val;
+      }
+
+      // 2. When changed, render
+      select.onchange = () => renderCharts(select.value);
+      renderCharts(select.value);
+
+      function renderCharts(swimmer) {
+        // Remove any old charts
+        charts.forEach(ch => ch.destroy && ch.destroy());
+        charts = [];
+        const el = document.getElementById('charts');
+        el.innerHTML = "";
+
+        // Get all events for this swimmer, grouped by event
+        const records = data.filter(r => r.name === swimmer);
+        // Map: eventStr → list of records (sorted by date)
+        const events = {};
+        for (let rec of records) {
+          if (!events[rec.event]) events[rec.event] = [];
+          events[rec.event].push(rec);
+        }
+        // Sort events alphabetically by event string
+        const eventKeys = Object.keys(events).sort((a, b) => {
+          // Try to order by stroke, distance, then format
+          let pa = eventDetails(a), pb = eventDetails(b);
+          if (pa && pb) {
+            // Order: stroke, distance, format
+            if (pa.stroke !== pb.stroke) return pa.stroke.localeCompare(pb.stroke);
+            if (parseInt(pa.distance) !== parseInt(pb.distance)) return parseInt(pa.distance) - parseInt(pb.distance);
+            return pa.format.localeCompare(pb.format);
+          }
+          return a.localeCompare(b);
+        });
+
+        for (let eventStr of eventKeys) {
+          const series = events[eventStr]
+            .map(r => ({
+              x: parseDate(r.date),
+              y: parseTime(r.time),
+              label: r.time + " (" + r.date + " at " + r.meet + ")"
+            }))
+            .filter(p => p.x && isFinite(p.y))
+            .sort((a, b) => a.x - b.x);
+
+          if (!series.length) continue;
+
+          // Get B and BB times for this event type if possible
+          let ev = eventDetails(eventStr);
+          let yB = null, yBB = null;
+          if (ev && bTimes && bbTimes) {
+            yB = bTimes[STROKE_LABELS[ev.stroke]]?.[ev.format]?.[ev.distance];
+            yBB = bbTimes[STROKE_LABELS[ev.stroke]]?.[ev.format]?.[ev.distance];
+          }
+
+          // Chart title
+          const chartTitle = `${ev ? ev.distance : ''} ${ev ? STROKE_LABELS[ev.stroke] : eventStr} ${ev ? ev.format : ''}`.replace(/\s+/, ' ').trim();
+
+          // Create canvas
+          const div = document.createElement('div');
+          div.className = "chart-block";
+          const title = document.createElement('div');
+          title.className = "chart-title";
+          title.textContent = chartTitle;
+          div.appendChild(title);
+          const canvas = document.createElement('canvas');
+          div.appendChild(canvas);
+          el.appendChild(div);
+
+          // Compose datasets
+          const datasets = [
+            {
+              label: "Swim time",
+              data: series,
+              borderColor: "#1976d2",
+              backgroundColor: "rgba(25,118,210,0.15)",
+              pointBackgroundColor: "#1976d2",
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              tension: 0.2,
+              fill: false
+            }
+          ];
+          // Add lines for B, BB
+          if (yB) datasets.push({
+            label: "B Standard",
+            data: series.map(pt => ({x: pt.x, y: parseTime(yB)})),
+            borderColor: "#39c570",
+            borderDash: [6,3],
+            pointRadius: 0,
+            fill: false
+          });
+          if (yBB) datasets.push({
+            label: "BB Standard",
+            data: series.map(pt => ({x: pt.x, y: parseTime(yBB)})),
+            borderColor: "#ffb600",
+            borderDash: [4,2],
+            pointRadius: 0,
+            fill: false
+          });
+
+          // Chart
+          charts.push(new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: { datasets },
+            options: {
+              responsive: true,
+              aspectRatio: 1.9,
+              plugins: {
+                legend: { position: 'top', labels: { color: "#222", font: { size: 13, weight: 'bold' } } },
+                title: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      if (context.dataset.label === "Swim time") {
+                        return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} sec (${context.raw.x.toLocaleDateString()})`;
+                      }
+                      return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' sec';
+                    }
+                  }
                 }
-                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' sec';
+              },
+              scales: {
+                x: {
+                  type: 'time',
+                  time: {
+                    unit: 'day',
+                    displayFormats: {
+                      day: 'M/d/yy',
+                      month: 'M/yy',
+                      year: 'yy'
+                    },
+                    tooltipFormat: 'M/d/yy'
+                  },
+                  title: { display: true, text: 'Date', color: '#222' },
+                  ticks: { color: '#222', autoSkip: false, maxRotation: 45, minRotation: 0 }
+                },
+                y: {
+                  title: { display: true, text: 'Time (seconds)', color: '#222' },
+                  ticks: { color: '#222' }
+                }
               }
             }
-          }
-        },
-        scales: {
-          x: {
-            type: 'time',
-            time: {
-              unit: 'month',
-              tooltipFormat: 'MMM dd, yyyy'
-            },
-            title: { display: true, text: 'Date', color: '#222' },
-            ticks: { color: '#222' }
-          },
-          y: {
-            title: { display: true, text: 'Time (seconds)', color: '#222' },
-            ticks: { color: '#222' }
-          }
+          }));
         }
       }
     });
-  });
-}
-
-loadAndRender();
-</script>
+  </script>
 </body>
 </html>
