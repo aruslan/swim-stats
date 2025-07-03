@@ -45,13 +45,17 @@
     }
     // Parse swim time string to seconds
     function parseTime(str) {
-      if (!str) return null;
-      if (str.includes(':')) {
-        let [min, sec] = str.split(':');
-        return parseInt(min) * 60 + parseFloat(sec);
-      }
-      return parseFloat(str);
-    }
+  if (typeof str !== "string") {
+    console.warn("parseTime called with", str, typeof str);
+  }
+  if (!str) return null;
+  str = String(str);
+  if (str.includes(':')) {
+    let [min, sec] = str.split(':');
+    return parseInt(min) * 60 + parseFloat(sec);
+  }
+  return parseFloat(str);
+}
     // Format seconds as M:SS.ss
     function formatTime(sec) {
       if (sec === null || isNaN(sec) || !isFinite(sec)) return "—";
