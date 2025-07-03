@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Swim Progression Charts</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: sans-serif; background: #f6f6f6; margin: 0; padding: 0; }
+    .container { max-width: 900px; margin: 2em auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 14px #0002; padding: 2em; }
+    h1 { margin-top: 0; }
+    select { font-size: 1.1em; margin-bottom: 2em; }
+    .chart-block { margin-bottom: 56px; border-bottom: 1px solid #ddd; padding-bottom: 36px;}
+    .chart-block:last-child { border-bottom: none; }
+    .chart-title { margin: 0 0 8px 0; }
+    .chart-container { position: relative; min-height: 320px; }
+    @media (max-width: 700px) {
+      .container { padding: 1em; }
+      .chart-container { min-height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Swim Time Progression</h1>
+    <label for="swimmer-select"><strong>Swimmer:</strong></label>
+    <select id="swimmer-select"></select>
+    <div id="charts"></div>
+  </div>
+  <script>
+    // --- Config
+    const TIMES_URL = "./times.json";
+    const B_URL = "./b_times_11_12.json";
+    const BB_URL = "./bb_times_11_12.json";
+
+    // Chart.js global
+    Chart.defaults.plugins.legend.display = true;
+    Chart.defaults.plugins.tooltip.mode = 'nearest';
+
+    // Parse MM/DD/YYYY or YYYY-MM-DD to Date
+    function parseDate(d) {
+      if (!d) return null;
+      if (d.includes('-')) return new Date(d);
+      let [m, d2, y] = d.split('/');
+      return new Date(`${y}-${m.padStart(2, '0')}-${d2.padStart(2, '0')}`);
+    }
+    // Parse swim time string to seconds
+    function parseTime(str) {
+      if (!str) return null;
+      if (str.includes(':')) {
+        let [min, sec] = str.split(':');
+        return parseInt(min) * 60 + parseFloat(sec);
+      }
+      return parseFloat(str);
+    }
+    // Format seconds as M:SS.ss
+    function formatTime(sec) {
+      if (sec === null || isNaN(sec) || !isFinite(sec)) return "—";
+      if (sec >= 60) {
+        let m = Math.floor(sec/60);
+        let s = (sec - m*60).toFixed(2).padStart(5,'0');
+        return `${m}:${s}`;
+      }
+      return sec.toFixed(2);
+    }
+    // Event breakdown: "50 FR SCY" => [distance, stroke, format]
+    function eventParts(event) {
+      let m = event.match(/^(\d+)\s+(\w+)\s+(\w+)$/);
+      return m ? [m[1], m[2], m[3]] : [null,null,null];
+    }
+
+    // --- Main ---
+    let times = [], bTimes = {}, bbTimes = {};
+
+    async function loadAll() {
+      [times, bTimes, bbTimes] = await Promise.all([
+        fetch(TIMES_URL).then(r=>r.json()),
+        fetch(B_URL).then(r=>r.json()),
+        fetch(BB_URL).then(r=>r.json())
+      ]);
+      const swimmers = Array.from(new Set(times.map(r => r.name))).sort();
+      const select = document.getElementById('swimmer-select');
+      select.innerHTML = swimmers.map(s => `<option value="${s}">${s}</option>`).join('');
+      // Set Anna Abdikeeva as default if available
+      let annaIdx = swimmers.findIndex(n => n === "Anna Abdikeeva");
+      select.selectedIndex = annaIdx !== -1 ? annaIdx : 0;
+      select.onchange = () => renderCharts(select.value);
+      renderCharts(select.value);
+    }
+
+    function renderCharts(swimmer) {
+      // Remove any old charts
+      const chartsDiv = document.getElementById('charts');
+      chartsDiv.innerHTML = '';
+      // Group times by event
+      const myTimes = times.filter(r => r.name === swimmer);
+      let events = {};
+      myTimes.forEach(r => {
+        if (!events[r.event]) events[r.event] = [];
+        events[r.event].push(r);
+      });
+      // For each event, plot a chart
+      Object.entries(events).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([event, records], idx) => {
+        // Sort by date ascending
+        records = records.slice().sort((a,b) => parseDate(a.date) - parseDate(b.date));
+        const [distance, stroke, fmt] = eventParts(event);
+        // Get B/BB standards
+        let strokeFull = null;
+        switch(stroke) {
+          case "FR": strokeFull = "Freestyle"; break;
+          case "BK": strokeFull = "Backstroke"; break;
+          case "BR": strokeFull = "Breaststroke"; break;
+          case "FL": strokeFull = "Butterfly"; break;
+          case "IM": strokeFull = "IM"; break;
+        }
+        let bVal = bTimes[strokeFull]?.[fmt]?.[distance] ? parseTime(bTimes[strokeFull][fmt][distance]) : null;
+        let bbVal = bbTimes[strokeFull]?.[fmt]?.[distance] ? parseTime(bbTimes[strokeFull][fmt][distance]) : null;
+        // Data for chart
+        let chartLabels = records.map(r => r.date);
+        let chartData = records.map(r => parseTime(r.time));
+        // Chart block
+        const block = document.createElement('div');
+        block.className = 'chart-block';
+        block.innerHTML = `<h3 class="chart-title">${event}</h3>
+          <div class="chart-container"><canvas id="chart${idx}"></canvas></div>`;
+        chartsDiv.appendChild(block);
+        // Chart.js
+        let datasets = [{
+          label: 'Time',
+          data: chartData,
+          borderColor: "#3498db",
+          backgroundColor: "#3498db44",
+          tension: 0.1,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          fill: false,
+        }];
+        if (bVal) datasets.push({
+          label: 'B standard',
+          data: Array(chartLabels.length).fill(bVal),
+          borderColor: "#e67e22",
+          borderDash: [8,6],
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false,
+        });
+        if (bbVal) datasets.push({
+          label: 'BB standard',
+          data: Array(chartLabels.length).fill(bbVal),
+          borderColor: "#27ae60",
+          borderDash: [3,5],
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false,
+        });
+        // Actually create the chart
+        new Chart(document.getElementById('chart'+idx), {
+          type: 'line',
+          data: {
+            labels: chartLabels,
+            datasets: datasets
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                title: { display: true, text: "Date" }
+              },
+              y: {
+                title: { display: true, text: "Time (sec)" },
+                beginAtZero: false,
+                reverse: true, // Faster times are better (lower)
+                ticks: {
+                  callback: formatTime
+                }
+              }
+            },
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: ctx => ctx.dataset.label+': '+formatTime(ctx.parsed.y)
+                }
+              }
+            }
+          }
+        });
+      });
+    }
+
+    loadAll();
+  </script>
+</body>
+</html>
