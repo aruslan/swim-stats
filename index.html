@@ -12,6 +12,11 @@
     tr:nth-child(even) { background: #fafafa; }
     tr.btime { background: #c6f5c1; }
     .best-time { font-weight: bold; }
+    th.event, td.event,
+    th.date, td.date,
+    th.time, td.time {
+      text-align: right;
+    }
   </style>
 </head>
 <body>
@@ -22,9 +27,9 @@
     <thead>
       <tr>
         <th>Name</th>
-        <th>Event</th>
-        <th>Date</th>
-        <th>Time</th>
+        <th class="event">Event</th>
+        <th class="date">Date</th>
+        <th class="time">Time</th>
         <th>Meet</th>
         <th>Time Standard</th>
       </tr>
@@ -35,10 +40,10 @@
   <table id="compare-table">
     <thead>
       <tr>
-        <th>Event</th>
+        <th class="event">Event</th>
         <th>Swimmer</th>
-        <th>Best Time</th>
-        <th>Date</th>
+        <th class="time">Best Time</th>
+        <th class="date">Date</th>
         <th>Meet</th>
       </tr>
     </thead>
@@ -135,9 +140,9 @@
             if (filter && filter !== "All" && bestPerEvent[row.event] === row) classes.push("best-time");
             tr.className = classes.join(' ');
             tr.innerHTML = `<td>${row.name}</td>
-                            <td>${row.event}</td>
-                            <td>${row.date}</td>
-                            <td>${row.time}</td>
+                            <td class="event">${row.event}</td>
+                            <td class="date">${row.date}</td>
+                            <td class="time">${row.time}</td>
                             <td>${row.meet}</td>
                             <td>${row.time_standard}</td>`;
             tbody.appendChild(tr);
@@ -201,10 +206,10 @@
           });
           rows.forEach(r => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${r.event}</td>
+            tr.innerHTML = `<td class="event">${r.event}</td>
                             <td>${r.swimmer}</td>
-                            <td>${r.time}</td>
-                            <td>${r.date}</td>
+                            <td class="time">${r.time}</td>
+                            <td class="date">${r.date}</td>
                             <td>${r.meet}</td>`;
             tbody.appendChild(tr);
           });
