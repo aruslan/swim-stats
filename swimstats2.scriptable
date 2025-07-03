@@ -25,6 +25,7 @@ const swimmerName = SWIMMERS[swimmerKey].name;
 
 // === DATA URLs ===
 const TIMES_URL = "https://aruslan.github.io/swim-stats/times.json";
+const UNOFFICIAL_URL = "https://aruslan.github.io/swim-stats/unofficial_times.json";
 const B_URL = "https://aruslan.github.io/swim-stats/b_times_11_12.json";
 
 // === HELPERS ===
@@ -53,10 +54,11 @@ function showError(msg, detail="") {
 
 // === MAIN ===
 async function createWidget() {
-  let timesData, B_TIMES;
+  let timesData, unofficialTimesData, B_TIMES;
   try {
-    [timesData, B_TIMES] = await Promise.all([
+    [timesData, unofficialTimesData, B_TIMES] = await Promise.all([
       new Request(TIMES_URL).loadJSON(),
+      new Request(UNOFFICIAL_URL).loadJSON(),
       new Request(B_URL).loadJSON()
     ]);
   } catch (e) {
@@ -64,9 +66,15 @@ async function createWidget() {
   }
 
   if (!Array.isArray(timesData)) return showError("Invalid times.json");
+  if (!Array.isArray(unofficialTimesData)) return showError("Invalid unofficial_times.json");
   if (!B_TIMES || typeof B_TIMES !== "object") return showError("Invalid B-times JSON");
 
-  const swimmerTimes = timesData.filter(r => r.name === swimmerName);
+  // Mark source for each time (official or unofficial)
+  const officialTimes = timesData.filter(r => r.name === swimmerName).map(r => ({...r, unofficial: false}));
+  const unofficialTimes = unofficialTimesData.filter(r => r.name === swimmerName).map(r => ({...r, unofficial: true}));
+
+  // Combine all times
+  const allTimes = officialTimes.concat(unofficialTimes);
 
   const widget = new ListWidget();
   widget.backgroundColor = new Color("#000");
@@ -93,8 +101,10 @@ async function createWidget() {
     if (b == null) continue; // Only show events with B-time standard
 
     const wanted = `${ev} ${strokeCode} ${fmtType}`;
-    const candidate = swimmerTimes.filter(r => r.event === wanted)
-                       .sort((a,b2) => parseTime(a.time) - parseTime(b2.time))[0];
+    // Find the fastest time (official or unofficial)
+    const candidate = allTimes
+      .filter(r => r.event === wanted)
+      .sort((a, b2) => parseTime(a.time) - parseTime(b2.time))[0];
 
     const row = left.addStack();
     row.size = new Size(0, 19);
@@ -107,7 +117,7 @@ async function createWidget() {
     l1.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
     l1.textColor = Color.white();
 
-    // Swim time bold, right-aligned
+    // Swim time bold, right-aligned, color depends on official/unofficial
     const timeStr = candidate ? candidate.time : "";
     const c2 = row.addStack();
     c2.size = new Size(WIDTHS[1],19);
@@ -115,7 +125,7 @@ async function createWidget() {
     c2.addSpacer();
     const l2 = c2.addText(fmt(timeStr));
     l2.font = Font.boldMonospacedSystemFont(FONT_SIZE);
-    l2.textColor = Color.white();
+    l2.textColor = candidate && candidate.unofficial ? new Color("#AAAAAA") : Color.white();
 
     // Delta always shown regular color, right-aligned
     const c3 = row.addStack();
