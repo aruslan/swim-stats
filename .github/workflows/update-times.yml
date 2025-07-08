@@ -9,10 +9,10 @@ name: Update Swim Times
 
 on:
   schedule:
-    - cron: '30 12 * * *'         # 5:30am PT  == 12:30 UTC
-    - cron: '30 18 * * *'         # 11:30am PT == 18:30 UTC
-    - cron: '0,20,40 20-23 * * *' # 1:00pm–4:40pm PT every 20 min == 20:00–23:40 UTC
-    - cron: '0 2 * * *'           # 7:00pm PT  == 02:00 UTC (next day)
+    - cron: '30 12 * * *'         # 5:30 PT  == 12:30 UTC
+    - cron: '30 18 * * *'         # 11:30 PT == 18:30 UTC
+    - cron: '30 22 * * *'         # 15:30 PT == 22:30 UTC
+    - cron: '30 4 * * *'          # 21:30 PT == 04:00 UTC (next day)
   workflow_dispatch:
 
 jobs:
