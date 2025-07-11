@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <title>Swim Progression</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- PWA / Home screen support -->
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="icon" sizes="192x192" href="icon.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Swim Progression">
+  <meta name="theme-color" content="#18191b">
   <style>
     html, body {
       height: 100%;
@@ -69,7 +77,7 @@
       align-items: center;
       position: relative;
       overflow-x: hidden;
-      touch-action: pan-y;
+      touch-action: none; /* disables default scrolling in this area */
     }
     .chart-title {
       font-size: 1.18em;
@@ -398,7 +406,8 @@ function addSwipeHandlers(container) {
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
     dx = 0; dy = 0; swiped = false; dir = null;
-  }, {passive:true});
+  }, {passive:false}); // passive: false needed for preventDefault
+
   container.addEventListener('touchmove', function(e) {
     if (e.touches.length !== 1) return;
     dx = e.touches[0].clientX - startX;
@@ -407,7 +416,12 @@ function addSwipeHandlers(container) {
       dir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
       swiped = true;
     }
-  }, {passive:true});
+    if (swiped) {
+      // Prevent page scroll if any swipe detected in chart area
+      e.preventDefault();
+    }
+  }, {passive:false});
+
   container.addEventListener('touchend', function(e) {
     if (swiped) {
       if (dir === 'h') {
