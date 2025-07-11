@@ -1,0 +1,20 @@
+{
+  "short_name": "SwimProgress",
+  "name": "Swim Progression Charts",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./",
+  "background_color": "#18191b",
+  "display": "standalone",
+  "theme_color": "#18191b"
+}
