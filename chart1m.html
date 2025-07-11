@@ -205,12 +205,11 @@ function setBtn(btn, arr, idx) {
 }
 
 function updateBtns() {
-  setBtn(strokeBtn, STROKES, strokeIdx);
-  setBtn(swimmerBtn, SWIMMERS, swimmerIdx);
+  setBtn(document.getElementById('stroke-btn'), STROKES, strokeIdx);
+  setBtn(document.getElementById('swimmer-btn'), SWIMMERS, swimmerIdx);
 }
 
 function groupEventsByDistanceAndFormat(swimmer, strokeCode) {
-  // Returns array of {key, distance, format, count, label}
   const swimmerTimes = times.filter(r => r.name === swimmer && r.event.includes(strokeCode));
   const groups = {};
   swimmerTimes.forEach(r => {
@@ -439,17 +438,16 @@ function addSwipeHandlers(container) {
 }
 
 // --- MAIN ---
-const swimmerBtn = document.getElementById('swimmer-btn');
-const strokeBtn = document.getElementById('stroke-btn');
-const chartContainer = document.getElementById('chart-container');
-
-(async function init() {
+document.addEventListener('DOMContentLoaded', async function() {
   await loadData();
 
-  // URL param handling
+  // URL param handling (case-insensitive, partial match allowed)
   let swimmerParam = getUrlParam("swimmer");
   if (swimmerParam) {
     let idx = SWIMMERS.findIndex(s => s.toLowerCase() === swimmerParam.toLowerCase());
+    if (idx === -1) {
+      idx = SWIMMERS.findIndex(s => s.toLowerCase().includes(swimmerParam.toLowerCase()));
+    }
     if (idx !== -1) swimmerIdx = idx;
   }
 
@@ -457,11 +455,21 @@ const chartContainer = document.getElementById('chart-container');
   updateAvailableEvents();
   renderChart();
 
-  strokeBtn.onclick = () => {
+  document.getElementById('stroke-btn').onclick = () => {
     strokeIdx = (strokeIdx + 1) % STROKES.length;
     updateBtns();
     updateAvailableEvents();
     renderChart();
   };
-  swimmerBtn.onclick = () => {
-    swimmerIdx
+  document.getElementById('swimmer-btn').onclick = () => {
+    swimmerIdx = (swimmerIdx + 1) % SWIMMERS.length;
+    updateBtns();
+    updateAvailableEvents();
+    renderChart();
+  };
+
+  addSwipeHandlers(document.getElementById('chart-container'));
+});
+</script>
+</body>
+</html>
