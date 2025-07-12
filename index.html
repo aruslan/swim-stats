@@ -195,6 +195,33 @@ function getUrlParam(name) {
   return url.searchParams.get(name);
 }
 
+function findStrokeIdx(param) {
+  if (!param) return 0;
+  param = param.toLowerCase();
+  // Allow "breast", "breaststroke", "br", etc.
+  for (let i = 0; i < STROKES.length; ++i) {
+    let s = STROKES[i];
+    if (
+      s.name.toLowerCase() === param ||
+      s.json.toLowerCase() === param ||
+      s.code.toLowerCase() === param ||
+      s.name.toLowerCase().startsWith(param) ||
+      s.json.toLowerCase().startsWith(param) ||
+      s.code.toLowerCase().startsWith(param)
+    ) return i;
+  }
+  // Partial match fallback
+  for (let i = 0; i < STROKES.length; ++i) {
+    let s = STROKES[i];
+    if (
+      s.name.toLowerCase().includes(param) ||
+      s.json.toLowerCase().includes(param) ||
+      s.code.toLowerCase().includes(param)
+    ) return i;
+  }
+  return 0;
+}
+
 let chart, times, bTimes, bbTimes;
 let swimmerIdx = 0, strokeIdx = 0;
 let availableEvents = [], eventIdx = 0;
@@ -463,6 +490,10 @@ document.addEventListener('DOMContentLoaded', async function() {
       idx = SWIMMERS.findIndex(s => s.toLowerCase().includes(swimmerParam.toLowerCase()));
     }
     if (idx !== -1) swimmerIdx = idx;
+  }
+  let strokeParam = getUrlParam("stroke");
+  if (strokeParam) {
+    strokeIdx = findStrokeIdx(strokeParam);
   }
 
   updateBtns();
