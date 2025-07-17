@@ -2,7 +2,8 @@
 const SWIMMERS = {
   "AA": { name: "Anna Abdikeeva" },
   "VD": { name: "Valerie Dronova" },
-  "IR": { name: "Imari Racine" }
+  "IR": { name: "Imari Racine" },
+  "KL": { name: "Kexin Liu" }
 };
 const STROKES = ["BR", "FR", "FL", "BK", "IM"];
 const STROKE_LABELS = {
