@@ -5,7 +5,8 @@ import time
 SWIMMERS = [
     {"name": "Anna Abdikeeva", "first": "Anna", "last": "Abdikeeva"},
     {"name": "Valerie Dronova", "first": "Valerie", "last": "Dronova"},
-    {"name": "Imari Racine", "first": "Imari", "last": "Racine"}
+    {"name": "Imari Racine", "first": "Imari", "last": "Racine"},
+    {"name": "Kexin Liu", "first": "Kexin", "last": "Liu"}
 ]
 
 def fetch_swimmer(page, swimmer):
