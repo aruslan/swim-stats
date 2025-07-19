@@ -27,19 +27,21 @@ const COL_DELTA = 70;   // Delta column width (wide for "5.20 to BB")
 const DELTA_MODE = "targets";
 const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
-const B_URL = "https://aruslan.io/swim-stats/b_times_11_12.json";
-const BB_URL = "https://aruslan.io/swim-stats/bb_times_11_12.json";
+// Новые motivational URLs:
+const MOTIVATIONAL_11_12_URL = "https://aruslan.io/swim-stats/motivational_24_girls_11-12.json";
+const MOTIVATIONAL_13_14_URL = "https://aruslan.io/swim-stats/motivational_24_girls_13-14.json";
 
 // === PARAMETER PARSING ===
-// Accept parameter from loader if present
 let param = (typeof __widgetParameter !== "undefined" && __widgetParameter !== null
   ? __widgetParameter
   : (args.widgetParameter || "AA,FR"))
   .toUpperCase().replace(/\s+/g, "");
-let [swimmerKey, strokeCode] = param.split(",");
+let [swimmerKey, ageStr, strokeCode] = param.split(",");
 if (!SWIMMERS[swimmerKey]) swimmerKey = "AA";
 if (!STROKES.includes(strokeCode)) strokeCode = STROKES[0];
-const swimmerName = SWIMMERS[swimmerKey].name;
+let swimmerName = SWIMMERS[swimmerKey].name;
+let swimmerAge = parseInt(ageStr, 10);
+if (isNaN(swimmerAge)) swimmerAge = 12; // По умолчанию 12
 
 // === DATA LOADING ===
 async function fetchJson(url) {
@@ -47,7 +49,19 @@ async function fetchJson(url) {
   catch (e) { return null; }
 }
 
-// === HELPERS ===
+// === MOTIVATIONAL LOADING ===
+async function loadMotivational() {
+  // грузим обе возрастные группы и объединяем
+  let [m11_12, m13_14] = await Promise.all([
+    fetchJson(MOTIVATIONAL_11_12_URL),
+    fetchJson(MOTIVATIONAL_13_14_URL)
+  ]);
+  let MOTIV = {};
+  if (m11_12?.Girls?.["11-12"]) MOTIV["11-12"] = m11_12.Girls["11-12"];
+  if (m13_14?.Girls?.["13-14"]) MOTIV["13-14"] = m13_14.Girls["13-14"];
+  return MOTIV;
+}
+
 function parseTime(s) {
   if (!s) return Infinity;
   s = String(s);
@@ -59,7 +73,6 @@ function parseTime(s) {
 }
 function fmt(s) { return s || "—"; }
 function getEventList(strokeFull, fmtType) {
-  // Only 50, 100, 200, 400 distances
   if (strokeFull === "Freestyle") {
     if (fmtType === "SCY") return [50, 100, 200, 400];
     if (fmtType === "LCM") return [50, 100, 200, 400];
@@ -73,43 +86,37 @@ function getEventList(strokeFull, fmtType) {
   }
   return [];
 }
-function getLevel(time, b, bb) {
-  if (time <= bb && bb !== undefined && isFinite(bb)) return "BB";
-  if (time <= b && b !== undefined && isFinite(b)) return "B";
+
+// Достать уровень для времени по всем стандартам
+function getMotivationalLevel(time, levels) {
+  // уровни в порядке: AAAA, AAA, AA, A, BB, B
+  const order = ["AAAA", "AAA", "AA", "A", "BB", "B"];
+  for (let lvl of order) {
+    if (levels[lvl] && time <= parseTime(levels[lvl])) return lvl;
+  }
   return "";
 }
-function getDelta(time, b, bb, mode) {
-  if (!isFinite(time) || !b) return { text: "", color: Color.white() };
-  if (mode === "targets") {
-    if (time > b) {
-      return { text: `B+${(time - b).toFixed(2)}`, color: Color.white() };
-    } else if (bb && isFinite(bb) && time > bb) {
-      return { text: `BB+${(time - bb).toFixed(2)}`, color: Color.white() };
-    } else {
-      return { text: "", color: Color.white() };
-    }
-  } else {
-    if (time > b) {
-      return { text: "+" + (time - b).toFixed(2), color: new Color("#FF3333") };
-    } else if (bb && isFinite(bb) && time > bb) {
-      return { text: "-" + (b - time).toFixed(2), color: new Color("#39C570") };
-    } else if (bb && isFinite(bb) && time <= bb) {
-      return { text: "-" + (bb - time).toFixed(2), color: new Color("#39C570") };
-    } else {
-      return { text: "", color: Color.white() };
+
+function getDelta(time, levels) {
+  // Найти ближайший (следующий) целевой уровень, показать разницу
+  // (например, если BB уже достигнут — до AA)
+  const order = ["AAAA", "AAA", "AA", "A", "BB", "B"];
+  for (let lvl of order) {
+    if (levels[lvl] && time > parseTime(levels[lvl])) {
+      return { text: `${lvl}+${(time - parseTime(levels[lvl])).toFixed(2)}`, color: Color.white() };
     }
   }
+  return { text: "", color: Color.white() };
 }
 
 // === MAIN ===
 async function createWidget() {
-  let [timesData, unofficialData, B_TIMES, BB_TIMES] = await Promise.all([
+  let [timesData, unofficialData, MOTIV] = await Promise.all([
     fetchJson(TIMES_URL),
     fetchJson(UNOFFICIAL_URL),
-    fetchJson(B_URL),
-    fetchJson(BB_URL)
+    loadMotivational()
   ]);
-  if (!Array.isArray(timesData) || !B_TIMES) {
+  if (!Array.isArray(timesData) || !MOTIV) {
     let w = new ListWidget();
     w.backgroundColor = new Color("#000");
     let t = w.addText("⚠️ Failed to load data");
@@ -117,6 +124,7 @@ async function createWidget() {
     t.textColor = Color.red();
     return w;
   }
+
   const swimmerTimes = timesData.filter(r => r.name === swimmerName);
   const unofficialTimes = Array.isArray(unofficialData) ?
     unofficialData.filter(r => r.name === swimmerName) : [];
@@ -133,14 +141,13 @@ async function createWidget() {
 
   const strokeFull = STROKE_LABELS[strokeCode];
   const FORMATS_ORDERED = ["LCM", "SCY"];
+  // определяем возрастную категорию для мотивационной таблицы
+  let motivAgeGroup = swimmerAge >= 13 ? "13-14" : "11-12";
   for (let fmtType of FORMATS_ORDERED) {
     const evList = getEventList(strokeFull, fmtType);
     for (let ev of evList) {
-      // Only if B time is available for that event
-      const b = B_TIMES[strokeFull]?.[fmtType]?.[String(ev)];
-      const bb = BB_TIMES?.[strokeFull]?.[fmtType]?.[String(ev)];
-      if (!b) continue;
-
+      const levels = MOTIV?.[motivAgeGroup]?.[fmtType]?.[strokeCode]?.[String(ev)];
+      if (!levels) continue;
       const wanted = `${ev} ${strokeCode} ${fmtType}`;
       const candidates = swimmerTimes.concat(unofficialTimes)
         .filter(r => r.event === wanted)
@@ -182,8 +189,8 @@ async function createWidget() {
       c3.layoutHorizontally();
       c3.centerAlignContent();
       c3.addSpacer();
-      let level = getLevel(timeSec, parseTime(b), parseTime(bb));
-      if (level === "BB" || level === "B") {
+      let level = getMotivationalLevel(timeSec, levels);
+      if (level) {
         const l3 = c3.addText(level);
         l3.font = Font.boldSystemFont(FONT_SIZE);
         l3.textColor = new Color("#39C570");
@@ -195,7 +202,7 @@ async function createWidget() {
       c4.layoutHorizontally();
       c4.centerAlignContent();
       c4.addSpacer();
-      const { text: deltaText, color: deltaColor } = getDelta(timeSec, parseTime(b), parseTime(bb), DELTA_MODE);
+      const { text: deltaText, color: deltaColor } = getDelta(timeSec, levels);
       const l4 = c4.addText(deltaText);
       l4.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
       l4.textColor = deltaColor;
