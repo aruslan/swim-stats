@@ -4,10 +4,6 @@
   <meta charset="UTF-8">
   <title>Swim Progression</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <link rel="apple-touch-icon" href="icon.png">
-  <link rel="icon" sizes="192x192" href="icon.png">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#18191b">
   <style>
     html, body {
       background: #18191b;
@@ -245,7 +241,7 @@ function renderChart() {
   const ev = availableEvents[eventIdx];
   if (!ev) return;
 
-  // Best for each day (official first, then unofficial)
+  // Данные по лучшим заплывам (по дням)
   const allTimes = times.filter(r => r.name === swimmer && r.event === `${ev.distance} ${stroke} ${ev.format}`)
     .concat(unofficialTimes.filter(r => r.name === swimmer && r.event === `${ev.distance} ${stroke} ${ev.format}`));
   const bestByDate = {};
@@ -256,7 +252,6 @@ function renderChart() {
       bestByDate[d] = r;
     }
   });
-
   const swimData = Object.values(bestByDate)
     .map(r => ({
       x: parseDate(r.date),
@@ -267,14 +262,26 @@ function renderChart() {
       isUnofficial: !!r.unofficial
     })).sort((a, b) => a.x - b.x);
 
-  // Lines for all levels
+  // --- Данные для линий нормативов с подписями ---
   const levels = getLevels(stroke, ev.format, ev.distance);
   const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
+  let xRange = swimData.length
+    ? [swimData[0].x, swimData[swimData.length - 1].x]
+    : [new Date(Date.now()-30*86400*1000), new Date()];
+  if (xRange[0].getTime() === xRange[1].getTime()) {
+    // сдвигаем диапазон при одной точке
+    xRange[0] = new Date(xRange[0].getTime() - 10*86400*1000);
+    xRange[1] = new Date(xRange[1].getTime() + 10*86400*1000);
+  }
+
   const standardLines = order
     .filter(lvl => levels[lvl])
     .map(lvl => ({
       label: lvl,
-      data: swimData.map(d => ({ x: d.x, y: parseTime(levels[lvl]) })),
+      data: [
+        { x: xRange[0], y: parseTime(levels[lvl]) },
+        { x: xRange[1], y: parseTime(levels[lvl]) }
+      ],
       borderColor: LEVEL_COLORS[lvl],
       borderDash: LEVEL_STYLES[lvl][1],
       borderWidth: LEVEL_STYLES[lvl][0],
@@ -301,7 +308,7 @@ function renderChart() {
           pointBackgroundColor: swimData.map(d => d.isUnofficial ? "#aaa" : "#39c570"),
           borderColor: "#39c570",
           backgroundColor: "#fff",
-          showLine: true,
+          showLine: swimData.length > 1,
         }
       ]
     },
@@ -342,8 +349,34 @@ function renderChart() {
           title: { display: false },
           ticks: { callback: val => fmtTime(val), color: "#ccc" }
         }
+      },
+      animation: false
+    },
+    plugins: [{
+      id: "line-labels",
+      afterDatasetsDraw: chart => {
+        // вручную рисуем подписи к линиям нормативов
+        const {ctx, chartArea, scales} = chart;
+        if (!ctx || !chartArea) return;
+        const levels = getLevels(
+          STROKES[strokeIdx].code,
+          availableEvents[eventIdx].format,
+          availableEvents[eventIdx].distance
+        );
+        const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
+        order.forEach((lvl) => {
+          if (!levels[lvl]) return;
+          ctx.save();
+          ctx.font = "bold 13px system-ui,sans-serif";
+          ctx.fillStyle = LEVEL_COLORS[lvl];
+          ctx.textBaseline = "middle";
+          // справа от графика, чуть внутри
+          const y = scales.y.getPixelForValue(parseTime(levels[lvl]));
+          ctx.fillText(lvl, chartArea.right - 4, y);
+          ctx.restore();
+        });
       }
-    }
+    }]
   });
 
   // Titles etc
