@@ -20,20 +20,19 @@ const STROKE_SHORT = {
 const FONT_SIZE = 13;
 const ROW_HEIGHT = 22;
 const ROW_WIDTH = 280;
-const COL_EVENT = 70;   // Event column width
-const COL_TIME = 70;    // Time column width
-const COL_LEVEL = 32;   // B/BB/AA/AAA/AAAA column width
-const COL_DELTA = 70;   // Delta column width
+const COL_EVENT = 70;
+const COL_TIME = 70;
+const COL_LEVEL = 32;
+const COL_DELTA = 70;
 const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
 const MOTIVATIONAL_11_12_URL = "https://aruslan.io/swim-stats/motivational_24_girls_11-12.json";
 const MOTIVATIONAL_13_14_URL = "https://aruslan.io/swim-stats/motivational_24_girls_13-14.json";
 
 // === PARAMETER PARSING ===
-// Format: "AA,BR,12" (имя, стиль, возраст)
 let param = (typeof __widgetParameter !== "undefined" && __widgetParameter !== null
   ? __widgetParameter
-  : (args.widgetParameter || "AA,BR,12"))   // <--- ПО УМОЛЧАНИЮ!
+  : (args.widgetParameter || "AA,BR,12"))
   .toUpperCase().replace(/\s+/g, "");
 
 let paramArr = param.split(",");
@@ -51,7 +50,6 @@ async function fetchJson(url) {
   catch (e) { return null; }
 }
 
-// === MOTIVATIONAL LOADING ===
 async function loadMotivational() {
   let [m11_12, m13_14] = await Promise.all([
     fetchJson(MOTIVATIONAL_11_12_URL),
@@ -88,7 +86,6 @@ function getEventList(strokeFull, fmtType) {
   return [];
 }
 
-// === ЛОГИКА УРОВНЯ ===
 function getMotivationalLevel(time, levels) {
   const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
   let achieved = "";
@@ -105,7 +102,6 @@ function getMotivationalLevel(time, levels) {
 function getDelta(time, levels) {
   if (typeof time !== "number" || isNaN(time)) return { text: "", color: Color.white() };
   const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
-  // Если время хуже всех стандартов — показываем разницу до первого уровня
   for (let i = 0; i < order.length; i++) {
     let lvl = order[i];
     if (!levels[lvl]) continue;
@@ -114,7 +110,6 @@ function getDelta(time, levels) {
       return { text: `${lvl} +${diff.toFixed(2)}`, color: Color.white() };
     }
   }
-  // Если достигнут один или более уровней — дельта до следующего (если есть)
   for (let i = order.length - 1; i >= 0; i--) {
     let lvl = order[i];
     if (levels[lvl] && time <= parseTime(levels[lvl])) {
@@ -126,7 +121,6 @@ function getDelta(time, levels) {
       break;
     }
   }
-  // Лучше всех — пусто
   return { text: "", color: Color.white() };
 }
 
@@ -146,9 +140,12 @@ async function createWidget() {
     return w;
   }
 
+  // Все неофициальные результаты помечаем явно
+  const unofficialTimes = Array.isArray(unofficialData)
+    ? unofficialData.filter(r => r.name === swimmerName).map(r => ({ ...r, unofficial: true }))
+    : [];
   const swimmerTimes = timesData.filter(r => r.name === swimmerName);
-  const unofficialTimes = Array.isArray(unofficialData) ?
-    unofficialData.filter(r => r.name === swimmerName) : [];
+
   const widget = new ListWidget();
   widget.backgroundColor = new Color("#000");
   widget.setPadding(10, 10, 10, 10);
@@ -175,7 +172,7 @@ async function createWidget() {
       const candidate = candidates[0];
       const timeStr = candidate ? candidate.time : "";
       const timeSec = candidate ? parseTime(candidate.time) : null;
-      const isUnofficial = candidate && candidate.unofficial;
+      const isUnofficial = candidate ? !!candidate.unofficial : false;
 
       // ROW: All columns right-aligned, fixed widths, no margin
       const row = left.addStack();
@@ -213,7 +210,7 @@ async function createWidget() {
       if (level) {
         const l3 = c3.addText(level);
         l3.font = Font.boldSystemFont(FONT_SIZE);
-        l3.textColor = new Color("#39C570");
+        l3.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
       }
 
       // Delta column
@@ -227,7 +224,7 @@ async function createWidget() {
         : { text: "", color: Color.white() };
       const l4 = c4.addText(deltaText);
       l4.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
-      l4.textColor = deltaColor;
+      l4.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
     }
   }
 
