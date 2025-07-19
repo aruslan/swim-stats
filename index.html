@@ -4,122 +4,30 @@
   <meta charset="UTF-8">
   <title>Swim Progression</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <!-- PWA / Home screen support -->
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="icon" sizes="192x192" href="icon.png">
   <link rel="manifest" href="manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Swim Progression">
   <meta name="theme-color" content="#18191b">
   <style>
     html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, sans-serif;
       background: #18191b;
       color: #fff;
+      font-family: system-ui, sans-serif;
+      margin: 0; padding: 0;
+      height: 100%; min-height: 100%;
     }
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-    }
-    .main {
-      width: 100%;
-      max-width: 430px;
-      padding: 0;
-      margin: 0 auto;
-      flex: 1 0 auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .cycle-row {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      margin: 32px 0 10px 0;
-      padding: 0 16px;
-    }
-    .cycle-btn {
-      flex: 1;
-      padding: 16px 0;
-      background: #252629;
-      color: #fff;
-      border: none;
-      border-radius: 16px;
-      font-size: 1.15em;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      margin: 0 0 0 0;
-      cursor: pointer;
-      transition: background .15s;
-      outline: none;
-    }
-    .cycle-btn.selected {
-      background: #39c570;
-      color: #18191b;
-    }
-    .chart-container {
-      width: 100%;
-      background: #212226;
-      border-radius: 20px;
-      box-shadow: 0 2px 12px #0002;
-      margin: 12px 0 0 0;
-      padding: 20px 8px 8px 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      overflow-x: hidden;
-      touch-action: none; /* disables default scrolling in this area */
-    }
-    .chart-title {
-      font-size: 1.18em;
-      font-weight: 700;
-      color: #eee;
-      text-align: center;
-      margin-bottom: 10px;
-      min-height: 1.5em;
-    }
-    .event-indicator {
-      margin-top: 4px;
-      margin-bottom: 8px;
-      text-align: center;
-      color: #bbb;
-      font-size: 1em;
-      letter-spacing: 0.02em;
-    }
-    .event-dots {
-      text-align: center;
-      margin-bottom: 5px;
-      user-select: none;
-      font-size: 1.4em;
-    }
-    .event-dot {
-      color: #bbb;
-      margin: 0 2px;
-      cursor: pointer;
-      transition: color 0.2s;
-    }
-    .event-dot.active {
-      color: #39c570;
-      font-size: 1.4em;
-    }
-    canvas {
-      width: 99vw !important;
-      max-width: 400px !important;
-      height: 220px !important;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 0 0.5em #0001;
-      margin-bottom: 8px;
-    }
+    body { display: flex; flex-direction: column; align-items: center; min-height: 100vh;}
+    .main { width: 100%; max-width: 430px; padding: 0; margin: 0 auto; display: flex; flex-direction: column; align-items: center;}
+    .cycle-row { width: 100%; display: flex; justify-content: space-between; gap: 16px; margin: 32px 0 10px 0; padding: 0 16px; }
+    .cycle-btn { flex: 1; padding: 16px 0; background: #252629; color: #fff; border: none; border-radius: 16px; font-size: 1.15em; font-weight: 600; margin: 0; cursor: pointer; transition: background .15s; }
+    .cycle-btn.selected { background: #39c570; color: #18191b;}
+    .chart-container { width: 100%; background: #212226; border-radius: 20px; box-shadow: 0 2px 12px #0002; margin: 12px 0 0 0; padding: 20px 8px 8px 8px; display: flex; flex-direction: column; align-items: center; }
+    .chart-title { font-size: 1.18em; font-weight: 700; color: #eee; text-align: center; margin-bottom: 10px; min-height: 1.5em;}
+    .event-indicator { margin-top: 4px; margin-bottom: 8px; text-align: center; color: #bbb; font-size: 1em;}
+    .event-dots { text-align: center; margin-bottom: 5px; user-select: none; font-size: 1.4em;}
+    .event-dot { color: #bbb; margin: 0 2px; cursor: pointer; transition: color 0.2s;}
+    .event-dot.active { color: #39c570; font-size: 1.4em;}
+    canvas { width: 99vw !important; max-width: 400px !important; height: 220px !important; background: #fff; border-radius: 16px; box-shadow: 0 0 0.5em #0001; margin-bottom: 8px;}
     @media (max-width: 500px) {
       .main { max-width: 100vw; }
       .chart-container { max-width: 100vw; }
@@ -155,8 +63,26 @@ const STROKES = [
 const SWIMMERS = [
   "Anna Abdikeeva", "Imari Racine", "Valerie Dronova", "Kexin Liu"
 ];
-
-// --- HELPERS ---
+const MOTIV_URL = "./motivational_24_girls_11-12.json";
+const TIMES_URL = "./times.json";
+const UNOFFICIAL_URL = "./unofficial_times.json";
+const FORMATS_ORDERED = ["LCM", "SCY"];
+const LEVEL_COLORS = {
+  "B": "#3366cc",
+  "BB": "#ffa726",
+  "A": "#f46db0",
+  "AA": "#7cbd5e",
+  "AAA": "#f9cf48",
+  "AAAA": "#b052ff"
+};
+const LEVEL_STYLES = {
+  "B":   [2, [8,4]],
+  "BB":  [2, [6,4]],
+  "A":   [2, [4,4]],
+  "AA":  [2, [2,4]],
+  "AAA": [2, [2,2]],
+  "AAAA":[2, [1,2]]
+};
 
 function parseDate(d) {
   if (!d) return new Date(0);
@@ -198,7 +124,6 @@ function getUrlParam(name) {
 function findStrokeIdx(param) {
   if (!param) return 0;
   param = param.toLowerCase();
-  // Allow "breast", "breaststroke", "br", etc.
   for (let i = 0; i < STROKES.length; ++i) {
     let s = STROKES[i];
     if (
@@ -210,7 +135,6 @@ function findStrokeIdx(param) {
       s.code.toLowerCase().startsWith(param)
     ) return i;
   }
-  // Partial match fallback
   for (let i = 0; i < STROKES.length; ++i) {
     let s = STROKES[i];
     if (
@@ -222,30 +146,26 @@ function findStrokeIdx(param) {
   return 0;
 }
 
-let chart, times, bTimes, bbTimes;
+let chart, times, unofficialTimes, motivational;
 let swimmerIdx = 0, strokeIdx = 0;
 let availableEvents = [], eventIdx = 0;
 
+// --- LOADING ---
 async function loadData() {
-  [times, bTimes, bbTimes] = await Promise.all([
-    fetch('./times.json').then(r=>r.json()),
-    fetch('./b_times_11_12.json').then(r=>r.json()),
-    fetch('./bb_times_11_12.json').then(r=>r.json())
+  const [mot, tms, unoff] = await Promise.all([
+    fetch(MOTIV_URL).then(r=>r.json()),
+    fetch(TIMES_URL).then(r=>r.json()),
+    fetch(UNOFFICIAL_URL).then(r=>r.json())
   ]);
+  motivational = mot.Girls["11-12"];
+  times = tms;
+  unofficialTimes = unoff.map(r => ({...r, unofficial: true}));
 }
 
-function setBtn(btn, arr, idx) {
-  btn.textContent = arr[idx].name || arr[idx];
-  btn.className = 'cycle-btn selected';
-}
-
-function updateBtns() {
-  setBtn(document.getElementById('stroke-btn'), STROKES, strokeIdx);
-  setBtn(document.getElementById('swimmer-btn'), SWIMMERS, swimmerIdx);
-}
-
+// --- GROUPING ---
 function groupEventsByDistanceAndFormat(swimmer, strokeCode) {
-  const swimmerTimes = times.filter(r => r.name === swimmer && r.event.includes(strokeCode));
+  const swimmerTimes = times.filter(r => r.name === swimmer && r.event.includes(strokeCode))
+    .concat(unofficialTimes.filter(r => r.name === swimmer && r.event.includes(strokeCode)));
   const groups = {};
   swimmerTimes.forEach(r => {
     let [dist, , fmt] = r.event.split(' ');
@@ -266,12 +186,19 @@ function updateAvailableEvents() {
   eventIdx = 0;
 }
 
+function setBtn(btn, arr, idx) {
+  btn.textContent = arr[idx].name || arr[idx];
+  btn.className = 'cycle-btn selected';
+}
+function updateBtns() {
+  setBtn(document.getElementById('stroke-btn'), STROKES, strokeIdx);
+  setBtn(document.getElementById('swimmer-btn'), SWIMMERS, swimmerIdx);
+}
 function setEventIdx(idx) {
   eventIdx = idx;
   if (eventIdx < 0) eventIdx = 0;
   if (eventIdx >= availableEvents.length) eventIdx = availableEvents.length-1;
 }
-
 function showEventDots() {
   const dotsDiv = document.getElementById('event-dots');
   if (availableEvents.length <= 1) { dotsDiv.innerHTML = ''; return; }
@@ -284,6 +211,24 @@ window.setChartEventIdx = function(idx) {
   renderChart();
 };
 
+// --- LEVELS ---
+function getLevels(stroke, fmtType, dist) {
+  return motivational?.[fmtType]?.[stroke]?.[String(dist)] || {};
+}
+function getMotivationalLevel(time, levels) {
+  const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
+  let achieved = "";
+  for (let i = 0; i < order.length; i++) {
+    const lvl = order[i];
+    if (!levels[lvl]) continue;
+    if (time <= parseTime(levels[lvl])) {
+      achieved = lvl;
+    }
+  }
+  return achieved;
+}
+
+// --- CHART ---
 function renderChart() {
   if (!availableEvents.length) {
     document.getElementById('chart-title').textContent = "No events for this swimmer/stroke.";
@@ -296,78 +241,68 @@ function renderChart() {
   const swimmer = SWIMMERS[swimmerIdx];
   const strokeObj = STROKES[strokeIdx];
   const stroke = strokeObj.code;
-  const strokeJson = strokeObj.json;
 
   const ev = availableEvents[eventIdx];
   if (!ev) return;
 
-  const swimmerTimes = times.filter(r => r.name === swimmer && r.event === `${ev.distance} ${stroke} ${ev.format}`);
+  // Best for each day (official first, then unofficial)
+  const allTimes = times.filter(r => r.name === swimmer && r.event === `${ev.distance} ${stroke} ${ev.format}`)
+    .concat(unofficialTimes.filter(r => r.name === swimmer && r.event === `${ev.distance} ${stroke} ${ev.format}`));
+  const bestByDate = {};
+  allTimes.forEach(r => {
+    const d = parseDate(r.date).toISOString().slice(0,10);
+    if (!bestByDate[d] || parseTime(r.time) < parseTime(bestByDate[d].time) ||
+      (parseTime(r.time) === parseTime(bestByDate[d].time) && r.unofficial)) {
+      bestByDate[d] = r;
+    }
+  });
 
-  const chartTitle = `${swimmer.split(' ')[0]} • ${strokeObj.name}`;
-  document.getElementById('chart-title').textContent = chartTitle;
-
-  document.getElementById('event-indicator').textContent = `${ev.distance} ${stroke} ${ev.format}  (${swimmerTimes.length} swim${swimmerTimes.length==1?'':'s'})`;
-
-  showEventDots();
-
-  let bVal, bbVal;
-  if (bTimes[strokeJson] && bTimes[strokeJson][ev.format]) {
-    let bRaw = bTimes[strokeJson][ev.format][ev.distance];
-    bVal = (typeof bRaw === "number") ? bRaw : parseTime(bRaw);
-  }
-  if (bbTimes[strokeJson] && bbTimes[strokeJson][ev.format]) {
-    let bbRaw = bbTimes[strokeJson][ev.format][ev.distance];
-    bbVal = (typeof bbRaw === "number") ? bbRaw : parseTime(bbRaw);
-  }
-
-  const swimData = swimmerTimes
+  const swimData = Object.values(bestByDate)
     .map(r => ({
       x: parseDate(r.date),
       y: parseTime(r.time),
       date: r.date,
       meet: r.meet,
       time: r.time,
-      time_standard: r.time_standard
+      isUnofficial: !!r.unofficial
     })).sort((a, b) => a.x - b.x);
 
+  // Lines for all levels
+  const levels = getLevels(stroke, ev.format, ev.distance);
+  const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
+  const standardLines = order
+    .filter(lvl => levels[lvl])
+    .map(lvl => ({
+      label: lvl,
+      data: swimData.map(d => ({ x: d.x, y: parseTime(levels[lvl]) })),
+      borderColor: LEVEL_COLORS[lvl],
+      borderDash: LEVEL_STYLES[lvl][1],
+      borderWidth: LEVEL_STYLES[lvl][0],
+      pointRadius: 0,
+      fill: false,
+      order: 0,
+      showLine: true
+    }));
+
   if (chart) chart.destroy();
+
   chart = new Chart(document.getElementById('progression-chart').getContext('2d'), {
     type: 'line',
     data: {
       datasets: [
+        ...standardLines,
         {
           label: `${ev.distance} ${stroke} ${ev.format}`,
           data: swimData,
-          tension: 0.28,
+          tension: 0.24,
           fill: false,
           pointRadius: 6,
           pointHoverRadius: 9,
-          borderColor: '#39c570',
-          backgroundColor: '#fff',
+          pointBackgroundColor: swimData.map(d => d.isUnofficial ? "#aaa" : "#39c570"),
+          borderColor: "#39c570",
+          backgroundColor: "#fff",
           showLine: true,
-        },
-        ...(isFinite(bVal) ? [{
-          label: 'B',
-          data: swimData.map(d => ({x: d.x, y: bVal})),
-          borderColor: '#3366cc',
-          borderDash: [6,5],
-          borderWidth: 2,
-          pointRadius: 0,
-          fill: false,
-          order: 0,
-          showLine: true
-        }] : []),
-        ...(isFinite(bbVal) ? [{
-          label: 'BB',
-          data: swimData.map(d => ({x: d.x, y: bbVal})),
-          borderColor: '#ffa726',
-          borderDash: [4,4],
-          borderWidth: 2,
-          pointRadius: 0,
-          fill: false,
-          order: 0,
-          showLine: true
-        }] : [])
+        }
       ]
     },
     options: {
@@ -385,24 +320,12 @@ function renderChart() {
               if (!d || d.y == null) return '';
               let lines = [
                 `Time: ${fmtTime(d.y)}`,
+                d.isUnofficial ? '(unofficial)' : '(official)',
                 `Meet: ${d.meet}`,
               ];
-              if (isFinite(bVal) && isFinite(bbVal)) {
-                if (d.y > bVal) {
-                  lines.push(`To B: ${(d.y - bVal).toFixed(2)}s`);
-                } else if (d.y > bbVal) {
-                  lines.push(`B!`);
-                  lines.push(`To BB: ${(d.y - bbVal).toFixed(2)}s`);
-                } else {
-                  lines.push(`BB!`);
-                }
-              } else if (isFinite(bVal)) {
-                if (d.y > bVal) lines.push(`To B: ${(d.y - bVal).toFixed(2)}s`);
-                else lines.push(`B!`);
-              } else if (isFinite(bbVal)) {
-                if (d.y > bbVal) lines.push(`To BB: ${(d.y - bbVal).toFixed(2)}s`);
-                else lines.push(`BB!`);
-              }
+              const lvls = getLevels(stroke, ev.format, ev.distance);
+              const level = getMotivationalLevel(d.y, lvls);
+              if (level) lines.push(`Level: ${level}`);
               return lines;
             }
           }
@@ -422,19 +345,23 @@ function renderChart() {
       }
     }
   });
+
+  // Titles etc
+  const chartTitle = `${swimmer.split(' ')[0]} • ${strokeObj.name}`;
+  document.getElementById('chart-title').textContent = chartTitle;
+  document.getElementById('event-indicator').textContent = `${ev.distance} ${stroke} ${ev.format}  (${swimData.length} swim${swimData.length==1?'':'s'})`;
+  showEventDots();
 }
 
-// --- SWIPE HANDLING ---
+// --- SWIPE HANDLING (тот же, не менялся) ---
 function addSwipeHandlers(container) {
   let startX = 0, startY = 0, dx = 0, dy = 0, swiped = false, dir = null;
-
   container.addEventListener('touchstart', function(e) {
     if (e.touches.length !== 1) return;
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
     dx = 0; dy = 0; swiped = false; dir = null;
-  }, {passive:false}); // passive: false needed for preventDefault
-
+  }, {passive:false});
   container.addEventListener('touchmove', function(e) {
     if (e.touches.length !== 1) return;
     dx = e.touches[0].clientX - startX;
@@ -443,35 +370,17 @@ function addSwipeHandlers(container) {
       dir = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
       swiped = true;
     }
-    if (swiped) {
-      // Prevent page scroll if any swipe detected in chart area
-      e.preventDefault();
-    }
+    if (swiped) e.preventDefault();
   }, {passive:false});
-
   container.addEventListener('touchend', function(e) {
     if (swiped) {
       if (dir === 'h') {
-        if (dx < -30 && eventIdx < availableEvents.length-1) { // Swipe left
-          eventIdx++; renderChart();
-        }
-        if (dx > 30 && eventIdx > 0) { // Swipe right
-          eventIdx--; renderChart();
-        }
+        if (dx < -30 && eventIdx < availableEvents.length-1) { eventIdx++; renderChart(); }
+        if (dx > 30 && eventIdx > 0) { eventIdx--; renderChart(); }
       }
       if (dir === 'v') {
-        if (dy < -30) { // Swipe up = next stroke
-          strokeIdx = (strokeIdx + 1) % STROKES.length;
-          updateBtns();
-          updateAvailableEvents();
-          renderChart();
-        }
-        if (dy > 30) { // Swipe down = prev stroke
-          strokeIdx = (strokeIdx + STROKES.length - 1) % STROKES.length;
-          updateBtns();
-          updateAvailableEvents();
-          renderChart();
-        }
+        if (dy < -30) { strokeIdx = (strokeIdx + 1) % STROKES.length; updateBtns(); updateAvailableEvents(); renderChart();}
+        if (dy > 30) { strokeIdx = (strokeIdx + STROKES.length - 1) % STROKES.length; updateBtns(); updateAvailableEvents(); renderChart();}
       }
     }
     startX = dx = 0; startY = dy = 0; swiped = false; dir = null;
@@ -482,13 +391,11 @@ function addSwipeHandlers(container) {
 document.addEventListener('DOMContentLoaded', async function() {
   await loadData();
 
-  // URL param handling (case-insensitive, partial match allowed)
+  // URL param handling
   let swimmerParam = getUrlParam("swimmer");
   if (swimmerParam) {
     let idx = SWIMMERS.findIndex(s => s.toLowerCase() === swimmerParam.toLowerCase());
-    if (idx === -1) {
-      idx = SWIMMERS.findIndex(s => s.toLowerCase().includes(swimmerParam.toLowerCase()));
-    }
+    if (idx === -1) idx = SWIMMERS.findIndex(s => s.toLowerCase().includes(swimmerParam.toLowerCase()));
     if (idx !== -1) swimmerIdx = idx;
   }
   let strokeParam = getUrlParam("stroke");
@@ -512,7 +419,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateAvailableEvents();
     renderChart();
   };
-
   addSwipeHandlers(document.getElementById('chart-container'));
 });
 </script>
