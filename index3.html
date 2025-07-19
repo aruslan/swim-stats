@@ -74,11 +74,13 @@
     }
     .official { color: #fff; font-weight: bold;}
     .unofficial { color: #aaa; font-weight: bold;}
-    .level-cell { width: 26px; text-align: center; padding-left: 0; padding-right: 0;}
-    .level-bb, .level-b { color: #39c570; font-weight: bold; font-size: 15px;}
+    .level-cell { width: 38px; text-align: center; padding-left: 0; padding-right: 0;}
+    .level-B, .level-BB, .level-A, .level-AA, .level-AAA, .level-AAAA { color: #39c570; font-weight: bold; font-size: 15px;}
+    .level-unofficial { color: #66A786; font-weight: bold; font-size: 15px;}
     .delta-good { color: #39c570; }
     .delta-bad { color: #ff3333; }
     .delta-empty { color: #fff;}
+    .delta-unofficial { color: #bbb;}
     .right {
       background: #000;
       padding: 24px 24px 24px 0;
@@ -180,13 +182,13 @@ const STROKE_BTN_LABELS = {
   "FR":"Free", "BK":"Back", "BR":"Breast", "FL":"Fly", "IM":"IM"
 };
 const FORMATS_ORDERED = ["LCM", "SCY"];
-
+const MOTIV_URL = "./motivational_24_girls_11-12.json";
 const TIMES_URL = "./times.json";
 const UNOFFICIAL_URL = "./unofficial_times.json";
-const B_URL = "./b_times_11_12.json";
-const BB_URL = "./bb_times_11_12.json";
 
-let bTimes = {}, bbTimes = {}, allOfficialTimes = [], allUnofficialTimes = [];
+// ===== DATA LOADING AND PARSING =====
+let motivational = {};
+let allOfficialTimes = [], allUnofficialTimes = [];
 let officialTimes = [], unofficialTimes = [];
 let deltaMode = "targets";
 let currentStroke = STROKES[0];
@@ -201,19 +203,17 @@ function parseTime(s) {
   return parseFloat(s);
 }
 function fmt(s) { return s || "—"; }
-function parseSec(s) { return parseTime(s); }
 
 async function fetchAllData() {
-  const [times, unofficial, b, bb] = await Promise.all([
+  const [mot, times, unofficial] = await Promise.all([
+    fetch(MOTIV_URL).then(r=>r.json()),
     fetch(TIMES_URL).then(r=>r.json()),
-    fetch(UNOFFICIAL_URL).then(r=>r.json()),
-    fetch(B_URL).then(r=>r.json()),
-    fetch(BB_URL).then(r=>r.json())
+    fetch(UNOFFICIAL_URL).then(r=>r.json())
   ]);
-  bTimes = b;
-  bbTimes = bb;
+  motivational = mot.Girls["11-12"]; // по умолчанию возраст 12
   allOfficialTimes = times;
-  allUnofficialTimes = unofficial;
+  // помечаем все неофициальные
+  allUnofficialTimes = unofficial.map(r => ({...r, unofficial: true}));
   setSwimmer(swimmerIndex);
 }
 
@@ -222,16 +222,16 @@ function setSwimmer(index) {
   swimmerKey = SWIMMER_KEYS[swimmerIndex];
   swimmerName = SWIMMERS[swimmerKey].name;
   officialTimes = allOfficialTimes.filter(r => r.name === swimmerName).map(r=>({...r, unofficial:false}));
-  unofficialTimes = allUnofficialTimes.filter(r => r.name === swimmerName).map(r=>({...r, unofficial:true}));
+  unofficialTimes = allUnofficialTimes.filter(r => r.name === swimmerName);
 }
 
-function getAllBEventsForStroke(stroke) {
+function getAllEventsForStroke(stroke) {
   const result = [];
-  const strokeFull = STROKE_LABELS[stroke];
+  const strokeCode = stroke;
   for (let fmtType of FORMATS_ORDERED) {
-    const bByEvent = bTimes[strokeFull]?.[fmtType] || {};
-    for (let ev in bByEvent) {
-      result.push({ stroke, strokeFull, fmtType, ev: Number(ev) });
+    const eventsObj = motivational?.[fmtType]?.[strokeCode] || {};
+    for (let ev in eventsObj) {
+      result.push({ stroke, fmtType, ev: Number(ev) });
     }
   }
   // sort by format, then distance
@@ -242,70 +242,80 @@ function getAllBEventsForStroke(stroke) {
   return result;
 }
 
-function getStandards(strokeFull, fmtType, ev) {
-  return {
-    b: bTimes[strokeFull]?.[fmtType]?.[String(ev)] || null,
-    bb: bbTimes[strokeFull]?.[fmtType]?.[String(ev)] || null
-  };
+function getLevels(stroke, fmtType, ev) {
+  return motivational?.[fmtType]?.[stroke]?.[String(ev)] || {};
 }
-function getLevel(timeSec, bSec, bbSec) {
-  if (timeSec <= bbSec && isFinite(bbSec)) return "BB";
-  if (timeSec <= bSec && isFinite(bSec)) return "B";
-  return "";
-}
-function getDelta(timeSec, bSec, bbSec, mode) {
-  if (!isFinite(timeSec) || !isFinite(bSec)) return { text: "", cls: "delta-empty" };
-  if (mode === "targets") {
-    if (timeSec > bSec) {
-      return { text: `B+${(timeSec-bSec).toFixed(2)}`, cls: "delta-empty" };
-    } else if (isFinite(bbSec) && timeSec > bbSec) {
-      return { text: `BB+${(timeSec-bbSec).toFixed(2)}`, cls: "delta-empty" };
-    } else {
-      return { text: "", cls: "delta-empty" };
-    }
-  } else {
-    if (timeSec > bSec) {
-      return { text: "+"+(timeSec-bSec).toFixed(2), cls: "delta-bad" };
-    } else if (isFinite(bbSec) && timeSec > bbSec) {
-      return { text: "-"+(bSec-timeSec).toFixed(2), cls: "delta-good" };
-    } else if (isFinite(bbSec) && timeSec <= bbSec) {
-      return { text: "-"+(bbSec-timeSec).toFixed(2), cls: "delta-good" };
-    } else {
-      return { text: "", cls: "delta-empty" };
+
+function getMotivationalLevel(time, levels) {
+  const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
+  let achieved = "";
+  for (let i = 0; i < order.length; i++) {
+    const lvl = order[i];
+    if (!levels[lvl]) continue;
+    if (time <= parseTime(levels[lvl])) {
+      achieved = lvl;
     }
   }
+  return achieved;
+}
+function getDelta(time, levels, mode) {
+  if (!isFinite(time)) return { text: "", cls: "delta-empty" };
+  const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
+  // хуже всех
+  for (let i = 0; i < order.length; i++) {
+    let lvl = order[i];
+    if (!levels[lvl]) continue;
+    if (time > parseTime(levels[lvl])) {
+      let diff = time - parseTime(levels[lvl]);
+      return { text: `${lvl}+${diff.toFixed(2)}`, cls: "delta-empty" };
+    }
+  }
+  // есть уровень — дельта до следующего (если есть)
+  for (let i = order.length - 1; i >= 0; i--) {
+    let lvl = order[i];
+    if (levels[lvl] && time <= parseTime(levels[lvl])) {
+      let nextLvl = order[i + 1];
+      if (nextLvl && levels[nextLvl]) {
+        let diff = parseTime(levels[nextLvl]) - time;
+        return { text: `${nextLvl}-${diff.toFixed(2)}`, cls: "delta-good" };
+      }
+      break;
+    }
+  }
+  return { text: "", cls: "delta-empty" };
 }
 
 function renderTable() {
-  const allEvents = getAllBEventsForStroke(currentStroke);
+  const allEvents = getAllEventsForStroke(currentStroke);
   let rows = '';
   for (let e of allEvents) {
-    const { stroke, strokeFull, fmtType, ev } = e;
-    const {b, bb} = getStandards(strokeFull, fmtType, ev);
+    const { stroke, fmtType, ev } = e;
+    const levels = getLevels(stroke, fmtType, ev);
     const eventKey = `${ev} ${stroke} ${fmtType}`;
     const times = officialTimes.concat(unofficialTimes).filter(r=>r.event === eventKey);
-    let timeVal = '', timeSec = Infinity, candidate = null, levelHTML = '';
+    let timeVal = '', timeSec = Infinity, candidate = null, levelHTML = '', levelClass = '';
     if (times.length) {
-      candidate = times.sort((a,b)=>parseSec(a.time)-parseSec(b.time))[0];
+      // среди лучших отдаём приоритет официальному
+      const minTime = Math.min(...times.map(r=>parseTime(r.time)));
+      const minCandidates = times.filter(r => parseTime(r.time) === minTime);
+      candidate = minCandidates.find(r => !r.unofficial) || minCandidates[0];
       timeVal = candidate.time;
-      timeSec = parseSec(timeVal);
+      timeSec = parseTime(timeVal);
     }
-    const bSec = b ? parseSec(b) : Infinity;
-    const bbSec = bb ? parseSec(bb) : Infinity;
     const timeClass = candidate && candidate.unofficial ? 'unofficial' : 'official';
 
     // Level
-    let level = getLevel(timeSec, bSec, bbSec);
-    if (level === "BB") {
-      levelHTML = `<span class="level-bb">BB</span>`;
-    } else if (level === "B") {
-      levelHTML = `<span class="level-b">B</span>`;
+    let level = getMotivationalLevel(timeSec, levels);
+    if (level) {
+      levelClass = candidate && candidate.unofficial ? 'level-unofficial' : `level-${level}`;
+      levelHTML = `<span class="${levelClass}">${level}</span>`;
     } else {
       levelHTML = "";
     }
 
     // Delta
-    const { text: delta, cls: deltaClass } = getDelta(timeSec, bSec, bbSec, deltaMode);
+    const { text: delta, cls: deltaClass0 } = getDelta(timeSec, levels, deltaMode);
+    const deltaClass = candidate && candidate.unofficial ? "delta-unofficial" : deltaClass0;
 
     rows += `<tr>
       <td class="event-col">${ev} ${stroke}</td>
