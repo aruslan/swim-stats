@@ -22,7 +22,7 @@ const ROW_HEIGHT = 22;
 const ROW_WIDTH = 280;
 const COL_EVENT = 70;   // Event column width
 const COL_TIME = 70;    // Time column width
-const COL_LEVEL = 32;   // B/BB/AA/AAA/AAAA column width -- увеличено!
+const COL_LEVEL = 32;   // B/BB/AA/AAA/AAAA column width
 const COL_DELTA = 70;   // Delta column width
 const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
@@ -88,20 +88,18 @@ function getEventList(strokeFull, fmtType) {
   return [];
 }
 
-// === КОРРЕКТНАЯ ЛОГИКА УРОВНЯ ===
+// === ЛОГИКА УРОВНЯ ===
 function getMotivationalLevel(time, levels) {
   const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
+  let achieved = "";
   for (let i = 0; i < order.length; i++) {
     const lvl = order[i];
     if (!levels[lvl]) continue;
     if (time <= parseTime(levels[lvl])) {
-      if (i === 0) return "B";
-      if (time > parseTime(levels[order[i - 1]])) {
-        return lvl;
-      }
+      achieved = lvl;
     }
   }
-  return "";
+  return achieved;
 }
 
 function getDelta(time, levels) {
