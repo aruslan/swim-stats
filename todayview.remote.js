@@ -88,15 +88,20 @@ function getEventList(strokeFull, fmtType) {
   return [];
 }
 
+// === КОРРЕКТНАЯ ЛОГИКА УРОВНЯ ===
 function getMotivationalLevel(time, levels) {
   const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
-  let achieved = "";
-  for (let lvl of order) {
-    if (levels[lvl] && time <= parseTime(levels[lvl])) {
-      achieved = lvl;
+  for (let i = 0; i < order.length; i++) {
+    const lvl = order[i];
+    if (!levels[lvl]) continue;
+    if (time <= parseTime(levels[lvl])) {
+      if (i === 0) return "B";
+      if (time > parseTime(levels[order[i - 1]])) {
+        return lvl;
+      }
     }
   }
-  return achieved;
+  return "";
 }
 
 function getDelta(time, levels) {
@@ -112,18 +117,16 @@ function getDelta(time, levels) {
     }
   }
   // Если достигнут один или более уровней — дельта до следующего (если есть)
-  let lastAchievedIdx = -1;
-  for (let i = 0; i < order.length; i++) {
+  for (let i = order.length - 1; i >= 0; i--) {
     let lvl = order[i];
     if (levels[lvl] && time <= parseTime(levels[lvl])) {
-      lastAchievedIdx = i;
+      let nextLvl = order[i + 1];
+      if (nextLvl && levels[nextLvl]) {
+        let diff = parseTime(levels[nextLvl]) - time;
+        return { text: `${nextLvl} -${diff.toFixed(2)}`, color: Color.white() };
+      }
+      break;
     }
-  }
-  let nextIdx = lastAchievedIdx + 1;
-  if (lastAchievedIdx >= 0 && nextIdx < order.length && levels[order[nextIdx]]) {
-    let lvl = order[nextIdx];
-    let diff = parseTime(levels[lvl]) - time;
-    return { text: `${lvl} -${diff.toFixed(2)}`, color: Color.white() };
   }
   // Лучше всех — пусто
   return { text: "", color: Color.white() };
