@@ -23,11 +23,9 @@ const ROW_WIDTH = 280;
 const COL_EVENT = 70;   // Event column width
 const COL_TIME = 70;    // Time column width
 const COL_LEVEL = 18;   // B/BB column width
-const COL_DELTA = 70;   // Delta column width (wide for "5.20 to BB")
-const DELTA_MODE = "targets";
+const COL_DELTA = 70;   // Delta column width
 const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
-// Новые motivational URLs:
 const MOTIVATIONAL_11_12_URL = "https://aruslan.io/swim-stats/motivational_24_girls_11-12.json";
 const MOTIVATIONAL_13_14_URL = "https://aruslan.io/swim-stats/motivational_24_girls_13-14.json";
 
@@ -41,7 +39,7 @@ if (!SWIMMERS[swimmerKey]) swimmerKey = "AA";
 if (!STROKES.includes(strokeCode)) strokeCode = STROKES[0];
 let swimmerName = SWIMMERS[swimmerKey].name;
 let swimmerAge = parseInt(ageStr, 10);
-if (isNaN(swimmerAge)) swimmerAge = 12; // По умолчанию 12
+if (isNaN(swimmerAge)) swimmerAge = 12;
 
 // === DATA LOADING ===
 async function fetchJson(url) {
@@ -51,7 +49,6 @@ async function fetchJson(url) {
 
 // === MOTIVATIONAL LOADING ===
 async function loadMotivational() {
-  // грузим обе возрастные группы и объединяем
   let [m11_12, m13_14] = await Promise.all([
     fetchJson(MOTIVATIONAL_11_12_URL),
     fetchJson(MOTIVATIONAL_13_14_URL)
@@ -63,7 +60,7 @@ async function loadMotivational() {
 }
 
 function parseTime(s) {
-  if (!s) return Infinity;
+  if (!s) return null;
   s = String(s);
   if (s.includes(':')) {
     let [m, sec] = s.split(':');
@@ -87,11 +84,9 @@ function getEventList(strokeFull, fmtType) {
   return [];
 }
 
-// === ОБНОВЛЕННЫЕ ФУНКЦИИ ===
-
-// Наивысший достигнутый уровень
+// === ФУНКЦИЯ ОПРЕДЕЛЕНИЯ ДОСТИГНУТОГО УРОВНЯ ===
 function getMotivationalLevel(time, levels) {
-  // Порядок: B < BB < A < AA < AAA < AAAA
+  // Возвращает наивысший достигнутый уровень
   const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
   let achieved = "";
   for (let lvl of order) {
@@ -102,17 +97,35 @@ function getMotivationalLevel(time, levels) {
   return achieved;
 }
 
-// Дельта до следующего уровня (или пусто)
+// === ФУНКЦИЯ ДЕЛЬТЫ ДО СЛЕДУЮЩЕГО УРОВНЯ ===
 function getDelta(time, levels) {
+  if (typeof time !== "number" || isNaN(time)) return { text: "", color: Color.white() };
   const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
+  // Найти следующий уровень, который НЕ достигнут (первый, где время > норматива)
   for (let i = 0; i < order.length; i++) {
     let lvl = order[i];
-    if (levels[lvl] && time > parseTime(levels[lvl])) {
-      // Следующий уровень — первый, чей норматив хуже текущего времени
-      return { text: `${lvl} -${(time - parseTime(levels[lvl])).toFixed(2)}`, color: Color.white() };
+    if (!levels[lvl]) continue;
+    if (time > parseTime(levels[lvl])) {
+      // Разница положительная до этого уровня (например, B +2.13)
+      let diff = time - parseTime(levels[lvl]);
+      return { text: `${lvl} +${diff.toFixed(2)}`, color: Color.white() };
     }
   }
-  // Если время выше (лучше) всех нормативов — ничего не показывать
+  // Если уже достигнут B, BB, ... AAAA, покажем дельту до следующего (лучшего) уровня, если есть
+  let lastAchievedIdx = -1;
+  for (let i = 0; i < order.length; i++) {
+    let lvl = order[i];
+    if (levels[lvl] && time <= parseTime(levels[lvl])) {
+      lastAchievedIdx = i;
+    }
+  }
+  let nextIdx = lastAchievedIdx + 1;
+  if (lastAchievedIdx >= 0 && nextIdx < order.length && levels[order[nextIdx]]) {
+    let lvl = order[nextIdx];
+    let diff = parseTime(levels[lvl]) - time;
+    return { text: `${lvl} -${diff.toFixed(2)}`, color: Color.white() };
+  }
+  // Если уже выше всех (лучше AAAA), пусто
   return { text: "", color: Color.white() };
 }
 
@@ -148,7 +161,6 @@ async function createWidget() {
 
   const strokeFull = STROKE_LABELS[strokeCode];
   const FORMATS_ORDERED = ["LCM", "SCY"];
-  // определяем возрастную категорию для мотивационной таблицы
   let motivAgeGroup = swimmerAge >= 13 ? "13-14" : "11-12";
   for (let fmtType of FORMATS_ORDERED) {
     const evList = getEventList(strokeFull, fmtType);
@@ -161,7 +173,7 @@ async function createWidget() {
         .sort((a, b2) => parseTime(a.time) - parseTime(b2.time));
       const candidate = candidates[0];
       const timeStr = candidate ? candidate.time : "";
-      const timeSec = candidate ? parseTime(candidate.time) : Infinity;
+      const timeSec = candidate ? parseTime(candidate.time) : null;
       const isUnofficial = candidate && candidate.unofficial;
 
       // ROW: All columns right-aligned, fixed widths, no margin
@@ -196,7 +208,7 @@ async function createWidget() {
       c3.layoutHorizontally();
       c3.centerAlignContent();
       c3.addSpacer();
-      let level = getMotivationalLevel(timeSec, levels);
+      let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
       if (level) {
         const l3 = c3.addText(level);
         l3.font = Font.boldSystemFont(FONT_SIZE);
@@ -209,7 +221,9 @@ async function createWidget() {
       c4.layoutHorizontally();
       c4.centerAlignContent();
       c4.addSpacer();
-      const { text: deltaText, color: deltaColor } = getDelta(timeSec, levels);
+      const { text: deltaText, color: deltaColor } = (timeSec !== null)
+        ? getDelta(timeSec, levels)
+        : { text: "", color: Color.white() };
       const l4 = c4.addText(deltaText);
       l4.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
       l4.textColor = deltaColor;
