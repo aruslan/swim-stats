@@ -22,7 +22,7 @@ const ROW_HEIGHT = 22;
 const ROW_WIDTH = 280;
 const COL_EVENT = 70;   // Event column width
 const COL_TIME = 70;    // Time column width
-const COL_LEVEL = 18;   // B/BB column width
+const COL_LEVEL = 32;   // B/BB/AA/AAA/AAAA column width -- увеличено!
 const COL_DELTA = 70;   // Delta column width
 const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
@@ -30,10 +30,10 @@ const MOTIVATIONAL_11_12_URL = "https://aruslan.io/swim-stats/motivational_24_gi
 const MOTIVATIONAL_13_14_URL = "https://aruslan.io/swim-stats/motivational_24_girls_13-14.json";
 
 // === PARAMETER PARSING ===
-// Format: "AA,FR" (имя, стиль, возраст по умолчанию 12) или "AA,BR,13"
+// Format: "AA,BR,12" (имя, стиль, возраст)
 let param = (typeof __widgetParameter !== "undefined" && __widgetParameter !== null
   ? __widgetParameter
-  : (args.widgetParameter || "AA,FR"))
+  : (args.widgetParameter || "AA,BR,12"))   // <--- ПО УМОЛЧАНИЮ!
   .toUpperCase().replace(/\s+/g, "");
 
 let paramArr = param.split(",");
