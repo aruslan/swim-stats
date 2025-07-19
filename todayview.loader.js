@@ -1,6 +1,6 @@
 // === Swim Widget Loader with Error Handling ===
 // Use as Today View widget in Scriptable
-// Accepts parameter as: "AA,12,BR" (swimmer, age, stroke), e.g. "AA,13,BR" or just "AA,BR" (defaults to age 12)
+// Accepts parameter as: "AA,FR" (swimmer, stroke, default age 12) or "AA,FR,13" (swimmer, stroke, age)
 
 const REMOTE_URL = "https://aruslan.io/swim-stats/todayview.remote.js";
 const param = args.widgetParameter;
@@ -8,14 +8,13 @@ const param = args.widgetParameter;
 async function main() {
   let code;
   try {
-    // Загрузка удаленного скрипта
     code = await new Request(REMOTE_URL).loadString();
   } catch (e) {
     await showErrorWidget(`Failed to download remote script.\n${e}`);
     return;
   }
   try {
-    // Передаем параметр в глобальную переменную для remote.js
+    // Передаем widgetParameter как строку в глобальную переменную для remote.js
     let injected = `let __widgetParameter = ${param ? JSON.stringify(param) : "null"};\n`;
     eval(injected + code);
   } catch (e) {

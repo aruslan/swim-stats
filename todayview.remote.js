@@ -30,16 +30,20 @@ const MOTIVATIONAL_11_12_URL = "https://aruslan.io/swim-stats/motivational_24_gi
 const MOTIVATIONAL_13_14_URL = "https://aruslan.io/swim-stats/motivational_24_girls_13-14.json";
 
 // === PARAMETER PARSING ===
+// Format: "AA,FR" (имя, стиль, возраст по умолчанию 12) или "AA,BR,13"
 let param = (typeof __widgetParameter !== "undefined" && __widgetParameter !== null
   ? __widgetParameter
   : (args.widgetParameter || "AA,FR"))
   .toUpperCase().replace(/\s+/g, "");
-let [swimmerKey, ageStr, strokeCode] = param.split(",");
+
+let paramArr = param.split(",");
+let swimmerKey = paramArr[0] || "AA";
+let strokeCode = (paramArr.length >= 2) ? paramArr[1] : "BR";
+let swimmerAge = (paramArr.length >= 3 && /^\d+$/.test(paramArr[2])) ? parseInt(paramArr[2], 10) : 12;
+
 if (!SWIMMERS[swimmerKey]) swimmerKey = "AA";
-if (!STROKES.includes(strokeCode)) strokeCode = STROKES[0];
+if (!STROKES.includes(strokeCode)) strokeCode = "BR";
 let swimmerName = SWIMMERS[swimmerKey].name;
-let swimmerAge = parseInt(ageStr, 10);
-if (isNaN(swimmerAge)) swimmerAge = 12;
 
 // === DATA LOADING ===
 async function fetchJson(url) {
@@ -84,9 +88,7 @@ function getEventList(strokeFull, fmtType) {
   return [];
 }
 
-// === ФУНКЦИЯ ОПРЕДЕЛЕНИЯ ДОСТИГНУТОГО УРОВНЯ ===
 function getMotivationalLevel(time, levels) {
-  // Возвращает наивысший достигнутый уровень
   const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
   let achieved = "";
   for (let lvl of order) {
@@ -97,21 +99,19 @@ function getMotivationalLevel(time, levels) {
   return achieved;
 }
 
-// === ФУНКЦИЯ ДЕЛЬТЫ ДО СЛЕДУЮЩЕГО УРОВНЯ ===
 function getDelta(time, levels) {
   if (typeof time !== "number" || isNaN(time)) return { text: "", color: Color.white() };
   const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
-  // Найти следующий уровень, который НЕ достигнут (первый, где время > норматива)
+  // Если время хуже всех стандартов — показываем разницу до первого уровня
   for (let i = 0; i < order.length; i++) {
     let lvl = order[i];
     if (!levels[lvl]) continue;
     if (time > parseTime(levels[lvl])) {
-      // Разница положительная до этого уровня (например, B +2.13)
       let diff = time - parseTime(levels[lvl]);
       return { text: `${lvl} +${diff.toFixed(2)}`, color: Color.white() };
     }
   }
-  // Если уже достигнут B, BB, ... AAAA, покажем дельту до следующего (лучшего) уровня, если есть
+  // Если достигнут один или более уровней — дельта до следующего (если есть)
   let lastAchievedIdx = -1;
   for (let i = 0; i < order.length; i++) {
     let lvl = order[i];
@@ -125,7 +125,7 @@ function getDelta(time, levels) {
     let diff = parseTime(levels[lvl]) - time;
     return { text: `${lvl} -${diff.toFixed(2)}`, color: Color.white() };
   }
-  // Если уже выше всех (лучше AAAA), пусто
+  // Лучше всех — пусто
   return { text: "", color: Color.white() };
 }
 
@@ -182,7 +182,7 @@ async function createWidget() {
       row.layoutHorizontally();
       row.centerAlignContent();
 
-      // Event column (right-aligned, fixed width, no padding)
+      // Event column
       const c1 = row.addStack();
       c1.size = new Size(COL_EVENT, ROW_HEIGHT);
       c1.layoutHorizontally();
@@ -192,7 +192,7 @@ async function createWidget() {
       l1.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
       l1.textColor = Color.white();
 
-      // Time column (right-aligned)
+      // Time column
       const c2 = row.addStack();
       c2.size = new Size(COL_TIME, ROW_HEIGHT);
       c2.layoutHorizontally();
@@ -202,7 +202,7 @@ async function createWidget() {
       l2.font = Font.boldMonospacedSystemFont(FONT_SIZE);
       l2.textColor = isUnofficial ? new Color("#aaa") : Color.white();
 
-      // Level column (right-aligned, vertically centered)
+      // Level column
       const c3 = row.addStack();
       c3.size = new Size(COL_LEVEL, ROW_HEIGHT);
       c3.layoutHorizontally();
@@ -215,7 +215,7 @@ async function createWidget() {
         l3.textColor = new Color("#39C570");
       }
 
-      // Delta column (right-aligned)
+      // Delta column
       const c4 = row.addStack();
       c4.size = new Size(COL_DELTA, ROW_HEIGHT);
       c4.layoutHorizontally();
