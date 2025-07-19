@@ -87,25 +87,32 @@ function getEventList(strokeFull, fmtType) {
   return [];
 }
 
-// Достать уровень для времени по всем стандартам
-function getMotivationalLevel(time, levels) {
-  // уровни в порядке: AAAA, AAA, AA, A, BB, B
-  const order = ["AAAA", "AAA", "AA", "A", "BB", "B"];
-  for (let lvl of order) {
-    if (levels[lvl] && time <= parseTime(levels[lvl])) return lvl;
-  }
-  return "";
-}
+// === ОБНОВЛЕННЫЕ ФУНКЦИИ ===
 
-function getDelta(time, levels) {
-  // Найти ближайший (следующий) целевой уровень, показать разницу
-  // (например, если BB уже достигнут — до AA)
-  const order = ["AAAA", "AAA", "AA", "A", "BB", "B"];
+// Наивысший достигнутый уровень
+function getMotivationalLevel(time, levels) {
+  // Порядок: B < BB < A < AA < AAA < AAAA
+  const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
+  let achieved = "";
   for (let lvl of order) {
-    if (levels[lvl] && time > parseTime(levels[lvl])) {
-      return { text: `${lvl}+${(time - parseTime(levels[lvl])).toFixed(2)}`, color: Color.white() };
+    if (levels[lvl] && time <= parseTime(levels[lvl])) {
+      achieved = lvl;
     }
   }
+  return achieved;
+}
+
+// Дельта до следующего уровня (или пусто)
+function getDelta(time, levels) {
+  const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
+  for (let i = 0; i < order.length; i++) {
+    let lvl = order[i];
+    if (levels[lvl] && time > parseTime(levels[lvl])) {
+      // Следующий уровень — первый, чей норматив хуже текущего времени
+      return { text: `${lvl} -${(time - parseTime(levels[lvl])).toFixed(2)}`, color: Color.white() };
+    }
+  }
+  // Если время выше (лучше) всех нормативов — ничего не показывать
   return { text: "", color: Color.white() };
 }
 
