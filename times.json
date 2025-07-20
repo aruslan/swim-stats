@@ -97,6 +97,14 @@
   },
   {
     "name": "Anna Abdikeeva",
+    "event": "50 BR SCY",
+    "time": "41.48",
+    "date": "07/17/2025",
+    "meet": "2025 Ladera @ BAC Dual",
+    "time_standard": "B"
+  },
+  {
+    "name": "Anna Abdikeeva",
     "event": "50 FL LCM",
     "time": "44.60",
     "date": "06/29/2025",
@@ -109,6 +117,14 @@
     "time": "48.19",
     "date": "06/08/2025",
     "meet": "2025 PC BAC Long Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "50 FL SCY",
+    "time": "40.98",
+    "date": "07/17/2025",
+    "meet": "2025 Ladera @ BAC Dual",
     "time_standard": "Slower than B"
   },
   {
@@ -1026,6 +1042,14 @@
   {
     "name": "Imari Racine",
     "event": "50 BK SCY",
+    "time": "38.22",
+    "date": "07/17/2025",
+    "meet": "2025 Ladera @ BAC Dual",
+    "time_standard": "B"
+  },
+  {
+    "name": "Imari Racine",
+    "event": "50 BK SCY",
     "time": "43.11",
     "date": "10/01/2023",
     "meet": "2023 PC SSF Short Course CBA+",
@@ -1158,6 +1182,14 @@
     "date": "06/08/2024",
     "meet": "2024 PC BAC Long Course CBA+",
     "time_standard": "Slower than B"
+  },
+  {
+    "name": "Imari Racine",
+    "event": "50 BR SCY",
+    "time": "40.35",
+    "date": "07/17/2025",
+    "meet": "2025 Ladera @ BAC Dual",
+    "time_standard": "BB"
   },
   {
     "name": "Imari Racine",
@@ -1546,6 +1578,14 @@
   {
     "name": "Imari Racine",
     "event": "50 FR SCY",
+    "time": "31.00",
+    "date": "07/17/2025",
+    "meet": "2025 Ladera @ BAC Dual",
+    "time_standard": "BB"
+  },
+  {
+    "name": "Imari Racine",
+    "event": "50 FR SCY",
     "time": "31.10",
     "date": "07/01/2025",
     "meet": "2025 PCC @ BAC Dual Meet",
@@ -1657,6 +1697,14 @@
   },
   {
     "name": "Kexin Liu",
+    "event": "100 BK LCM",
+    "time": "1:57.82",
+    "date": "06/08/2024",
+    "meet": "2024 PC BAC Long Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
     "event": "100 BK SCY",
     "time": "1:28.22",
     "date": "03/29/2025",
@@ -1745,6 +1793,30 @@
   },
   {
     "name": "Kexin Liu",
+    "event": "100 BR LCM",
+    "time": "1:58.29",
+    "date": "06/29/2024",
+    "meet": "2024 PC ALTO Summer Swelter Invite",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "100 BR LCM",
+    "time": "2:00.92",
+    "date": "06/09/2024",
+    "meet": "2024 PC BAC Long Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "100 BR LCM",
+    "time": "2:04.85",
+    "date": "05/18/2024",
+    "meet": "2024 PC ALTO Long Course Invitational",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
     "event": "100 BR SCM",
     "time": "1:42.47",
     "date": "05/17/2025",
@@ -1809,6 +1881,22 @@
   },
   {
     "name": "Kexin Liu",
+    "event": "100 BR SCY",
+    "time": "1:54.68",
+    "date": "02/25/2024",
+    "meet": "2024 PC BAC Short Course CBA+",
+    "time_standard": "2020-2024 B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "100 BR SCY",
+    "time": "1:57.30",
+    "date": "02/03/2024",
+    "meet": "2024 PC ALTO Short Course CBA+",
+    "time_standard": "2020-2024 B"
+  },
+  {
+    "name": "Kexin Liu",
     "event": "100 FL SCY",
     "time": "1:55.49",
     "date": "10/27/2024",
@@ -1837,6 +1925,30 @@
     "time": "1:28.49",
     "date": "04/20/2025",
     "meet": "2025 PC ALTO Long Course C/B/A+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "100 FR LCM",
+    "time": "1:39.96",
+    "date": "05/18/2024",
+    "meet": "2024 PC ALTO Long Course Invitational",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "100 FR LCM",
+    "time": "1:40.36",
+    "date": "06/29/2024",
+    "meet": "2024 PC ALTO Summer Swelter Invite",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "100 FR LCM",
+    "time": "1:44.27",
+    "date": "06/09/2024",
+    "meet": "2024 PC BAC Long Course CBA+",
     "time_standard": "Slower than B"
   },
   {
@@ -1905,6 +2017,22 @@
   },
   {
     "name": "Kexin Liu",
+    "event": "100 FR SCY",
+    "time": "1:31.78",
+    "date": "02/24/2024",
+    "meet": "2024 PC BAC Short Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "100 FR SCY",
+    "time": "1:35.54",
+    "date": "02/03/2024",
+    "meet": "2024 PC ALTO Short Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
     "event": "100 IM SCY",
     "time": "1:23.28",
     "date": "05/09/2025",
@@ -1921,10 +2049,34 @@
   },
   {
     "name": "Kexin Liu",
+    "event": "100 IM SCY",
+    "time": "1:43.45",
+    "date": "02/25/2024",
+    "meet": "2024 PC BAC Short Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
     "event": "200 FR LCM",
     "time": "3:06.82",
     "date": "06/08/2025",
     "meet": "2025 PC BAC Long Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "200 FR LCM",
+    "time": "3:45.05",
+    "date": "06/30/2024",
+    "meet": "2024 PC ALTO Summer Swelter Invite",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "200 FR LCM",
+    "time": "3:58.36",
+    "date": "04/27/2024",
+    "meet": "2024 PC ALTO Long Course CBA+",
     "time_standard": "Slower than B"
   },
   {
@@ -1949,6 +2101,30 @@
     "time": "3:09.02",
     "date": "11/16/2024",
     "meet": "2024 PC DACA Short Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "200 IM LCM",
+    "time": "3:53.29",
+    "date": "06/08/2024",
+    "meet": "2024 PC BAC Long Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "200 IM LCM",
+    "time": "4:03.35",
+    "date": "06/30/2024",
+    "meet": "2024 PC ALTO Summer Swelter Invite",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "200 IM LCM",
+    "time": "4:05.14",
+    "date": "04/28/2024",
+    "meet": "2024 PC ALTO Long Course CBA+",
     "time_standard": "Slower than B"
   },
   {
@@ -2025,6 +2201,14 @@
   },
   {
     "name": "Kexin Liu",
+    "event": "50 BK LCM",
+    "time": "58.09",
+    "date": "04/28/2024",
+    "meet": "2024 PC ALTO Long Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
     "event": "50 BK SCM",
     "time": "45.33",
     "date": "05/17/2025",
@@ -2045,6 +2229,14 @@
     "time": "47.72",
     "date": "09/27/2024",
     "meet": "2024 \"Welcome Back\" Candy Meet",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 BK SCY",
+    "time": "50.04",
+    "date": "02/25/2024",
+    "meet": "2024 PC BAC Short Course CBA+",
     "time_standard": "Slower than B"
   },
   {
@@ -2086,6 +2278,38 @@
     "date": "04/20/2025",
     "meet": "2025 PC ALTO Long Course C/B/A+",
     "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 BR LCM",
+    "time": "55.33",
+    "date": "06/30/2024",
+    "meet": "2024 PC ALTO Summer Swelter Invite",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 BR LCM",
+    "time": "55.46",
+    "date": "06/08/2024",
+    "meet": "2024 PC BAC Long Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 BR LCM",
+    "time": "56.16",
+    "date": "04/27/2024",
+    "meet": "2024 PC ALTO Long Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 BR SCY",
+    "time": "41.06",
+    "date": "07/17/2025",
+    "meet": "2025 Ladera @ BAC Dual",
+    "time_standard": "B"
   },
   {
     "name": "Kexin Liu",
@@ -2153,6 +2377,14 @@
   },
   {
     "name": "Kexin Liu",
+    "event": "50 BR SCY",
+    "time": "53.27",
+    "date": "02/24/2024",
+    "meet": "2024 PC BAC Short Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
     "event": "50 FL LCM",
     "time": "39.82",
     "date": "06/29/2025",
@@ -2193,11 +2425,51 @@
   },
   {
     "name": "Kexin Liu",
+    "event": "50 FL LCM",
+    "time": "54.34",
+    "date": "04/28/2024",
+    "meet": "2024 PC ALTO Long Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 FL LCM",
+    "time": "56.12",
+    "date": "05/18/2024",
+    "meet": "2024 PC ALTO Long Course Invitational",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 FL LCM",
+    "time": "56.56",
+    "date": "06/09/2024",
+    "meet": "2024 PC BAC Long Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 FL LCM",
+    "time": "57.46",
+    "date": "06/29/2024",
+    "meet": "2024 PC ALTO Summer Swelter Invite",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
     "event": "50 FL SCM",
     "time": "42.13",
     "date": "05/17/2025",
     "meet": "2025 PC LAMV Short Course Meters CBA+",
     "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 FL SCY",
+    "time": "35.58",
+    "date": "07/17/2025",
+    "meet": "2025 Ladera @ BAC Dual",
+    "time_standard": "B"
   },
   {
     "name": "Kexin Liu",
@@ -2249,6 +2521,14 @@
   },
   {
     "name": "Kexin Liu",
+    "event": "50 FL SCY",
+    "time": "51.12",
+    "date": "02/24/2024",
+    "meet": "2024 PC BAC Short Course CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
     "event": "50 FR LCM",
     "time": "36.26",
     "date": "06/13/2025",
@@ -2285,6 +2565,14 @@
     "time": "38.87",
     "date": "04/20/2025",
     "meet": "2025 PC ALTO Long Course C/B/A+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 FR LCM",
+    "time": "45.53",
+    "date": "04/27/2024",
+    "meet": "2024 PC ALTO Long Course CBA+",
     "time_standard": "Slower than B"
   },
   {
