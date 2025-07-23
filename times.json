@@ -10,6 +10,14 @@
   {
     "name": "Anna Abdikeeva",
     "event": "100 BR LCM",
+    "time": "1:37.16",
+    "date": "07/19/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "BB"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "100 BR LCM",
     "time": "1:45.07",
     "date": "05/31/2025",
     "meet": "2025 CSI Last Chance Block Party Meet",
@@ -25,6 +33,14 @@
   },
   {
     "name": "Anna Abdikeeva",
+    "event": "100 FR LCM",
+    "time": "1:26.75",
+    "date": "07/20/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Anna Abdikeeva",
     "event": "100 FR SCY",
     "time": "1:19.44",
     "date": "07/01/2025",
@@ -38,6 +54,22 @@
     "date": "07/01/2025",
     "meet": "2025 PCC @ BAC Dual Meet",
     "time_standard": "Slower than B"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "200 BR LCM",
+    "time": "3:27.56",
+    "date": "07/19/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "BB"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "200 FR LCM",
+    "time": "3:05.54",
+    "date": "07/20/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "B"
   },
   {
     "name": "Anna Abdikeeva",
@@ -69,6 +101,14 @@
     "time": "47.55",
     "date": "06/28/2025",
     "meet": "2025 Alto Sprint Inferno Saturday",
+    "time_standard": "B"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "50 BR LCM",
+    "time": "47.73",
+    "date": "07/20/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
     "time_standard": "B"
   },
   {
@@ -125,6 +165,14 @@
     "time": "40.98",
     "date": "07/17/2025",
     "meet": "2025 Ladera @ BAC Dual",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "50 FR LCM",
+    "time": "39.79",
+    "date": "07/19/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
     "time_standard": "Slower than B"
   },
   {
@@ -198,6 +246,14 @@
     "date": "11/16/2024",
     "meet": "2024 PC DACA Short Course CBA+",
     "time_standard": "Slower than B"
+  },
+  {
+    "name": "Imari Racine",
+    "event": "100 BR LCM",
+    "time": "1:41.74",
+    "date": "07/19/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "BB"
   },
   {
     "name": "Imari Racine",
@@ -425,11 +481,27 @@
   },
   {
     "name": "Imari Racine",
+    "event": "200 BR LCM",
+    "time": "3:36.65",
+    "date": "07/20/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "BB"
+  },
+  {
+    "name": "Imari Racine",
     "event": "200 BR SCY",
     "time": "3:33.31",
     "date": "01/11/2025",
     "meet": "2025 PC BAC Short Course CBA+",
     "time_standard": "Slower than B"
+  },
+  {
+    "name": "Imari Racine",
+    "event": "200 FR LCM",
+    "time": "2:50.87",
+    "date": "07/19/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "BB"
   },
   {
     "name": "Imari Racine",
@@ -462,6 +534,14 @@
     "date": "01/12/2025",
     "meet": "2025 PC BAC Short Course CBA+",
     "time_standard": "Slower than B"
+  },
+  {
+    "name": "Imari Racine",
+    "event": "200 IM LCM",
+    "time": "3:11.57",
+    "date": "07/20/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "BB"
   },
   {
     "name": "Imari Racine",
@@ -541,6 +621,14 @@
     "time": "47.30",
     "date": "06/15/2025",
     "meet": "2025 CO CSI Long Course Open",
+    "time_standard": "B"
+  },
+  {
+    "name": "Imari Racine",
+    "event": "50 BR LCM",
+    "time": "47.47",
+    "date": "07/20/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
     "time_standard": "B"
   },
   {
@@ -714,6 +802,14 @@
   {
     "name": "Imari Racine",
     "event": "50 FR LCM",
+    "time": "35.48",
+    "date": "07/19/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "BB"
+  },
+  {
+    "name": "Imari Racine",
+    "event": "50 FR LCM",
     "time": "36.18",
     "date": "06/13/2025",
     "meet": "2025 CO CSI Long Course Open",
@@ -862,6 +958,14 @@
     "date": "06/14/2025",
     "meet": "2025 CO CSI Long Course Open",
     "time_standard": "BB"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "100 BR LCM",
+    "time": "1:42.68",
+    "date": "07/19/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "B"
   },
   {
     "name": "Kexin Liu",
@@ -1065,6 +1169,14 @@
   },
   {
     "name": "Kexin Liu",
+    "event": "200 BR LCM",
+    "time": "3:38.88",
+    "date": "07/20/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "BB"
+  },
+  {
+    "name": "Kexin Liu",
     "event": "200 FR LCM",
     "time": "3:06.82",
     "date": "06/08/2025",
@@ -1094,6 +1206,14 @@
     "date": "11/16/2024",
     "meet": "2024 PC DACA Short Course CBA+",
     "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "200 IM LCM",
+    "time": "3:21.49",
+    "date": "07/20/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "B"
   },
   {
     "name": "Kexin Liu",
@@ -1190,6 +1310,14 @@
     "date": "09/27/2024",
     "meet": "2024 \"Welcome Back\" Candy Meet",
     "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 BR LCM",
+    "time": "46.85",
+    "date": "07/19/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "B"
   },
   {
     "name": "Kexin Liu",
@@ -1302,6 +1430,14 @@
     "date": "10/05/2024",
     "meet": "2024 BAC v QSS Dual Meet",
     "time_standard": "Slower than B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 FL LCM",
+    "time": "39.70",
+    "date": "07/19/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
+    "time_standard": "B"
   },
   {
     "name": "Kexin Liu",
@@ -1437,6 +1573,14 @@
     "time": "37.54",
     "date": "05/18/2025",
     "meet": "2025 CSI Block Party Qualifier",
+    "time_standard": "B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 FR LCM",
+    "time": "38.10",
+    "date": "07/20/2025",
+    "meet": "2025 PC ALTO Long Course Invitational",
     "time_standard": "B"
   },
   {
