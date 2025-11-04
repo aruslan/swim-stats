@@ -97,6 +97,14 @@
   },
   {
     "name": "Kexin Liu",
+    "event": "100 BK SCY",
+    "time": "1:24.90",
+    "date": "11/01/2025",
+    "meet": "2025 PC PASA Joyce Lanphere Invitational T/F",
+    "time_standard": "B"
+  },
+  {
+    "name": "Kexin Liu",
     "event": "100 BR SCY",
     "time": "1:28.08",
     "date": "10/26/2025",
@@ -113,6 +121,14 @@
   },
   {
     "name": "Kexin Liu",
+    "event": "100 BR SCY",
+    "time": "1:29.46",
+    "date": "11/02/2025",
+    "meet": "2025 PC PASA Joyce Lanphere Invitational T/F",
+    "time_standard": "B"
+  },
+  {
+    "name": "Kexin Liu",
     "event": "100 FL SCY",
     "time": "1:23.10",
     "date": "10/26/2025",
@@ -126,6 +142,30 @@
     "date": "10/12/2025",
     "meet": "2025 PC SSF Short Course CBA+",
     "time_standard": "B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "100 FL SCY",
+    "time": "1:23.23",
+    "date": "11/01/2025",
+    "meet": "2025 PC PASA Joyce Lanphere Invitational T/F",
+    "time_standard": "B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "200 BR SCY",
+    "time": "3:01.48",
+    "date": "11/01/2025",
+    "meet": "2025 PC PASA Joyce Lanphere Invitational T/F",
+    "time_standard": "BB"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "200 BR SCY",
+    "time": "3:02.17",
+    "date": "11/01/2025",
+    "meet": "2025 PC PASA Joyce Lanphere Invitational T/F",
+    "time_standard": "BB"
   },
   {
     "name": "Kexin Liu",
@@ -157,6 +197,14 @@
     "time": "2:53.54",
     "date": "10/12/2025",
     "meet": "2025 PC SSF Short Course CBA+",
+    "time_standard": "B"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "200 IM SCY",
+    "time": "2:57.49",
+    "date": "11/02/2025",
+    "meet": "2025 PC PASA Joyce Lanphere Invitational T/F",
     "time_standard": "B"
   },
   {
