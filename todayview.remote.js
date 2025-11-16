@@ -159,7 +159,7 @@ async function createWidget() {
   left.layoutVertically();
 
   const strokeFull = STROKE_LABELS[strokeCode];
-  const FORMATS_ORDERED = ["LCM", "SCY"];
+  const FORMATS_ORDERED = ["SCY", "LCM"];  // Changed: SCY first, then LCM
   let motivAgeGroup = swimmerAge >= 13 ? "13-14" : "11-12";
   for (let fmtType of FORMATS_ORDERED) {
     const evList = getEventList(strokeFull, fmtType);
