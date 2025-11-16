@@ -1,73 +1,146 @@
 from playwright.sync_api import sync_playwright
 import json
 import time
+from datetime import datetime
 
 SWIMMERS = [
     {"name": "Anna Abdikeeva", "first": "Anna", "last": "Abdikeeva"},
     {"name": "Valerie Dronova", "first": "Valerie", "last": "Dronova"},
-    {"name": "Imari Racine", "first": "Imari", "last": "Racine"},
     {"name": "Kexin Liu", "first": "Kexin", "last": "Liu"}
 ]
 
 def fetch_swimmer(page, swimmer):
+    start_time = time.time()
     print(f"Fetching times for {swimmer['name']}...")
-    page.goto("https://data.usaswimming.org/datahub/usas/individualsearch/times")
-    page.wait_for_selector('button:has-text("Individual Times Search")', timeout=10000)
-    page.click('button:has-text("Individual Times Search")')
-    page.wait_for_selector('input#firstOrPreferredName', timeout=10000)
-    page.fill('input#firstOrPreferredName', swimmer["first"])
-    page.wait_for_selector('input#lastName', timeout=10000)
-    page.fill('input#lastName', swimmer["last"])
-    page.press('input#lastName', 'Enter')
-    page.wait_for_selector('table tbody tr', timeout=10000)
-    time.sleep(1)
-    see_results_button = page.query_selector('table tbody tr button:has-text("See results")')
-    if not see_results_button:
-        print(f'No "See results" button found for {swimmer["name"]}. Skipping.')
+    
+    # Navigate to the search page
+    page.goto("https://data.usaswimming.org/datahub/usas/individualsearch")
+    
+    # Wait for and fill in the first name
+    page.get_by_role("textbox", name="First or Preferred Name*").wait_for(timeout=10000)
+    page.get_by_role("textbox", name="First or Preferred Name*").fill(swimmer["first"])
+    
+    # Fill in the last name
+    page.get_by_role("textbox", name="Last Name*").fill(swimmer["last"])
+    
+    # Click search button
+    page.get_by_role("button", name="Search", exact=True).click()
+    
+    # Wait for and click "See Results" button
+    try:
+        page.get_by_role("button", name="See Results").wait_for(timeout=10000)
+        page.get_by_role("button", name="See Results").click()
+    except Exception as e:
+        print(f'No "See Results" button found for {swimmer["name"]}. Skipping.')
         return []
-    see_results_button.click()
+    
+    # Select "All" competition years to get all results
+    try:
+        page.get_by_label("Competition Year").select_option("-1")
+        time.sleep(3)  # Wait for table to update after filter change
+    except Exception as e:
+        print(f"Could not select competition year for {swimmer['name']}: {e}")
+    
+    # Wait for the table to load
     page.wait_for_selector('table', timeout=15000)
-    time.sleep(2)
+    
+    # Wait for the table to be fully populated - check for rows
+    page.wait_for_selector('tbody tr', timeout=10000)
+    time.sleep(2)  # Extra wait for content to stabilize and all rows to load
+    
+    # Find the results table
     tables = page.query_selector_all('table')
     if not tables:
         print(f"No results table found for {swimmer['name']}!")
         return []
+    
+    # Use the first table (results table)
     table = tables[0]
+    
+    # Scroll to load all lazy-loaded rows if any
+    page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+    time.sleep(1)
+    
     rows = table.query_selector_all('tbody tr')
+    print(f"  Found {len(rows)} rows in table for {swimmer['name']}")
+    
     results = []
     for row in rows:
         cols = row.query_selector_all('td')
         if len(cols) < 9:
             continue
-        event         = cols[0].inner_text().strip()
-        swim_time     = cols[1].inner_text().strip()
+        
+        event = cols[0].inner_text().strip()
+        swim_time = cols[1].inner_text().strip()
+        age = cols[2].inner_text().strip()
         time_standard = cols[4].inner_text().strip()
-        meet          = cols[5].inner_text().strip()
-        swim_date     = cols[8].inner_text().strip()
+        meet = cols[5].inner_text().strip()
+        lsc = cols[6].inner_text().strip()
+        team = cols[7].inner_text().strip()
+        swim_date = cols[8].inner_text().strip()
+        
         results.append({
             'name': swimmer["name"],
             'event': event,
             'time': swim_time,
+            'age': age,
             'date': swim_date,
             'meet': meet,
-            'time_standard': time_standard
+            'time_standard': time_standard,
+            'lsc': lsc,
+            'team': team
         })
-    print(f"Found {len(results)} results for {swimmer['name']}")
+    
+    elapsed = time.time() - start_time
+    print(f"Found {len(results)} results for {swimmer['name']} in {elapsed:.1f}s")
     return results
 
 def main():
+    overall_start = time.time()
     all_results = []
+    
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
+        
         for swimmer in SWIMMERS:
-            all_results += fetch_swimmer(page, swimmer)
+            try:
+                all_results += fetch_swimmer(page, swimmer)
+            except Exception as e:
+                print(f"Error fetching data for {swimmer['name']}: {e}")
+                continue
+        
         browser.close()
-    # Simple, order-preserving sort
-    all_results.sort(key=lambda r: tuple(r.values()))
+    
+    # Sort by last name, then by date (descending)
+    def parse_date(date_str):
+        """Parse date string MM/DD/YYYY to comparable format"""
+        try:
+            return datetime.strptime(date_str, '%m/%d/%Y')
+        except:
+            return datetime.min
+    
+    all_results.sort(key=lambda r: (r['name'].split()[-1], -parse_date(r['date']).timestamp()))
+    
+    # Save to JSON (keeping original format for backward compatibility)
     with open('times.json', 'w') as f:
         json.dump(all_results, f, indent=2)
-    print(f"Saved {len(all_results)} results to times.json")
+    
+    # Also save metadata to a separate file
+    metadata = {
+        "scraped_at": datetime.now().isoformat(),
+        "scraped_at_readable": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "total_results": len(all_results),
+        "swimmers": [s["name"] for s in SWIMMERS]
+    }
+    
+    with open('times_metadata.json', 'w') as f:
+        json.dump(metadata, f, indent=2)
+    
+    total_elapsed = time.time() - overall_start
+    print(f"\nSaved {len(all_results)} results to times.json")
+    print(f"Scraped at: {metadata['scraped_at_readable']}")
+    print(f"Total duration: {total_elapsed:.1f}s ({total_elapsed/60:.1f} minutes)")
 
 if __name__ == "__main__":
     main()

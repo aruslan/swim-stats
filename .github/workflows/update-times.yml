@@ -1,19 +1,13 @@
 name: Update Swim Times
 
-# Runs at the following Pacific Time (PT) times:
-#   - 5:30am PT
-#   - 11:30am PT
-#   - Every 20 minutes between 1:00pm and 4:40pm PT (inclusive: 1:00, 1:20, 1:40, ..., 4:40)
-#   - 7:00pm PT
-# (All times convert to UTC in the cron expressions below. Adjust for daylight saving time if needed.)
+# Runs daily at 9:00 PM PST (Pacific Standard Time)
+# 9pm PST = 5am UTC next day
+# Note: During PDT (daylight saving), this will run at 10pm PT instead of 9pm
 
 on:
   schedule:
-    - cron: '30 12 * * *'         # 5:30 PT  == 12:30 UTC
-    - cron: '30 18 * * *'         # 11:30 PT == 18:30 UTC
-    - cron: '30 22 * * *'         # 15:30 PT == 22:30 UTC
-    - cron: '30 4 * * *'          # 21:30 PT == 04:00 UTC (next day)
-  workflow_dispatch:
+    - cron: '0 5 * * *'  # 9pm PST (10pm PDT) = 5am UTC next day
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
   update:
@@ -22,57 +16,35 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: "Set up Python"
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: "Install dependencies"
+      - name: Install dependencies
         run: |
           pip install -r requirements.txt
 
-      - name: "Install Playwright browsers"
-        run: playwright install
+      - name: Install Playwright browsers
+        run: playwright install chromium
 
-      - name: "Run update script"
+      - name: Run update script
         run: python p3.py
 
-      - name: "Debug: Show remotes and config"
-        run: |
-          echo "Git remotes:"
-          git remote -v
-          echo "Git config:"
-          git config --list
-
-      - name: "Debug: Show PAT env"
-        run: |
-          echo "PAT length: ${#GH_PAT}"
-          echo "PAT starts with: ${GH_PAT:0:4}..."
-          if [ -z "$GH_PAT" ]; then
-            echo "ERROR: GH_PAT is empty!"
-            exit 1
-          fi
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-
-      - name: "Debug: Who am I?"
+      - name: Configure Git
         run: |
           git config user.name 'aruslan'
           git config user.email 'aruslan@users.noreply.github.com'
-          echo "Git user.name: $(git config user.name)"
-          echo "Git user.email: $(git config user.email)"
 
-      - name: "Set push remote to use PAT"
+      - name: Set push remote to use PAT
         run: git remote set-url origin https://aruslan:${GH_PAT}@github.com/aruslan/swim-stats.git
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
 
-      - name: "Commit and push changes"
+      - name: Commit and push changes
         run: |
-          git config user.name 'aruslan'
-          git config user.email 'aruslan@users.noreply.github.com'
-          git add times.json
-          git commit -m "Update swim times [auto]" || echo "No changes to commit"
+          git add times.json times_metadata.json
+          git diff --cached --quiet || git commit -m "Update swim times [auto] - $(date +'%Y-%m-%d %H:%M:%S')"
           git push origin HEAD:main
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
