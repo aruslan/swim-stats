@@ -289,19 +289,7 @@ async function createWidget() {
   nameText.font = Font.boldSystemFont(FONT_SIZE + 4);
   nameText.textColor = Color.white();
   nameText.centerAlignText();
-  right.addSpacer(2);
-  
-  // Add freshness indicator
-  if (freshnessDays !== null) {
-    const freshnessContainer = right.addStack();
-    freshnessContainer.size = new Size(60, 12);
-    freshnessContainer.centerAlignContent();
-    const freshnessText = freshnessContainer.addText(`${freshnessDays} days ago`);
-    freshnessText.font = Font.systemFont(8);
-    freshnessText.textColor = new Color("#666");
-    freshnessText.centerAlignText();
-  }
-  right.addSpacer(4);
+  right.addSpacer(6);
 
   for (let sc of STROKES) {
     const srow = right.addStack();
@@ -319,6 +307,18 @@ async function createWidget() {
     }
     srow.setPadding(1, 8, 1, 8);
     right.addSpacer(3);
+    
+    // Add freshness indicator under selected stroke
+    if (sc === strokeCode && freshnessDays !== null) {
+      const freshnessContainer = right.addStack();
+      freshnessContainer.size = new Size(60, 10);
+      freshnessContainer.centerAlignContent();
+      const freshnessText = freshnessContainer.addText(`${freshnessDays} days ago`);
+      freshnessText.font = Font.systemFont(7);
+      freshnessText.textColor = new Color("#666");
+      freshnessText.centerAlignText();
+      right.addSpacer(3);
+    }
   }
   return widget;
 }
