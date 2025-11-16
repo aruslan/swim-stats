@@ -2,7 +2,6 @@
 const SWIMMERS = {
   "AA": { name: "Anna Abdikeeva" },
   "VD": { name: "Valerie Dronova" },
-  "IR": { name: "Imari Racine" },
   "KL": { name: "Kexin Liu" }
 };
 const STROKES = ["BR", "FR", "FL", "BK", "IM"];
@@ -17,8 +16,8 @@ const STROKE_SHORT = {
   "FR": "Free", "BK": "Back", "BR": "Breast", "FL": "Fly", "IM": "IM"
 };
 
-const FONT_SIZE = 13;
-const ROW_HEIGHT = 22;
+const FONT_SIZE = 12;
+const ROW_HEIGHT = 19;
 const ROW_WIDTH = 280;
 const COL_EVENT = 70;
 const COL_TIME = 70;
@@ -71,16 +70,18 @@ function parseTime(s) {
   return parseFloat(s);
 }
 function fmt(s) { return s || "—"; }
+
+// FIXED: Match actual motivational standards
 function getEventList(strokeFull, fmtType) {
   if (strokeFull === "Freestyle") {
-    if (fmtType === "SCY") return [50, 100, 200, 400];
-    if (fmtType === "LCM") return [50, 100, 200, 400];
+    if (fmtType === "SCY") return [50, 100, 200, 500];  // Fixed: was 400, now 500
+    if (fmtType === "LCM") return [50, 100, 200, 400];  // Correct: 400 exists for LCM
   }
   if (strokeFull === "Backstroke" || strokeFull === "Breaststroke" || strokeFull === "Butterfly") {
     return [50, 100, 200];
   }
   if (strokeFull === "IM") {
-    if (fmtType === "SCY") return [200, 400];
+    if (fmtType === "SCY") return [200, 400];  // Note: 100 IM exists but skipping for space
     if (fmtType === "LCM") return [200, 400];
   }
   return [];
@@ -148,7 +149,7 @@ async function createWidget() {
 
   const widget = new ListWidget();
   widget.backgroundColor = new Color("#000");
-  widget.setPadding(10, 10, 10, 10);
+  widget.setPadding(8, 10, 8, 10);
 
   const root = widget.addStack();
   root.layoutHorizontally();
