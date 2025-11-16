@@ -10,12 +10,8 @@ async function loadRemoteWidget() {
     const req = new Request(REMOTE_URL);
     const remoteCode = await req.loadString();
     
-    // Inject the widget parameters into the remote code context
-    const widgetParams = args.widgetParameter;
-    
-    // Create a function from the remote code and execute it
-    const remoteFunction = new Function('args', 'config', 'Script', remoteCode);
-    await remoteFunction(args, config, Script);
+    // Execute the remote code directly
+    eval(remoteCode);
     
   } catch (error) {
     // If loading fails, show error widget
