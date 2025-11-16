@@ -95,9 +95,14 @@ function getBestTime(timesData, swimmerName, event) {
 }
 
 // Get standards for an event
-function getEventStandards(standardsData, event) {
-  if (!standardsData || !standardsData[event]) return null;
-  return standardsData[event];
+function getEventStandards(standardsData, stroke, distance, course, ageGroup) {
+  if (!standardsData || !standardsData["Girls"]) return null;
+  
+  try {
+    return standardsData["Girls"][ageGroup][course][stroke][distance];
+  } catch (e) {
+    return null;
+  }
 }
 
 // Calculate position on scale (0 = slowest, 1 = fastest)
@@ -161,9 +166,9 @@ async function createWidget() {
     return widget;
   }
   
-  const standards = getEventStandards(standardsData, EVENT);
+  const standards = getEventStandards(standardsData, STROKE, DISTANCE, COURSE, AGE_GROUP);
   if (!standards) {
-    const errorText = widget.addText(`No standards for ${EVENT}`);
+    const errorText = widget.addText(`No standards for ${DISTANCE} ${STROKE} ${COURSE}`);
     errorText.font = Font.systemFont(10);
     errorText.textColor = Color.orange();
     return widget;
