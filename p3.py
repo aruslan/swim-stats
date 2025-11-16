@@ -37,17 +37,39 @@ def fetch_swimmer(page, swimmer):
     
     # Select "All" competition years to get all results
     try:
-        page.get_by_label("Competition Year").select_option("-1")
-        time.sleep(3)  # Wait for table to update after filter change
+        # Wait for the dropdown to be fully loaded and interactive
+        dropdown = page.get_by_label("Competition Year")
+        dropdown.wait_for(state="visible", timeout=5000)
+        time.sleep(2)  # Extra wait for dropdown to be fully ready
+        
+        # Select "All" (-1 value)
+        dropdown.select_option("-1")
+        print(f"  Selected 'All' competition years for {swimmer['name']}")
+        
+        # Verify the selection took effect by checking the selected value
+        time.sleep(1)
+        selected_value = dropdown.input_value()
+        print(f"  Dropdown value after selection: {selected_value}")
+        
+        # If selection didn't work, try again
+        if selected_value != "-1":
+            print(f"  Selection didn't work, retrying...")
+            time.sleep(2)
+            dropdown.select_option("-1")
+            time.sleep(1)
+            selected_value = dropdown.input_value()
+            print(f"  Dropdown value after retry: {selected_value}")
+        
+        # Wait for table to reload with all data
+        time.sleep(5)
+        
     except Exception as e:
         print(f"Could not select competition year for {swimmer['name']}: {e}")
     
     # Wait for the table to load
     page.wait_for_selector('table', timeout=15000)
-    
-    # Wait for the table to be fully populated - check for rows
     page.wait_for_selector('tbody tr', timeout=10000)
-    time.sleep(2)  # Extra wait for content to stabilize and all rows to load
+    time.sleep(2)  # Final wait for content to stabilize
     
     # Find the results table
     tables = page.query_selector_all('table')
@@ -57,13 +79,8 @@ def fetch_swimmer(page, swimmer):
     
     # Use the first table (results table)
     table = tables[0]
-    
-    # Scroll to load all lazy-loaded rows if any
-    page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-    time.sleep(1)
-    
     rows = table.query_selector_all('tbody tr')
-    print(f"  Found {len(rows)} rows in table for {swimmer['name']}")
+    print(f"  Found {len(rows)} rows for {swimmer['name']}")
     
     results = []
     for row in rows:
