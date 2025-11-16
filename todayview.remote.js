@@ -24,6 +24,7 @@ const COL_EVENT = 70;
 const COL_TIME = 70;
 const COL_LEVEL = 32;
 const COL_DELTA = 70;
+const MAX_DISTANCE = 500;  // Maximum distance to display
 const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
 const MOTIVATIONAL_11_12_URL = "https://aruslan.io/swim-stats/motivational_24_girls_11-12.json";
@@ -72,18 +73,18 @@ function parseTime(s) {
 }
 function fmt(s) { return s || "—"; }
 
-// FIXED: Match actual motivational standards
+// Get events from motivational standards, filtered by MAX_DISTANCE
 function getEventList(strokeFull, fmtType) {
   if (strokeFull === "Freestyle") {
-    if (fmtType === "SCY") return [50, 100, 200, 500];  // Fixed: was 400, now 500
-    if (fmtType === "LCM") return [50, 100, 200, 400];  // Correct: 400 exists for LCM
+    if (fmtType === "SCY") return [50, 100, 200, 500, 1000, 1650].filter(d => d <= MAX_DISTANCE);
+    if (fmtType === "LCM") return [50, 100, 200, 400, 800, 1500].filter(d => d <= MAX_DISTANCE);
   }
   if (strokeFull === "Backstroke" || strokeFull === "Breaststroke" || strokeFull === "Butterfly") {
-    return [50, 100, 200];
+    return [50, 100, 200].filter(d => d <= MAX_DISTANCE);
   }
   if (strokeFull === "IM") {
-    if (fmtType === "SCY") return [200, 400];  // Note: 100 IM exists but skipping for space
-    if (fmtType === "LCM") return [200, 400];
+    if (fmtType === "SCY") return [100, 200, 400].filter(d => d <= MAX_DISTANCE);
+    if (fmtType === "LCM") return [200, 400].filter(d => d <= MAX_DISTANCE);
   }
   return [];
 }
@@ -142,7 +143,6 @@ async function createWidget() {
     return w;
   }
 
-  // Все неофициальные результаты помечаем явно
   const unofficialTimes = Array.isArray(unofficialData)
     ? unofficialData.filter(r => r.name === swimmerName).map(r => ({ ...r, unofficial: true }))
     : [];
@@ -160,7 +160,7 @@ async function createWidget() {
   left.layoutVertically();
 
   const strokeFull = STROKE_LABELS[strokeCode];
-  const FORMATS_ORDERED = ["SCY", "LCM"];  // Changed: SCY first, then LCM
+  const FORMATS_ORDERED = ["SCY", "LCM"];  // SCY first, then LCM
   let motivAgeGroup = swimmerAge >= 13 ? "13-14" : "11-12";
   for (let fmtType of FORMATS_ORDERED) {
     const evList = getEventList(strokeFull, fmtType);
@@ -176,7 +176,7 @@ async function createWidget() {
       const timeSec = candidate ? parseTime(candidate.time) : null;
       const isUnofficial = candidate ? !!candidate.unofficial : false;
 
-      // ROW: All columns right-aligned, fixed widths, no margin
+      // ROW
       const row = left.addStack();
       row.size = new Size(ROW_WIDTH, ROW_HEIGHT);
       row.layoutHorizontally();
@@ -236,7 +236,6 @@ async function createWidget() {
   right.layoutVertically();
   right.centerAlignContent();
 
-  // Swimmer's first name (centered)
   const nameContainer = right.addStack();
   nameContainer.size = new Size(60, 22);
   nameContainer.centerAlignContent();
@@ -246,7 +245,6 @@ async function createWidget() {
   nameText.centerAlignText();
   right.addSpacer(6);
 
-  // Stroke "buttons"
   for (let sc of STROKES) {
     const srow = right.addStack();
     srow.size = new Size(60, 20);
