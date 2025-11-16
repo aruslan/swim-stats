@@ -227,29 +227,24 @@ async function createWidget() {
       l1.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
       l1.textColor = Color.white();
 
-      // Time column
+      // Time column with subscript age
       const c2 = row.addStack();
       c2.size = new Size(COL_TIME, ROW_HEIGHT);
-      c2.layoutVertically();
+      c2.layoutHorizontally();
       c2.centerAlignContent();
+      c2.addSpacer();
       
-      const timeStack = c2.addStack();
-      timeStack.layoutHorizontally();
-      timeStack.addSpacer();
-      const l2 = timeStack.addText(fmt(timeStr));
+      const l2 = c2.addText(fmt(timeStr));
       l2.font = Font.boldMonospacedSystemFont(FONT_SIZE);
       l2.textColor = isUnofficial ? new Color("#aaa") : Color.white();
       
-      // Add days ago subscript
+      // Add subscript (super small, no space)
       if (candidate && candidate.date) {
         const daysAgo = daysSince(candidate.date);
         if (daysAgo !== null) {
-          const ageStack = c2.addStack();
-          ageStack.layoutHorizontally();
-          ageStack.addSpacer();
-          const ageText = ageStack.addText(`${daysAgo}d`);
-          ageText.font = Font.systemFont(8);
-          ageText.textColor = new Color("#666");
+          const ageText = c2.addText(`${daysAgo}`);
+          ageText.font = Font.systemFont(6);
+          ageText.textColor = new Color("#444");
         }
       }
 
