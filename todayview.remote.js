@@ -238,13 +238,13 @@ async function createWidget() {
       l2.font = Font.boldMonospacedSystemFont(FONT_SIZE);
       l2.textColor = isUnofficial ? new Color("#aaa") : Color.white();
       
-      // Add subscript (super small, no space)
+      // Add subscript (small, visible, slightly raised)
       if (candidate && candidate.date) {
         const daysAgo = daysSince(candidate.date);
         if (daysAgo !== null) {
-          const ageText = c2.addText(`${daysAgo}`);
-          ageText.font = Font.systemFont(6);
-          ageText.textColor = new Color("#444");
+          const ageText = c2.addText(`₍${daysAgo}₎`);
+          ageText.font = Font.systemFont(8);
+          ageText.textColor = new Color("#999");
         }
       }
 
