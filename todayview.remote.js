@@ -71,6 +71,26 @@ function parseTime(s) {
   }
   return parseFloat(s);
 }
+
+function parseDate(dateStr) {
+  // Parse MM/DD/YYYY format
+  if (!dateStr) return null;
+  try {
+    const [month, day, year] = dateStr.split('/').map(n => parseInt(n, 10));
+    return new Date(year, month - 1, day);
+  } catch (e) {
+    return null;
+  }
+}
+
+function daysSince(dateStr) {
+  const date = parseDate(dateStr);
+  if (!date) return null;
+  const now = new Date();
+  const diff = now - date;
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
 function fmt(s) { return s || "—"; }
 
 // Get events from motivational standards, filtered by MAX_DISTANCE
@@ -162,6 +182,21 @@ async function createWidget() {
   const strokeFull = STROKE_LABELS[strokeCode];
   const FORMATS_ORDERED = ["SCY", "LCM"];  // SCY first, then LCM
   let motivAgeGroup = swimmerAge >= 13 ? "13-14" : "11-12";
+  
+  // Calculate freshness: most recent result for this swimmer and stroke
+  const strokeResults = swimmerTimes.filter(r => r.event.includes(strokeCode));
+  let freshnessDays = null;
+  if (strokeResults.length > 0) {
+    const mostRecentDate = strokeResults
+      .map(r => parseDate(r.date))
+      .filter(d => d !== null)
+      .sort((a, b) => b - a)[0];
+    if (mostRecentDate) {
+      const now = new Date();
+      freshnessDays = Math.floor((now - mostRecentDate) / (1000 * 60 * 60 * 24));
+    }
+  }
+  
   for (let fmtType of FORMATS_ORDERED) {
     const evList = getEventList(strokeFull, fmtType);
     for (let ev of evList) {
@@ -195,12 +230,28 @@ async function createWidget() {
       // Time column
       const c2 = row.addStack();
       c2.size = new Size(COL_TIME, ROW_HEIGHT);
-      c2.layoutHorizontally();
+      c2.layoutVertically();
       c2.centerAlignContent();
-      c2.addSpacer();
-      const l2 = c2.addText(fmt(timeStr));
+      
+      const timeStack = c2.addStack();
+      timeStack.layoutHorizontally();
+      timeStack.addSpacer();
+      const l2 = timeStack.addText(fmt(timeStr));
       l2.font = Font.boldMonospacedSystemFont(FONT_SIZE);
       l2.textColor = isUnofficial ? new Color("#aaa") : Color.white();
+      
+      // Add days ago subscript
+      if (candidate && candidate.date) {
+        const daysAgo = daysSince(candidate.date);
+        if (daysAgo !== null) {
+          const ageStack = c2.addStack();
+          ageStack.layoutHorizontally();
+          ageStack.addSpacer();
+          const ageText = ageStack.addText(`${daysAgo}d`);
+          ageText.font = Font.systemFont(8);
+          ageText.textColor = new Color("#666");
+        }
+      }
 
       // Level column
       const c3 = row.addStack();
@@ -243,7 +294,19 @@ async function createWidget() {
   nameText.font = Font.boldSystemFont(FONT_SIZE + 4);
   nameText.textColor = Color.white();
   nameText.centerAlignText();
-  right.addSpacer(6);
+  right.addSpacer(2);
+  
+  // Add freshness indicator
+  if (freshnessDays !== null) {
+    const freshnessContainer = right.addStack();
+    freshnessContainer.size = new Size(60, 12);
+    freshnessContainer.centerAlignContent();
+    const freshnessText = freshnessContainer.addText(`${freshnessDays} days ago`);
+    freshnessText.font = Font.systemFont(8);
+    freshnessText.textColor = new Color("#666");
+    freshnessText.centerAlignText();
+  }
+  right.addSpacer(4);
 
   for (let sc of STROKES) {
     const srow = right.addStack();
