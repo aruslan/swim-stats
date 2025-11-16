@@ -242,7 +242,7 @@ async function createWidget() {
       if (candidate && candidate.date) {
         const daysAgo = daysSince(candidate.date);
         if (daysAgo !== null) {
-          const ageText = c2.addText(`₍${daysAgo}₎`);
+          const ageText = c2.addText(`${daysAgo}`);
           ageText.font = Font.systemFont(8);
           ageText.textColor = new Color("#999");
         }
