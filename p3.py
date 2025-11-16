@@ -6,7 +6,8 @@ from datetime import datetime
 SWIMMERS = [
     {"name": "Anna Abdikeeva", "first": "Anna", "last": "Abdikeeva"},
     {"name": "Valerie Dronova", "first": "Valerie", "last": "Dronova"},
-    {"name": "Kexin Liu", "first": "Kexin", "last": "Liu"}
+    {"name": "Kexin Liu", "first": "Kexin", "last": "Liu"},
+    {"name": "Evelyn Mieszkowski", "first": "Evelyn", "last": "Mieszkowski"}
 ]
 
 def fetch_swimmer(page, swimmer):
