@@ -20,10 +20,10 @@ const STROKE_SHORT = {
 const FONT_SIZE = 12;
 const ROW_HEIGHT = 19;
 const ROW_WIDTH = 280;
-const COL_EVENT = 70;
+const COL_EVENT = 60;   // Reduced from 70 to compensate
 const COL_TIME = 80;  // Increased from 70 to fit time + subscript
 const COL_LEVEL = 32;
-const COL_DELTA = 60;  // Reduced from 70 to compensate
+const COL_DELTA = 70;
 const MAX_DISTANCE = 500;  // Maximum distance to display
 const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
@@ -222,7 +222,7 @@ async function createWidget() {
       c1.size = new Size(COL_EVENT, ROW_HEIGHT);
       c1.layoutHorizontally();
       c1.centerAlignContent();
-      c1.addSpacer();
+      // c1.addSpacer();
       const l1 = c1.addText(`${ev} ${fmtType}`);
       l1.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
       l1.textColor = Color.white();
@@ -244,7 +244,7 @@ async function createWidget() {
         if (daysAgo !== null) {
           const ageText = c2.addText(`${daysAgo}`);
           ageText.font = Font.systemFont(8);
-          ageText.textColor = new Color("#999");
+          ageText.textColor = new Color("#aaa");
         }
       }
 
@@ -315,7 +315,7 @@ async function createWidget() {
       freshnessContainer.centerAlignContent();
       const freshnessText = freshnessContainer.addText(`${freshnessDays} days ago`);
       freshnessText.font = Font.systemFont(7);
-      freshnessText.textColor = new Color("#666");
+      freshnessText.textColor = new Color("#aaa");
       freshnessText.centerAlignText();
       right.addSpacer(3);
     }
