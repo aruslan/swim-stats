@@ -2,6 +2,7 @@ from playwright.sync_api import sync_playwright
 import json
 import time
 from datetime import datetime
+import os
 
 SWIMMERS = [
     {"name": "Anna Abdikeeva", "first": "Anna", "last": "Abdikeeva"},
@@ -10,15 +11,20 @@ SWIMMERS = [
     {"name": "Evelyn Mieszkowski", "first": "Evelyn", "last": "Mieszkowski"}
 ]
 
-def fetch_swimmer(page, swimmer):
+def fetch_swimmer(page, swimmer, swimmer_index):
     start_time = time.time()
     print(f"Fetching times for {swimmer['name']}...")
     
-    # Navigate to the search page
+    # Add delay between swimmers to avoid rate limiting (except for first)
+    if swimmer_index > 0:
+        print(f"  Waiting 3 seconds before next search...")
+        time.sleep(3)
+    
+    # Navigate to the search page fresh each time
     page.goto("https://data.usaswimming.org/datahub/usas/individualsearch")
     
     # Wait for and fill in the first name
-    page.get_by_role("textbox", name="First or Preferred Name*").wait_for(timeout=10000)
+    page.get_by_role("textbox", name="First or Preferred Name*").wait_for(timeout=15000)
     page.get_by_role("textbox", name="First or Preferred Name*").fill(swimmer["first"])
     
     # Fill in the last name
@@ -27,12 +33,49 @@ def fetch_swimmer(page, swimmer):
     # Click search button
     page.get_by_role("button", name="Search", exact=True).click()
     
+    # Wait for search results to load
+    time.sleep(3)
+    
+    # Debug: Check what's on the page
+    print(f"  Page URL after search: {page.url}")
+    
     # Wait for and click "See Results" button
     try:
-        page.get_by_role("button", name="See Results").wait_for(timeout=10000)
-        page.get_by_role("button", name="See Results").click()
+        # First, let's see how many results came back
+        # Look for the results table or any indication of results
+        result_buttons = page.get_by_role("button", name="See Results").all()
+        print(f"  Found {len(result_buttons)} 'See Results' button(s)")
+        
+        if len(result_buttons) == 0:
+            # Debug: Take screenshot and print page content
+            screenshot_name = f"debug_{swimmer['last'].lower()}_{int(time.time())}.png"
+            page.screenshot(path=screenshot_name)
+            print(f"  Screenshot saved to {screenshot_name}")
+            
+            # Print some page content for debugging
+            body_text = page.locator("body").inner_text()[:1000]
+            print(f"  Page content preview: {body_text[:500]}...")
+            
+            # Check if there's a "no results" message
+            if "no results" in body_text.lower() or "not found" in body_text.lower():
+                print(f"  Page indicates no results found for {swimmer['name']}")
+            
+            print(f'No "See Results" button found for {swimmer["name"]}. Skipping.')
+            return []
+        
+        # If multiple results, try to find the right one
+        if len(result_buttons) > 1:
+            print(f"  Multiple results found, clicking first one")
+        
+        page.get_by_role("button", name="See Results").first.wait_for(timeout=10000)
+        page.get_by_role("button", name="See Results").first.click()
+        
     except Exception as e:
-        print(f'No "See Results" button found for {swimmer["name"]}. Skipping.')
+        print(f'Error finding "See Results" button for {swimmer["name"]}: {e}')
+        # Take debug screenshot
+        screenshot_name = f"debug_{swimmer['last'].lower()}_{int(time.time())}.png"
+        page.screenshot(path=screenshot_name)
+        print(f"  Screenshot saved to {screenshot_name}")
         return []
     
     # Select "All" competition years to get all results
@@ -119,15 +162,21 @@ def main():
     
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
+        # Use a more realistic browser context
+        context = browser.new_context(
+            viewport={"width": 1920, "height": 1080},
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        )
+        page = context.new_page()
         
-        for swimmer in SWIMMERS:
+        for i, swimmer in enumerate(SWIMMERS):
             try:
-                all_results += fetch_swimmer(page, swimmer)
+                all_results += fetch_swimmer(page, swimmer, i)
             except Exception as e:
                 print(f"Error fetching data for {swimmer['name']}: {e}")
                 continue
         
+        context.close()
         browser.close()
     
     # Sort by last name, then by date (descending)
