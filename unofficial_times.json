@@ -1,6 +1,22 @@
 [
   {
     "name": "Anna Abdikeeva",
+    "event": "100 BR SCY",
+    "time": "1:21.62",
+    "date": "12/6/2025",
+    "meet": "2025 DCD Winter Holiday Splash CBA+",
+    "time_standard": "A"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "50 FL SCY",
+    "time": "36.99",
+    "date": "12/6/2025",
+    "meet": "2025 DCD Winter Holiday Splash CBA+",
+    "time_standard": "Slower than B"
+  },
+  {
+    "name": "Anna Abdikeeva",
     "event": "200 FR SCY",
     "time": "2:45.22",
     "date": "10/12/2025",
