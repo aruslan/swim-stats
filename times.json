@@ -1,6 +1,61 @@
 [
   {
     "name": "Anna Abdikeeva",
+    "event": "50 FR SCY",
+    "time": "31.58",
+    "age": "12",
+    "date": "12/07/2025",
+    "meet": "2025 PC DCD Short Course CBA+",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "200 BR SCY",
+    "time": "2:51.38",
+    "age": "12",
+    "date": "12/07/2025",
+    "meet": "2025 PC DCD Short Course CBA+",
+    "time_standard": "A",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "100 IM SCY",
+    "time": "1:17.48",
+    "age": "12",
+    "date": "12/07/2025",
+    "meet": "2025 PC DCD Short Course CBA+",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "100 BR SCY",
+    "time": "1:21.62",
+    "age": "12",
+    "date": "12/06/2025",
+    "meet": "2025 PC DCD Short Course CBA+",
+    "time_standard": "A",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "50 FL SCY",
+    "time": "36.99",
+    "age": "12",
+    "date": "12/06/2025",
+    "meet": "2025 PC DCD Short Course CBA+",
+    "time_standard": "Slower than B",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
     "event": "100 FR SCY",
     "time": "1:12.79",
     "age": "12",
@@ -447,6 +502,39 @@
     "date": "05/31/2025",
     "meet": "2025 CSI Last Chance Block Party Meet",
     "time_standard": "B",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Valerie Dronova",
+    "event": "50 FR SCY",
+    "time": "34.96",
+    "age": "12",
+    "date": "12/07/2025",
+    "meet": "2025 PC DCD Short Course CBA+",
+    "time_standard": "Slower than B",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Valerie Dronova",
+    "event": "100 BK SCY",
+    "time": "1:25.80",
+    "age": "12",
+    "date": "12/07/2025",
+    "meet": "2025 PC DCD Short Course CBA+",
+    "time_standard": "B",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Valerie Dronova",
+    "event": "100 IM SCY",
+    "time": "1:26.02",
+    "age": "12",
+    "date": "12/07/2025",
+    "meet": "2025 PC DCD Short Course CBA+",
+    "time_standard": "Slower than B",
     "lsc": "PC",
     "team": "Burlingame Aquatic Club"
   },
