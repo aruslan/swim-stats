@@ -22,11 +22,11 @@ const ROW_HEIGHT = 19;
 const ROW_WIDTH = 290;
 const COL_DIST = 32;      // Distance number (50, 100, 200) right-aligned
 const COL_COURSE = 28;    // Course type (SCY, LCM) left-aligned, small
-const COL_TIME = 75;      // Time right-aligned
-const COL_DAYS = 35;      // Days ago in parens, left-aligned, small
+const COL_TIME = 64;      // Time right-aligned
+const COL_DAYS = 30;      // Days ago in parens, left-aligned, small
 const COL_MOTIV = 26;     // Motivational standard right-aligned
-const COL_REGIONAL = 24;  // Regional standard left-aligned, small (placeholder)
-const COL_DELTA = 70;     // Next target delta
+const COL_REGIONAL = 36;  // Regional standard left-aligned, small (placeholder)
+const COL_DELTA = 74;     // Next target delta
 const MAX_DISTANCE = 500;  // Maximum distance to display
 const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
@@ -155,25 +155,21 @@ function getDelta(time, levels) {
 function getRegionalQualifications(timeSec, courseCode, strokeCode, dist, agcData, fwData, age) {
   if (timeSec === null) return "";
 
-  let quals = [];
-
   // Check FW (Far Westerns) - uses 11-12, 13-14
   let fwAgeGroup = age >= 13 ? "13-14" : "11-12";
   let fwCut = fwData?.Girls?.[fwAgeGroup]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
   if (fwCut && timeSec <= parseTime(fwCut)) {
-    quals.push("FW");
+    return "FW"; // FW dominates AGC
   }
 
   // Check AGC (Age Group Champs) - uses single ages 11, 12, 13, 14
   let agcAgeKey = String(age);
-  // Default to 12 or 14 if out of range, or stricter logic?
-  // JSON has keys "11", "12", "13", "14".
   let agcCut = agcData?.Girls?.[agcAgeKey]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
   if (agcCut && timeSec <= parseTime(agcCut)) {
-    quals.push("AGC");
+    return "AGC";
   }
 
-  return quals.join(", ");
+  return "";
 }
 
 // === MAIN ===
