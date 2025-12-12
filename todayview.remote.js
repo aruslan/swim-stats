@@ -189,15 +189,20 @@ function getRegionalDelta(timeSec, courseCode, strokeCode, dist, agcData, fwData
   // If slower than AGC -> Show AGC delta
   // If faster/equal AGC but slower than FW -> Show FW delta
   // If faster/equal FW -> Show nothing (or could show Next Level?)
+  // Filter: Only show if within 7 seconds
 
   if (agcSec && timeSec > agcSec) {
     let diff = timeSec - agcSec;
-    return { text: `AGC +${diff.toFixed(2)}`, color: Color.white() };
+    if (diff <= 7.0) {
+      return { text: `AGC +${diff.toFixed(2)}`, color: Color.white() };
+    }
   }
 
   if (fwSec && timeSec > fwSec) {
     let diff = timeSec - fwSec;
-    return { text: `FW +${diff.toFixed(2)}`, color: Color.white() };
+    if (diff <= 7.0) {
+      return { text: `FW +${diff.toFixed(2)}`, color: Color.white() };
+    }
   }
 
   return { text: "", color: Color.white() };
