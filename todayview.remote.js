@@ -19,15 +19,15 @@ const STROKE_SHORT = {
 
 const FONT_SIZE = 12;
 const ROW_HEIGHT = 19;
-const ROW_WIDTH = 290;
-const COL_DIST = 30;      // Distance number (50, 100, 200) right-aligned
+const ROW_WIDTH = 315;
+const COL_DIST = 32;      // Distance number (50, 100, 200) right-aligned
 const COL_COURSE = 22;    // Course type (SCY, LCM) left-aligned, small
-const COL_TIME = 54;      // Time right-aligned
-const COL_DAYS = 24;      // Days ago in parens, left-aligned, small
+const COL_TIME = 62;      // Time right-aligned
+const COL_DAYS = 28;      // Days ago in parens, left-aligned, small
 const COL_MOTIV = 24;     // Motivational standard right-aligned
-const COL_REGIONAL = 20;  // Regional standard left-aligned, small (placeholder)
-const COL_DELTA = 62;     // Next target delta
-const COL_REG_DELTA = 54; // Next regional target delta
+const COL_REGIONAL = 26;  // Regional standard left-aligned, small (placeholder)
+const COL_DELTA = 66;     // Next target delta
+const COL_REG_DELTA = 55; // Next regional target delta
 const MAX_DISTANCE = 500;  // Maximum distance to display
 const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
@@ -373,7 +373,6 @@ async function createWidget() {
       cRegDelta.size = new Size(COL_REG_DELTA, ROW_HEIGHT);
       cRegDelta.layoutHorizontally();
       cRegDelta.centerAlignContent();
-      cRegDelta.addSpacer(4); // Small gap from prev column
 
       const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
       if (regDeltaText) {
