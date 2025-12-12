@@ -185,7 +185,7 @@ async function createWidget() {
   const strokeFull = STROKE_LABELS[strokeCode];
   const FORMATS_ORDERED = ["SCY", "LCM"];  // SCY first, then LCM
   let motivAgeGroup = swimmerAge >= 13 ? "13-14" : "11-12";
-  
+
   // Calculate freshness: most recent result for this swimmer and stroke
   const strokeResults = swimmerTimes.filter(r => r.event.includes(strokeCode));
   let freshnessDays = null;
@@ -199,7 +199,7 @@ async function createWidget() {
       freshnessDays = Math.floor((now - mostRecentDate) / (1000 * 60 * 60 * 24));
     }
   }
-  
+
   for (let fmtType of FORMATS_ORDERED) {
     const evList = getEventList(strokeFull, fmtType);
     for (let ev of evList) {
@@ -237,7 +237,7 @@ async function createWidget() {
       cCourse.centerAlignContent();
       const lCourse = cCourse.addText(fmtType);
       lCourse.font = Font.systemFont(8);
-      lCourse.textColor = new Color("#888");
+      lCourse.textColor = Color.white();
       cCourse.addSpacer();
 
       // Time column (right-aligned)
@@ -332,7 +332,7 @@ async function createWidget() {
     }
     srow.setPadding(1, 8, 1, 8);
     right.addSpacer(3);
-    
+
     // Add freshness indicator under selected stroke
     if (sc === strokeCode && freshnessDays !== null) {
       const freshnessContainer = right.addStack();
