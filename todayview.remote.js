@@ -20,13 +20,14 @@ const STROKE_SHORT = {
 const FONT_SIZE = 12;
 const ROW_HEIGHT = 19;
 const ROW_WIDTH = 290;
-const COL_DIST = 32;      // Distance number (50, 100, 200) right-aligned
-const COL_COURSE = 28;    // Course type (SCY, LCM) left-aligned, small
-const COL_TIME = 64;      // Time right-aligned
-const COL_DAYS = 30;      // Days ago in parens, left-aligned, small
-const COL_MOTIV = 26;     // Motivational standard right-aligned
-const COL_REGIONAL = 36;  // Regional standard left-aligned, small (placeholder)
-const COL_DELTA = 74;     // Next target delta
+const COL_DIST = 30;      // Distance number (50, 100, 200) right-aligned
+const COL_COURSE = 22;    // Course type (SCY, LCM) left-aligned, small
+const COL_TIME = 54;      // Time right-aligned
+const COL_DAYS = 24;      // Days ago in parens, left-aligned, small
+const COL_MOTIV = 24;     // Motivational standard right-aligned
+const COL_REGIONAL = 20;  // Regional standard left-aligned, small (placeholder)
+const COL_DELTA = 62;     // Next target delta
+const COL_REG_DELTA = 54; // Next regional target delta
 const MAX_DISTANCE = 500;  // Maximum distance to display
 const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
@@ -170,6 +171,36 @@ function getRegionalQualifications(timeSec, courseCode, strokeCode, dist, agcDat
   }
 
   return "";
+}
+
+function getRegionalDelta(timeSec, courseCode, strokeCode, dist, agcData, fwData, age) {
+  if (timeSec === null) return { text: "", color: Color.white() };
+
+  // Calculate targets
+  let agcAgeKey = String(age);
+  let agcCut = agcData?.Girls?.[agcAgeKey]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
+  let agcSec = agcCut ? parseTime(agcCut) : null;
+
+  let fwAgeGroup = age >= 13 ? "13-14" : "11-12";
+  let fwCut = fwData?.Girls?.[fwAgeGroup]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
+  let fwSec = fwCut ? parseTime(fwCut) : null;
+
+  // Logic: 
+  // If slower than AGC -> Show AGC delta
+  // If faster/equal AGC but slower than FW -> Show FW delta
+  // If faster/equal FW -> Show nothing (or could show Next Level?)
+
+  if (agcSec && timeSec > agcSec) {
+    let diff = timeSec - agcSec;
+    return { text: `AGC +${diff.toFixed(2)}`, color: Color.white() };
+  }
+
+  if (fwSec && timeSec > fwSec) {
+    let diff = timeSec - fwSec;
+    return { text: `FW +${diff.toFixed(2)}`, color: Color.white() };
+  }
+
+  return { text: "", color: Color.white() };
 }
 
 // === MAIN ===
@@ -331,6 +362,21 @@ async function createWidget() {
       const lDelta = cDelta.addText(deltaText);
       lDelta.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
       lDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
+
+      // Regional Delta column (left-aligned, small)
+      const cRegDelta = row.addStack();
+      cRegDelta.size = new Size(COL_REG_DELTA, ROW_HEIGHT);
+      cRegDelta.layoutHorizontally();
+      cRegDelta.centerAlignContent();
+      cRegDelta.addSpacer(4); // Small gap from prev column
+
+      const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
+      if (regDeltaText) {
+        const lRegDelta = cRegDelta.addText(regDeltaText);
+        lRegDelta.font = Font.systemFont(8);
+        lRegDelta.textColor = Color.white();
+      }
+      cRegDelta.addSpacer();
     }
   }
 
