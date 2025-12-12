@@ -32,6 +32,8 @@ const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
 const MOTIVATIONAL_11_12_URL = "https://aruslan.io/swim-stats/motivational_24_girls_11-12.json";
 const MOTIVATIONAL_13_14_URL = "https://aruslan.io/swim-stats/motivational_24_girls_13-14.json";
+const AGC_URL = "https://aruslan.io/swim-stats/agc_25_girls.json";
+const FW_URL = "https://aruslan.io/swim-stats/farwestern_25_girls.json";
 
 // === PARAMETER PARSING ===
 let param = (typeof __widgetParameter !== "undefined" && __widgetParameter !== null
@@ -150,12 +152,38 @@ function getDelta(time, levels) {
   return { text: "", color: Color.white() };
 }
 
+function getRegionalQualifications(timeSec, courseCode, strokeCode, dist, agcData, fwData, age) {
+  if (timeSec === null) return "";
+
+  let quals = [];
+
+  // Check FW (Far Westerns) - uses 11-12, 13-14
+  let fwAgeGroup = age >= 13 ? "13-14" : "11-12";
+  let fwCut = fwData?.Girls?.[fwAgeGroup]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
+  if (fwCut && timeSec <= parseTime(fwCut)) {
+    quals.push("FW");
+  }
+
+  // Check AGC (Age Group Champs) - uses single ages 11, 12, 13, 14
+  let agcAgeKey = String(age);
+  // Default to 12 or 14 if out of range, or stricter logic?
+  // JSON has keys "11", "12", "13", "14".
+  let agcCut = agcData?.Girls?.[agcAgeKey]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
+  if (agcCut && timeSec <= parseTime(agcCut)) {
+    quals.push("AGC");
+  }
+
+  return quals.join(", ");
+}
+
 // === MAIN ===
 async function createWidget() {
-  let [timesData, unofficialData, MOTIV] = await Promise.all([
+  let [timesData, unofficialData, MOTIV, agcData, fwData] = await Promise.all([
     fetchJson(TIMES_URL),
     fetchJson(UNOFFICIAL_URL),
-    loadMotivational()
+    loadMotivational(),
+    fetchJson(AGC_URL),
+    fetchJson(FW_URL)
   ]);
   if (!Array.isArray(timesData) || !MOTIV) {
     let w = new ListWidget();
@@ -204,7 +232,10 @@ async function createWidget() {
     const evList = getEventList(strokeFull, fmtType);
     for (let ev of evList) {
       const levels = MOTIV?.[motivAgeGroup]?.[fmtType]?.[strokeCode]?.[String(ev)];
+      // Even if no motiv standards for this distance, we might want to show it? 
+      // Current logic skips if no levels. Keep as is.
       if (!levels) continue;
+
       const wanted = `${ev} ${strokeCode} ${fmtType}`;
       const candidates = swimmerTimes.concat(unofficialTimes)
         .filter(r => r.event === wanted)
@@ -278,12 +309,18 @@ async function createWidget() {
         lMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
       }
 
-      // Regional standard column (left-aligned, small) - placeholder for now
+      // Regional standard column (left-aligned, small)
       const cRegional = row.addStack();
       cRegional.size = new Size(COL_REGIONAL, ROW_HEIGHT);
       cRegional.layoutHorizontally();
       cRegional.centerAlignContent();
-      // TODO: Add regional standard indicator (AGC, FW, or dash)
+
+      let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
+      if (regionalStr) {
+        const lReg = cRegional.addText(regionalStr);
+        lReg.font = Font.systemFont(8);
+        lReg.textColor = Color.white();
+      }
       cRegional.addSpacer();
 
       // Delta column (right-aligned)
