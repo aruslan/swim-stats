@@ -19,11 +19,14 @@ const STROKE_SHORT = {
 
 const FONT_SIZE = 12;
 const ROW_HEIGHT = 19;
-const ROW_WIDTH = 280;
-const COL_EVENT = 60;   // Reduced from 70 to compensate
-const COL_TIME = 80;  // Increased from 70 to fit time + subscript
-const COL_LEVEL = 32;
-const COL_DELTA = 70;
+const ROW_WIDTH = 290;
+const COL_DIST = 28;      // Distance number (50, 100, 200) right-aligned
+const COL_COURSE = 24;    // Course type (SCY, LCM) left-aligned, small
+const COL_TIME = 52;      // Time right-aligned
+const COL_DAYS = 30;      // Days ago in parens, left-aligned, small
+const COL_MOTIV = 26;     // Motivational standard right-aligned
+const COL_REGIONAL = 24;  // Regional standard left-aligned, small (placeholder)
+const COL_DELTA = 68;     // Next target delta
 const MAX_DISTANCE = 500;  // Maximum distance to display
 const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
@@ -170,7 +173,7 @@ async function createWidget() {
 
   const widget = new ListWidget();
   widget.backgroundColor = new Color("#000");
-  widget.setPadding(8, 10, 8, 10);
+  widget.setPadding(8, 4, 8, 4);  // Reduced horizontal padding for balance
 
   const root = widget.addStack();
   root.layoutHorizontally();
@@ -217,62 +220,84 @@ async function createWidget() {
       row.layoutHorizontally();
       row.centerAlignContent();
 
-      // Event column
-      const c1 = row.addStack();
-      c1.size = new Size(COL_EVENT, ROW_HEIGHT);
-      c1.layoutHorizontally();
-      c1.centerAlignContent();
-      // c1.addSpacer();
-      const l1 = c1.addText(`${ev} ${fmtType}`);
-      l1.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
-      l1.textColor = Color.white();
+      // Distance column (right-aligned number)
+      const cDist = row.addStack();
+      cDist.size = new Size(COL_DIST, ROW_HEIGHT);
+      cDist.layoutHorizontally();
+      cDist.centerAlignContent();
+      cDist.addSpacer();
+      const lDist = cDist.addText(`${ev}`);
+      lDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
+      lDist.textColor = Color.white();
 
-      // Time column with subscript age
-      const c2 = row.addStack();
-      c2.size = new Size(COL_TIME, ROW_HEIGHT);
-      c2.layoutHorizontally();
-      c2.centerAlignContent();
-      c2.addSpacer();
-      
-      const l2 = c2.addText(fmt(timeStr));
-      l2.font = Font.boldMonospacedSystemFont(FONT_SIZE);
-      l2.textColor = isUnofficial ? new Color("#aaa") : Color.white();
-      
-      // Add subscript (small, visible, slightly raised)
+      // Course column (left-aligned, small)
+      const cCourse = row.addStack();
+      cCourse.size = new Size(COL_COURSE, ROW_HEIGHT);
+      cCourse.layoutHorizontally();
+      cCourse.centerAlignContent();
+      const lCourse = cCourse.addText(fmtType);
+      lCourse.font = Font.systemFont(8);
+      lCourse.textColor = new Color("#888");
+      cCourse.addSpacer();
+
+      // Time column (right-aligned)
+      const cTime = row.addStack();
+      cTime.size = new Size(COL_TIME, ROW_HEIGHT);
+      cTime.layoutHorizontally();
+      cTime.centerAlignContent();
+      cTime.addSpacer();
+      const lTime = cTime.addText(fmt(timeStr));
+      lTime.font = Font.boldMonospacedSystemFont(FONT_SIZE);
+      lTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
+
+      // Days ago column (left-aligned, small, in parentheses)
+      const cDays = row.addStack();
+      cDays.size = new Size(COL_DAYS, ROW_HEIGHT);
+      cDays.layoutHorizontally();
+      cDays.centerAlignContent();
       if (candidate && candidate.date) {
         const daysAgo = daysSince(candidate.date);
         if (daysAgo !== null) {
-          const ageText = c2.addText(`${daysAgo}`);
-          ageText.font = Font.systemFont(8);
-          ageText.textColor = new Color("#aaa");
+          const lDays = cDays.addText(`(${daysAgo})`);
+          lDays.font = Font.systemFont(8);
+          lDays.textColor = new Color("#666");
         }
       }
+      cDays.addSpacer();
 
-      // Level column
-      const c3 = row.addStack();
-      c3.size = new Size(COL_LEVEL, ROW_HEIGHT);
-      c3.layoutHorizontally();
-      c3.centerAlignContent();
-      c3.addSpacer();
+      // Motivational level column (right-aligned)
+      const cMotiv = row.addStack();
+      cMotiv.size = new Size(COL_MOTIV, ROW_HEIGHT);
+      cMotiv.layoutHorizontally();
+      cMotiv.centerAlignContent();
+      cMotiv.addSpacer();
       let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
       if (level) {
-        const l3 = c3.addText(level);
-        l3.font = Font.boldSystemFont(FONT_SIZE);
-        l3.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
+        const lMotiv = cMotiv.addText(level);
+        lMotiv.font = Font.boldSystemFont(FONT_SIZE);
+        lMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
       }
 
-      // Delta column
-      const c4 = row.addStack();
-      c4.size = new Size(COL_DELTA, ROW_HEIGHT);
-      c4.layoutHorizontally();
-      c4.centerAlignContent();
-      c4.addSpacer();
+      // Regional standard column (left-aligned, small) - placeholder for now
+      const cRegional = row.addStack();
+      cRegional.size = new Size(COL_REGIONAL, ROW_HEIGHT);
+      cRegional.layoutHorizontally();
+      cRegional.centerAlignContent();
+      // TODO: Add regional standard indicator (AGC, FW, or dash)
+      cRegional.addSpacer();
+
+      // Delta column (right-aligned)
+      const cDelta = row.addStack();
+      cDelta.size = new Size(COL_DELTA, ROW_HEIGHT);
+      cDelta.layoutHorizontally();
+      cDelta.centerAlignContent();
+      cDelta.addSpacer();
       const { text: deltaText, color: deltaColor } = (timeSec !== null)
         ? getDelta(timeSec, levels)
         : { text: "", color: Color.white() };
-      const l4 = c4.addText(deltaText);
-      l4.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
-      l4.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
+      const lDelta = cDelta.addText(deltaText);
+      lDelta.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
+      lDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
     }
   }
 
