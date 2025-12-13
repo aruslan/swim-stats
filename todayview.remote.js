@@ -285,37 +285,36 @@ async function createWidget() {
       // DISTANCE (Right Aligned)
       const cDist = row.addStack()
       cDist.size = new Size(COL_DIST, ROW_HEIGHT)
-      cDist.layoutVertically()
+      cDist.layoutHorizontally()
       cDist.centerAlignContent()
+      cDist.addSpacer()
       const lDist = cDist.addText(`${ev}`)
       lDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE)
       lDist.textColor = Color.white()
-      lDist.rightAlignText()
 
       // COURSE (Left Aligned)
       const cCourse = row.addStack()
       cCourse.size = new Size(COL_COURSE, ROW_HEIGHT)
-      cCourse.layoutVertically()
+      cCourse.layoutHorizontally()
       cCourse.centerAlignContent()
       const lCourse = cCourse.addText(fmtType)
       lCourse.font = Font.systemFont(8) // Small font for unit
       lCourse.textColor = Color.white()
-      lCourse.leftAlignText()
 
       // TIME (Right Aligned)
       const cTime = row.addStack()
       cTime.size = new Size(COL_TIME, ROW_HEIGHT)
-      cTime.layoutVertically()
+      cTime.layoutHorizontally()
       cTime.centerAlignContent()
+      cTime.addSpacer()
       const lTime = cTime.addText(fmt(timeStr))
       lTime.font = Font.boldMonospacedSystemFont(FONT_SIZE)
-      lTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
-      lTime.rightAlignText()
+      lTime.textColor = isUnofficial ? new Color("#aaa") : Color.white()
 
       // DAYS (Left Aligned)
       const cDays = row.addStack()
       cDays.size = new Size(COL_DAYS, ROW_HEIGHT)
-      cDays.layoutVertically()
+      cDays.layoutHorizontally()
       cDays.centerAlignContent()
       if (candidate && candidate.date) {
         const daysAgo = daysSince(candidate.date);
@@ -323,40 +322,38 @@ async function createWidget() {
           const lDays = cDays.addText(`(${daysAgo})`)
           lDays.font = Font.systemFont(8)
           lDays.textColor = new Color("#666")
-          lDays.leftAlignText()
         }
       }
 
       // MOTIVATIONAL (Right Aligned)
       const cMotiv = row.addStack()
       cMotiv.size = new Size(COL_MOTIV, ROW_HEIGHT)
-      cMotiv.layoutVertically()
+      cMotiv.layoutHorizontally()
       cMotiv.centerAlignContent()
       let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
+      cMotiv.addSpacer()
       if (level) {
         const lMotiv = cMotiv.addText(level)
         lMotiv.font = Font.boldSystemFont(FONT_SIZE)
         lMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
-        lMotiv.rightAlignText()
       }
 
       // REGIONAL STD (Left Aligned)
       const cRegional = row.addStack()
       cRegional.size = new Size(COL_REGIONAL, ROW_HEIGHT)
-      cRegional.layoutVertically()
+      cRegional.layoutHorizontally()
       cRegional.centerAlignContent()
       let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
       if (regionalStr) {
         const lReg = cRegional.addText(regionalStr)
         lReg.font = Font.systemFont(8)
         lReg.textColor = Color.white()
-        lReg.leftAlignText()
       }
 
       // DELTA (Left Aligned - Based on screenshot)
       const cDelta = row.addStack()
       cDelta.size = new Size(COL_DELTA, ROW_HEIGHT)
-      cDelta.layoutVertically()
+      cDelta.layoutHorizontally()
       cDelta.centerAlignContent()
       const { text: deltaText, color: deltaColor } = (timeSec !== null)
         ? getDelta(timeSec, levels)
@@ -365,20 +362,18 @@ async function createWidget() {
         const lDelta = cDelta.addText(deltaText)
         lDelta.font = Font.mediumMonospacedSystemFont(FONT_SIZE)
         lDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
-        lDelta.leftAlignText()
       }
 
       // REGIONAL DELTA (Left Aligned)
       const cRegDelta = row.addStack()
       cRegDelta.size = new Size(COL_REG_DELTA, ROW_HEIGHT)
-      cRegDelta.layoutVertically()
+      cRegDelta.layoutHorizontally()
       cRegDelta.centerAlignContent()
       const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
       if (regDeltaText) {
         const lRegDelta = cRegDelta.addText(regDeltaText)
         lRegDelta.font = Font.systemFont(8)
         lRegDelta.textColor = Color.white()
-        lRegDelta.leftAlignText()
       }
     }
   }
