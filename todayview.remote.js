@@ -19,15 +19,15 @@ const STROKE_SHORT = {
 
 const FONT_SIZE = 12;
 const ROW_HEIGHT = 19;
-const ROW_WIDTH = 310;
+const ROW_WIDTH = 321;
 const COL_DIST = 32;      // Distance number (50, 100, 200) right-aligned
 const COL_COURSE = 24;    // Course type (SCY, LCM) left-aligned, small
 const COL_TIME = 58;      // Time right-aligned
-const COL_DAYS = 30;      // Days ago in parens, left-aligned, small
+const COL_DAYS = 35;      // Days ago in parens, left-aligned, small
 const COL_MOTIV = 24;     // Motivational standard right-aligned
 const COL_REGIONAL = 24;  // Regional standard left-aligned, small (placeholder)
 const COL_DELTA = 64;     // Next target delta
-const COL_REG_DELTA = 54; // Next regional target delta
+const COL_REG_DELTA = 60; // Next regional target delta
 const MAX_DISTANCE = 500;  // Maximum distance to display
 const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
@@ -280,7 +280,7 @@ async function createWidget() {
       // ROW
       const row = left.addStack();
       row.size = new Size(ROW_WIDTH, ROW_HEIGHT);
-      row.layoutHorizontally();
+      // row.layoutHorizontally();
       // row.centerAlignContent();
 
       // Distance column (right-aligned number)
