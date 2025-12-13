@@ -286,9 +286,9 @@ async function createWidget() {
       // Distance column (right-aligned number)
       const cDist = row.addStack();
       cDist.size = new Size(COL_DIST, ROW_HEIGHT);
-      // cDist.layoutHorizontally();
+      cDist.layoutHorizontally(); // Enable layout
       // cDist.centerAlignContent();
-      // cDist.addSpacer();
+      cDist.addSpacer(); // Leading Spacer (Push Right)
       const lDist = cDist.addText(`${ev}`);
       lDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
       lDist.textColor = Color.white();
