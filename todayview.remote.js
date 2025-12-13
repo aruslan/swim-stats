@@ -233,7 +233,7 @@ async function createWidget() {
 
   const widget = new ListWidget();
   widget.backgroundColor = new Color("#000");
-  widget.setPadding(8, 4, 8, 4);  // Reduced horizontal padding for balance
+  // widget.setPadding(8, 4, 8, 4);  // Reduced horizontal padding for balance
 
   const root = widget.addStack();
   root.layoutHorizontally();
@@ -288,7 +288,7 @@ async function createWidget() {
       cDist.size = new Size(COL_DIST, ROW_HEIGHT);
       cDist.layoutHorizontally();
       cDist.centerAlignContent();
-      cDist.addSpacer();
+      // cDist.addSpacer();
       const lDist = cDist.addText(`${ev}`);
       lDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
       lDist.textColor = Color.white();
@@ -301,14 +301,14 @@ async function createWidget() {
       const lCourse = cCourse.addText(fmtType);
       lCourse.font = Font.systemFont(8);
       lCourse.textColor = Color.white();
-      cCourse.addSpacer();
+      // cCourse.addSpacer();
 
       // Time column (right-aligned)
       const cTime = row.addStack();
       cTime.size = new Size(COL_TIME, ROW_HEIGHT);
       cTime.layoutHorizontally();
       cTime.centerAlignContent();
-      cTime.addSpacer();
+      // cTime.addSpacer();
       const lTime = cTime.addText(fmt(timeStr));
       lTime.font = Font.boldMonospacedSystemFont(FONT_SIZE);
       lTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
@@ -326,14 +326,14 @@ async function createWidget() {
           lDays.textColor = new Color("#666");
         }
       }
-      cDays.addSpacer();
+      // cDays.addSpacer();
 
       // Motivational level column (right-aligned)
       const cMotiv = row.addStack();
       cMotiv.size = new Size(COL_MOTIV, ROW_HEIGHT);
       cMotiv.layoutHorizontally();
       cMotiv.centerAlignContent();
-      cMotiv.addSpacer();
+      // cMotiv.addSpacer();
       let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
       if (level) {
         const lMotiv = cMotiv.addText(level);
@@ -353,14 +353,14 @@ async function createWidget() {
         lReg.font = Font.systemFont(8);
         lReg.textColor = Color.white();
       }
-      cRegional.addSpacer();
+      // cRegional.addSpacer();
 
       // Delta column (right-aligned)
       const cDelta = row.addStack();
       cDelta.size = new Size(COL_DELTA, ROW_HEIGHT);
       cDelta.layoutHorizontally();
       cDelta.centerAlignContent();
-      cDelta.addSpacer();
+      // cDelta.addSpacer();
       const { text: deltaText, color: deltaColor } = (timeSec !== null)
         ? getDelta(timeSec, levels)
         : { text: "", color: Color.white() };
@@ -380,7 +380,7 @@ async function createWidget() {
         lRegDelta.font = Font.systemFont(8);
         lRegDelta.textColor = Color.white();
       }
-      cRegDelta.addSpacer();
+      // cRegDelta.addSpacer();
     }
   }
 
@@ -397,7 +397,7 @@ async function createWidget() {
   nameText.font = Font.boldSystemFont(FONT_SIZE + 4);
   nameText.textColor = Color.white();
   nameText.centerAlignText();
-  right.addSpacer(6);
+  // right.addSpacer(6);
 
   for (let sc of STROKES) {
     const srow = right.addStack();
@@ -413,8 +413,8 @@ async function createWidget() {
     } else {
       lab.textColor = new Color("#888");
     }
-    srow.setPadding(1, 8, 1, 8);
-    right.addSpacer(3);
+    // srow.setPadding(1, 8, 1, 8);
+    // right.addSpacer(3);
 
     // Add freshness indicator under selected stroke
     if (sc === strokeCode && freshnessDays !== null) {
@@ -425,7 +425,7 @@ async function createWidget() {
       freshnessText.font = Font.systemFont(7);
       freshnessText.textColor = new Color("#aaa");
       freshnessText.centerAlignText();
-      right.addSpacer(3);
+      // right.addSpacer(3);
     }
   }
   return widget;
