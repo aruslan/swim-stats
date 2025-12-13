@@ -19,9 +19,9 @@ const STROKE_SHORT = {
 
 const FONT_SIZE = 12;
 const ROW_HEIGHT = 19;
-const ROW_WIDTH = 321;
+const ROW_WIDTH = 325;
 const COL_DIST = 32;      // Distance number (50, 100, 200) right-aligned
-const COL_COURSE = 24;    // Course type (SCY, LCM) left-aligned, small
+const COL_COURSE = 28;    // Course type (SCY, LCM) left-aligned, small
 const COL_TIME = 58;      // Time right-aligned
 const COL_DAYS = 35;      // Days ago in parens, left-aligned, small
 const COL_MOTIV = 24;     // Motivational standard right-aligned
