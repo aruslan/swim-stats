@@ -19,11 +19,11 @@ const STROKE_SHORT = {
 
 const FONT_SIZE = 12;
 const ROW_HEIGHT = 19;
-const ROW_WIDTH = 315;
+const ROW_WIDTH = 325;
 const COL_DIST = 32;      // Distance number (50, 100, 200) right-aligned
-const COL_COURSE = 22;    // Course type (SCY, LCM) left-aligned, small
+const COL_COURSE = 26;    // Course type (SCY, LCM) left-aligned, small
 const COL_TIME = 62;      // Time right-aligned
-const COL_DAYS = 28;      // Days ago in parens, left-aligned, small
+const COL_DAYS = 34;      // Days ago in parens, left-aligned, small
 const COL_MOTIV = 24;     // Motivational standard right-aligned
 const COL_REGIONAL = 26;  // Regional standard left-aligned, small (placeholder)
 const COL_DELTA = 66;     // Next target delta
