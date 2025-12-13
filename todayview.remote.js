@@ -280,14 +280,14 @@ async function createWidget() {
       // ROW
       const row = left.addStack();
       row.size = new Size(ROW_WIDTH, ROW_HEIGHT);
-      row.layoutHorizontally();
-      row.centerAlignContent();
+      // row.layoutHorizontally();
+      // row.centerAlignContent();
 
       // Distance column (right-aligned number)
       const cDist = row.addStack();
       cDist.size = new Size(COL_DIST, ROW_HEIGHT);
-      cDist.layoutHorizontally();
-      cDist.centerAlignContent();
+      // cDist.layoutHorizontally();
+      // cDist.centerAlignContent();
       // cDist.addSpacer();
       const lDist = cDist.addText(`${ev}`);
       lDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
@@ -296,8 +296,8 @@ async function createWidget() {
       // Course column (left-aligned, small)
       const cCourse = row.addStack();
       cCourse.size = new Size(COL_COURSE, ROW_HEIGHT);
-      cCourse.layoutHorizontally();
-      cCourse.centerAlignContent();
+      // cCourse.layoutHorizontally();
+      // cCourse.centerAlignContent();
       const lCourse = cCourse.addText(fmtType);
       lCourse.font = Font.systemFont(8);
       lCourse.textColor = Color.white();
@@ -306,8 +306,8 @@ async function createWidget() {
       // Time column (right-aligned)
       const cTime = row.addStack();
       cTime.size = new Size(COL_TIME, ROW_HEIGHT);
-      cTime.layoutHorizontally();
-      cTime.centerAlignContent();
+      // cTime.layoutHorizontally();
+      // cTime.centerAlignContent();
       // cTime.addSpacer();
       const lTime = cTime.addText(fmt(timeStr));
       lTime.font = Font.boldMonospacedSystemFont(FONT_SIZE);
@@ -316,8 +316,8 @@ async function createWidget() {
       // Days ago column (left-aligned, small, in parentheses)
       const cDays = row.addStack();
       cDays.size = new Size(COL_DAYS, ROW_HEIGHT);
-      cDays.layoutHorizontally();
-      cDays.centerAlignContent();
+      // cDays.layoutHorizontally();
+      // cDays.centerAlignContent();
       if (candidate && candidate.date) {
         const daysAgo = daysSince(candidate.date);
         if (daysAgo !== null) {
@@ -331,8 +331,8 @@ async function createWidget() {
       // Motivational level column (right-aligned)
       const cMotiv = row.addStack();
       cMotiv.size = new Size(COL_MOTIV, ROW_HEIGHT);
-      cMotiv.layoutHorizontally();
-      cMotiv.centerAlignContent();
+      // cMotiv.layoutHorizontally();
+      // cMotiv.centerAlignContent();
       // cMotiv.addSpacer();
       let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
       if (level) {
@@ -344,8 +344,8 @@ async function createWidget() {
       // Regional standard column (left-aligned, small)
       const cRegional = row.addStack();
       cRegional.size = new Size(COL_REGIONAL, ROW_HEIGHT);
-      cRegional.layoutHorizontally();
-      cRegional.centerAlignContent();
+      // cRegional.layoutHorizontally();
+      // cRegional.centerAlignContent();
 
       let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
       if (regionalStr) {
@@ -358,8 +358,8 @@ async function createWidget() {
       // Delta column (right-aligned)
       const cDelta = row.addStack();
       cDelta.size = new Size(COL_DELTA, ROW_HEIGHT);
-      cDelta.layoutHorizontally();
-      cDelta.centerAlignContent();
+      // cDelta.layoutHorizontally();
+      // cDelta.centerAlignContent();
       // cDelta.addSpacer();
       const { text: deltaText, color: deltaColor } = (timeSec !== null)
         ? getDelta(timeSec, levels)
@@ -371,8 +371,8 @@ async function createWidget() {
       // Regional Delta column (left-aligned, small)
       const cRegDelta = row.addStack();
       cRegDelta.size = new Size(COL_REG_DELTA, ROW_HEIGHT);
-      cRegDelta.layoutHorizontally();
-      cRegDelta.centerAlignContent();
+      // cRegDelta.layoutHorizontally();
+      // cRegDelta.centerAlignContent();
 
       const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
       if (regDeltaText) {
@@ -385,27 +385,27 @@ async function createWidget() {
   }
 
   // === RIGHT SIDE (stroke selection) ===
-  const right = root.addStack();
-  right.size = new Size(60, 0);
-  right.layoutVertically();
-  right.centerAlignContent();
+  const sidebarStack = root.addStack();
+  sidebarStack.size = new Size(60, 0);
+  sidebarStack.layoutVertically();
+  // sidebarStack.centerAlignContent();
 
-  const nameContainer = right.addStack();
+  const nameContainer = sidebarStack.addStack();
   nameContainer.size = new Size(60, 22);
-  nameContainer.centerAlignContent();
+  // nameContainer.centerAlignContent();
   const nameText = nameContainer.addText(swimmerName.split(" ")[0]);
   nameText.font = Font.boldSystemFont(FONT_SIZE + 4);
   nameText.textColor = Color.white();
-  nameText.centerAlignText();
-  // right.addSpacer(6);
+  // nameText.centerAlignText();
+  // sidebarStack.addSpacer(6);
 
   for (let sc of STROKES) {
-    const srow = right.addStack();
+    const srow = sidebarStack.addStack();
     srow.size = new Size(60, 20);
-    srow.centerAlignContent();
+    // srow.centerAlignContent();
     const lab = srow.addText(STROKE_SHORT[sc]);
     lab.font = Font.mediumSystemFont(FONT_SIZE);
-    lab.centerAlignText();
+    // lab.centerAlignText();
     if (sc === strokeCode) {
       srow.backgroundColor = new Color("#39C570");
       lab.textColor = Color.white();
@@ -414,18 +414,18 @@ async function createWidget() {
       lab.textColor = new Color("#888");
     }
     // srow.setPadding(1, 8, 1, 8);
-    // right.addSpacer(3);
+    // sidebarStack.addSpacer(3);
 
     // Add freshness indicator under selected stroke
     if (sc === strokeCode && freshnessDays !== null) {
-      const freshnessContainer = right.addStack();
+      const freshnessContainer = sidebarStack.addStack();
       freshnessContainer.size = new Size(60, 10);
-      freshnessContainer.centerAlignContent();
+      // freshnessContainer.centerAlignContent();
       const freshnessText = freshnessContainer.addText(`${freshnessDays} days ago`);
       freshnessText.font = Font.systemFont(7);
       freshnessText.textColor = new Color("#aaa");
-      freshnessText.centerAlignText();
-      // right.addSpacer(3);
+      // freshnessText.centerAlignText();
+      // sidebarStack.addSpacer(3);
     }
   }
   return widget;
