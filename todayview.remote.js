@@ -280,15 +280,15 @@ async function createWidget() {
       // ROW
       const row = left.addStack();
       row.size = new Size(ROW_WIDTH, ROW_HEIGHT);
-      // row.layoutHorizontally();
+      row.layoutHorizontally();
       // row.centerAlignContent();
 
       // Distance column (right-aligned number)
       const cDist = row.addStack();
       cDist.size = new Size(COL_DIST, ROW_HEIGHT);
-      cDist.layoutHorizontally(); // Enable layout
+      cDist.layoutHorizontally();
       // cDist.centerAlignContent();
-      cDist.addSpacer(); // Leading Spacer (Push Right)
+      cDist.addSpacer();
       const lDist = cDist.addText(`${ev}`);
       lDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
       lDist.textColor = Color.white();
@@ -296,19 +296,19 @@ async function createWidget() {
       // Course column (left-aligned, small)
       const cCourse = row.addStack();
       cCourse.size = new Size(COL_COURSE, ROW_HEIGHT);
-      // cCourse.layoutHorizontally();
+      cCourse.layoutHorizontally();
       // cCourse.centerAlignContent();
       const lCourse = cCourse.addText(fmtType);
       lCourse.font = Font.systemFont(8);
       lCourse.textColor = Color.white();
-      // cCourse.addSpacer();
+      cCourse.addSpacer();
 
       // Time column (right-aligned)
       const cTime = row.addStack();
       cTime.size = new Size(COL_TIME, ROW_HEIGHT);
-      // cTime.layoutHorizontally();
+      cTime.layoutHorizontally();
       // cTime.centerAlignContent();
-      // cTime.addSpacer();
+      cTime.addSpacer();
       const lTime = cTime.addText(fmt(timeStr));
       lTime.font = Font.boldMonospacedSystemFont(FONT_SIZE);
       lTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
@@ -316,7 +316,7 @@ async function createWidget() {
       // Days ago column (left-aligned, small, in parentheses)
       const cDays = row.addStack();
       cDays.size = new Size(COL_DAYS, ROW_HEIGHT);
-      // cDays.layoutHorizontally();
+      cDays.layoutHorizontally();
       // cDays.centerAlignContent();
       if (candidate && candidate.date) {
         const daysAgo = daysSince(candidate.date);
@@ -326,14 +326,14 @@ async function createWidget() {
           lDays.textColor = new Color("#666");
         }
       }
-      // cDays.addSpacer();
+      cDays.addSpacer();
 
       // Motivational level column (right-aligned)
       const cMotiv = row.addStack();
       cMotiv.size = new Size(COL_MOTIV, ROW_HEIGHT);
-      // cMotiv.layoutHorizontally();
+      cMotiv.layoutHorizontally();
       // cMotiv.centerAlignContent();
-      // cMotiv.addSpacer();
+      cMotiv.addSpacer();
       let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
       if (level) {
         const lMotiv = cMotiv.addText(level);
@@ -344,7 +344,7 @@ async function createWidget() {
       // Regional standard column (left-aligned, small)
       const cRegional = row.addStack();
       cRegional.size = new Size(COL_REGIONAL, ROW_HEIGHT);
-      // cRegional.layoutHorizontally();
+      cRegional.layoutHorizontally();
       // cRegional.centerAlignContent();
 
       let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
@@ -353,14 +353,14 @@ async function createWidget() {
         lReg.font = Font.systemFont(8);
         lReg.textColor = Color.white();
       }
-      // cRegional.addSpacer();
+      cRegional.addSpacer();
 
       // Delta column (right-aligned)
       const cDelta = row.addStack();
       cDelta.size = new Size(COL_DELTA, ROW_HEIGHT);
-      // cDelta.layoutHorizontally();
+      cDelta.layoutHorizontally();
       // cDelta.centerAlignContent();
-      // cDelta.addSpacer();
+      cDelta.addSpacer();
       const { text: deltaText, color: deltaColor } = (timeSec !== null)
         ? getDelta(timeSec, levels)
         : { text: "", color: Color.white() };
@@ -371,7 +371,7 @@ async function createWidget() {
       // Regional Delta column (left-aligned, small)
       const cRegDelta = row.addStack();
       cRegDelta.size = new Size(COL_REG_DELTA, ROW_HEIGHT);
-      // cRegDelta.layoutHorizontally();
+      cRegDelta.layoutHorizontally();
       // cRegDelta.centerAlignContent();
 
       const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
@@ -380,7 +380,7 @@ async function createWidget() {
         lRegDelta.font = Font.systemFont(8);
         lRegDelta.textColor = Color.white();
       }
-      // cRegDelta.addSpacer();
+      cRegDelta.addSpacer();
     }
   }
 
