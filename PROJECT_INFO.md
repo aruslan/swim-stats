@@ -29,6 +29,8 @@ All files are accessible at `https://aruslan.io/swim-stats/[filename]`:
 - `todayview.remote.js` - Widget code (loaded remotely by Scriptable)
 - `motivational_24_girls_11-12.json` - Time standards for 11-12 age group
 - `motivational_24_girls_13-14.json` - Time standards for 13-14 age group
+- `agc_25_girls.json` - Age Group Champs 2025 time standards for Girls
+- `farwestern_25_girls.json` - Far Westerns 2025 time standards for Girls
 
 ---
 
@@ -143,6 +145,10 @@ Standards follow USA Swimming's 2024 Motivational Times for Girls:
 - **BB**: Developing
 - **B**: Entry level
 
+### Regional Standards
+- **AGC**: Age Group Champs (Pacific Swimming)
+- **FW**: Far Westerns (Western Zone)
+
 Each event has specific time cutoffs for each standard. Times slower than B standard show as "Slower than B" or no standard.
 
 ---
@@ -177,6 +183,11 @@ swim-stats/
 ├── unofficial_times.json          # Optional unofficial times
 ├── motivational_24_girls_11-12.json  # Time standards for 11-12 age group
 ├── motivational_24_girls_13-14.json  # Time standards for 13-14 age group
+├── agc_25_girls.json               # Regional standards (Age Group Champs)
+├── farwestern_25_girls.json        # Regional standards (Far Westerns)
+├── standings.loader.js             # Standings widget bootstrap
+├── standings.remote.js             # Standings widget remote code
+├── standings.standalone.js         # Standings widget (standalone/dev version)
 └── .github/
     └── workflows/
         └── update-times.yml       # GitHub Actions workflow
@@ -205,6 +216,12 @@ swim-stats/
 - Displays 7 rows of swim data with times, standards, and delta to next level
 - Shows swimmer name and stroke selector on right side
 - Updates automatically when pushed to GitHub
+
+**standings.remote.js / standings.standalone.js**:
+- Visualizes comprehensive standings for a specific event
+- Shows swimmer rankings against motivational standards (B to AAAA)
+- Visual bar chart representation of relative speed
+- Supports different strokes, distances, and age groups via parameters
 
 **.github/workflows/update-times.yml**:
 - GitHub Actions workflow
@@ -433,7 +450,7 @@ git push origin main
 ## Contact & Maintenance
 
 **Repository Owner**: aruslan
-**Last Updated**: November 2025
+**Last Updated**: December 2025
 **Project Status**: Active, daily automated updates
 
 For issues or questions, open an issue on the GitHub repository.
