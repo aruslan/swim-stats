@@ -282,7 +282,7 @@ async function createWidget() {
       row.size = new Size(ROW_WIDTH, ROW_HEIGHT);
       row.layoutHorizontally(); // Ensure row is horizontal
 
-      // DISTANCE (Right Aligned via padding)
+      // DISTANCE (Right Aligned)
       const cDist = row.addStack()
       cDist.size = new Size(COL_DIST, ROW_HEIGHT)
       cDist.layoutVertically()
@@ -301,7 +301,7 @@ async function createWidget() {
       lCourse.font = Font.systemFont(8)
       lCourse.textColor = Color.white()
 
-      // TIME (Right Aligned via padding)
+      // TIME (Right Aligned)
       const cTime = row.addStack()
       cTime.size = new Size(COL_TIME, ROW_HEIGHT)
       cTime.layoutVertically()
@@ -325,7 +325,7 @@ async function createWidget() {
         }
       }
 
-      // MOTIVATIONAL (Right Aligned via padding)
+      // MOTIVATIONAL (Right Aligned)
       const cMotiv = row.addStack()
       cMotiv.size = new Size(COL_MOTIV, ROW_HEIGHT)
       cMotiv.layoutVertically()
