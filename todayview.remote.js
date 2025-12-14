@@ -333,51 +333,50 @@ async function createWidget() {
         row.layoutHorizontally();
         row.centerAlignContent();
 
-        // 1. DISTANCE (Right)
-        const tDist = row.addText(pad(ev, W_DIST, "right"));
+        // 1. DISTANCE
+        const tDist = row.addText(`${ev}`);
         tDist.font = new Font(FONT_NAME, FONT_SIZE); // Defaulting to regular for Menlo
         tDist.textColor = Color.white();
 
-        // 2. COURSE (Left)
-        // Removed spacer, strict width
-        const tCourse = row.addText(pad(fmtType, W_COURSE, "left"));
+        // 2. COURSE
+        const tCourse = row.addText(`${fmtType}`);
         tCourse.font = new Font(FONT_NAME, 10); // Slightly larger than 8 to be readable in Menlo
         tCourse.textColor = Color.white();
 
-        // 3. TIME (Right)
-        const tTime = row.addText(pad(fmt(timeStr), W_TIME, "right"));
+        // 3. TIME
+        const tTime = row.addText(fmt(timeStr));
         tTime.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
         tTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
 
-        // 4. DAYS (Left)
+        // 4. DAYS
         let daysStr = "";
         if (candidate && candidate.date) {
           const d = daysSince(candidate.date);
           if (d !== null) daysStr = `(${d})`;
         }
-        const tDays = row.addText(pad(daysStr, W_DAYS, "left"));
+        const tDays = row.addText(daysStr);
         tDays.font = new Font(FONT_NAME, 10);
         tDays.textColor = new Color("#666");
 
-        // 5. MOTIVATIONAL (Right)
+        // 5. MOTIVATIONAL
         let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
-        const tMotiv = row.addText(pad(level, W_MOTIV, "right"));
+        const tMotiv = row.addText(level);
         tMotiv.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
         tMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
 
-        // 6. REGIONAL STD (Left)
+        // 6. REGIONAL STD
         let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
         if (!regionalStr) regionalStr = "";
-        const tReg = row.addText(pad(regionalStr, W_REG, "left"));
+        const tReg = row.addText(regionalStr);
         tReg.font = new Font(FONT_NAME, 10);
         tReg.textColor = Color.white();
 
-        // 7. MOTIV DELTA (Right)
+        // 7. MOTIV DELTA
         const { text: deltaText, color: deltaColor } = (timeSec !== null)
           ? getDelta(timeSec, levels)
           : { text: "", color: Color.white() };
 
-        const tDelta = row.addText(pad(deltaText, W_DELTA, "right"));
+        const tDelta = row.addText(deltaText);
         tDelta.font = new Font(FONT_NAME, FONT_SIZE);
         tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
 
