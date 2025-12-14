@@ -55,7 +55,7 @@ let swimmerName = SWIMMERS[swimmerKey].name;
 // === DATA LOADING ===
 async function fetchJson(url) {
   try { return await new Request(url).loadJSON(); }
-  catch (e) { return null; }
+  catch (e) { console.error(`Failed to load ${url}: ${e}`); return null; }
 }
 
 async function loadMotivational() {
@@ -211,174 +211,199 @@ function getRegionalDelta(timeSec, courseCode, strokeCode, dist, agcData, fwData
 
 // === MAIN ===
 async function createWidget() {
-  let [timesData, unofficialData, MOTIV, agcData, fwData] = await Promise.all([
-    fetchJson(TIMES_URL),
-    fetchJson(UNOFFICIAL_URL),
-    loadMotivational(),
-    fetchJson(AGC_URL),
-    fetchJson(FW_URL)
-  ]);
+  try {
+    let [timesData, unofficialData, MOTIV, agcData, fwData] = await Promise.all([
+      fetchJson(TIMES_URL),
+      fetchJson(UNOFFICIAL_URL),
+      loadMotivational(),
+      fetchJson(AGC_URL),
+      fetchJson(FW_URL)
+    ]);
 
-  const widget = new ListWidget();
-  widget.backgroundColor = new Color("#000");
+    const widget = new ListWidget();
+    widget.backgroundColor = new Color("#000");
 
-  if (!Array.isArray(timesData) || !MOTIV) {
-    let t = widget.addText("⚠️ Failed to load data");
-    t.font = Font.boldMonospacedSystemFont(FONT_SIZE);
-    t.textColor = Color.red();
-    return widget;
-  }
-
-  const unofficialTimes = Array.isArray(unofficialData)
-    ? unofficialData.filter(r => r.name === swimmerName).map(r => ({ ...r, unofficial: true }))
-    : [];
-  const swimmerTimes = timesData.filter(r => r.name === swimmerName);
-
-  const root = widget.addStack();
-  root.layoutHorizontally();
-
-  // === LEFT SIDE (table) ===
-  const left = root.addStack();
-  left.layoutVertically();
-  // left.size = new Size(0, 0); // No size constraint
-
-  const strokeFull = STROKE_LABELS[strokeCode];
-  const FORMATS_ORDERED = ["SCY", "LCM"];  // SCY first, then LCM
-  let motivAgeGroup = swimmerAge >= 13 ? "13-14" : "11-12";
-
-  // Calculate freshness: most recent result for this swimmer and stroke
-  const strokeResults = swimmerTimes.filter(r => r.event.includes(strokeCode));
-  let freshnessDays = null;
-  if (strokeResults.length > 0) {
-    const mostRecentDate = strokeResults
-      .map(r => parseDate(r.date))
-      .filter(d => d !== null)
-      .sort((a, b) => b - a)[0];
-    if (mostRecentDate) {
-      const now = new Date();
-      freshnessDays = Math.floor((now - mostRecentDate) / (1000 * 60 * 60 * 24));
+    if (!Array.isArray(timesData)) {
+      let t = widget.addText("⚠️ Times data missing");
+      t.font = Font.boldMonospacedSystemFont(FONT_SIZE);
+      t.textColor = Color.red();
+      return widget;
     }
-  }
+    if (!MOTIV || Object.keys(MOTIV).length === 0) {
+      let t = widget.addText("⚠️ Motivational data missing");
+      t.font = Font.boldMonospacedSystemFont(FONT_SIZE);
+      t.textColor = Color.red();
+      return widget;
+    }
 
-  for (let fmtType of FORMATS_ORDERED) {
-    const evList = getEventList(strokeFull, fmtType);
-    for (let ev of evList) {
-      const levels = MOTIV?.[motivAgeGroup]?.[fmtType]?.[strokeCode]?.[String(ev)];
-      // Even if no motiv standards for this distance, we might want to show it? 
-      // Current logic skips if no levels. Keep as is.
-      if (!levels) continue;
+    const unofficialTimes = Array.isArray(unofficialData)
+      ? unofficialData.filter(r => r.name === swimmerName).map(r => ({ ...r, unofficial: true }))
+      : [];
+    const swimmerTimes = timesData.filter(r => r.name === swimmerName);
 
-      const wanted = `${ev} ${strokeCode} ${fmtType}`;
-      const candidates = swimmerTimes.concat(unofficialTimes)
-        .filter(r => r.event === wanted)
-        .sort((a, b2) => parseTime(a.time) - parseTime(b2.time));
-      const candidate = candidates[0];
-      const timeStr = candidate ? candidate.time : "";
-      const timeSec = candidate ? parseTime(candidate.time) : null;
-      const isUnofficial = candidate ? !!candidate.unofficial : false;
+    // Debug: If no times found
+    if (swimmerTimes.length === 0 && unofficialTimes.length === 0) {
+      // Not an error, but good to know
+      // Proceeding... will result in empty table but sidebar should show
+    }
 
-      // ROW
-      const row = left.addStack();
-      row.layoutHorizontally();
-      row.centerAlignContent(); // Vertically center the row content
+    const root = widget.addStack();
+    root.layoutHorizontally();
 
-      // 1. DISTANCE (Right Aligned via padding)
-      const tDist = row.addText(`${ev}`.padStart(W_DIST));
-      tDist.font = Font.monospacedSystemFont(FONT_SIZE);
-      tDist.textColor = Color.white();
+    // === LEFT SIDE (table) ===
+    const left = root.addStack();
+    left.layoutVertically();
+    // left.size = new Size(0, 0); // No size constraint
 
-      // 2. COURSE (Left Aligned via padding)
-      const tCourse = row.addText(` ${fmtType}`.padEnd(W_COURSE + 1)); // +1 for spacer
-      tCourse.font = Font.monospacedSystemFont(8); // keeping smaller font for course
-      tCourse.textColor = Color.white();
+    const strokeFull = STROKE_LABELS[strokeCode];
+    const FORMATS_ORDERED = ["SCY", "LCM"];  // SCY first, then LCM
+    let motivAgeGroup = swimmerAge >= 13 ? "13-14" : "11-12";
 
-      // 3. TIME (Right Aligned via padding)
-      const tTime = row.addText(fmt(timeStr).padStart(W_TIME));
-      tTime.font = Font.boldMonospacedSystemFont(FONT_SIZE);
-      tTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
-
-      // 4. DAYS (Left Aligned via padding)
-      let daysStr = "";
-      if (candidate && candidate.date) {
-        const d = daysSince(candidate.date);
-        if (d !== null) daysStr = `(${d})`;
+    // Calculate freshness: most recent result for this swimmer and stroke
+    const strokeResults = swimmerTimes.filter(r => r.event.includes(strokeCode));
+    let freshnessDays = null;
+    if (strokeResults.length > 0) {
+      const mostRecentDate = strokeResults
+        .map(r => parseDate(r.date))
+        .filter(d => d !== null)
+        .sort((a, b) => b - a)[0];
+      if (mostRecentDate) {
+        const now = new Date();
+        freshnessDays = Math.floor((now - mostRecentDate) / (1000 * 60 * 60 * 24));
       }
-      const tDays = row.addText(` ${daysStr}`.padEnd(W_DAYS + 1));
-      tDays.font = Font.monospacedSystemFont(8);
-      tDays.textColor = new Color("#666");
-
-      // 5. MOTIVATIONAL (Right Aligned via padding)
-      let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
-      const tMotiv = row.addText(level.padStart(W_MOTIV));
-      tMotiv.font = Font.boldMonospacedSystemFont(FONT_SIZE);
-      tMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
-
-      // 6. REGIONAL STD (Left Aligned via padding)
-      let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
-      if (!regionalStr) regionalStr = ""; // Ensure string
-      const tReg = row.addText(` ${regionalStr}`.padEnd(W_REG + 1));
-      tReg.font = Font.monospacedSystemFont(8);
-      tReg.textColor = Color.white();
-
-      // 7. MOTIV DELTA (Right Aligned via padding)
-      const { text: deltaText, color: deltaColor } = (timeSec !== null)
-        ? getDelta(timeSec, levels)
-        : { text: "", color: Color.white() };
-
-      const tDelta = row.addText(deltaText.padStart(W_DELTA));
-      tDelta.font = Font.monospacedSystemFont(FONT_SIZE);
-      tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
-
-      // 8. REGIONAL DELTA (Left Aligned via padding)
-      const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
-      const tRegDelta = row.addText(` ${regDeltaText}`.padEnd(W_REG_DELTA + 1));
-      tRegDelta.font = Font.monospacedSystemFont(8);
-      tRegDelta.textColor = Color.white();
     }
+
+    let rowCount = 0;
+    for (let fmtType of FORMATS_ORDERED) {
+      const evList = getEventList(strokeFull, fmtType);
+      for (let ev of evList) {
+        const levels = MOTIV?.[motivAgeGroup]?.[fmtType]?.[strokeCode]?.[String(ev)];
+        // Even if no motiv standards for this distance, we might want to show it? 
+        // Current logic skips if no levels. Keep as is.
+        if (!levels) continue;
+        rowCount++;
+
+        const wanted = `${ev} ${strokeCode} ${fmtType}`;
+        const candidates = swimmerTimes.concat(unofficialTimes)
+          .filter(r => r.event === wanted)
+          .sort((a, b2) => parseTime(a.time) - parseTime(b2.time));
+        const candidate = candidates[0];
+        const timeStr = candidate ? candidate.time : "";
+        const timeSec = candidate ? parseTime(candidate.time) : null;
+        const isUnofficial = candidate ? !!candidate.unofficial : false;
+
+        // ROW
+        const row = left.addStack();
+        row.layoutHorizontally();
+        row.centerAlignContent(); // Vertically center the row content
+
+        // 1. DISTANCE (Right Aligned via padding)
+        const tDist = row.addText(`${ev}`.padStart(W_DIST));
+        tDist.font = Font.monospacedSystemFont(FONT_SIZE);
+        tDist.textColor = Color.white();
+
+        // 2. COURSE (Left Aligned via padding)
+        const tCourse = row.addText(` ${fmtType}`.padEnd(W_COURSE + 1)); // +1 for spacer
+        tCourse.font = Font.monospacedSystemFont(8); // keeping smaller font for course
+        tCourse.textColor = Color.white();
+
+        // 3. TIME (Right Aligned via padding)
+        const tTime = row.addText(fmt(timeStr).padStart(W_TIME));
+        tTime.font = Font.boldMonospacedSystemFont(FONT_SIZE);
+        tTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
+
+        // 4. DAYS (Left Aligned via padding)
+        let daysStr = "";
+        if (candidate && candidate.date) {
+          const d = daysSince(candidate.date);
+          if (d !== null) daysStr = `(${d})`;
+        }
+        const tDays = row.addText(` ${daysStr}`.padEnd(W_DAYS + 1));
+        tDays.font = Font.monospacedSystemFont(8);
+        tDays.textColor = new Color("#666");
+
+        // 5. MOTIVATIONAL (Right Aligned via padding)
+        let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
+        const tMotiv = row.addText(level.padStart(W_MOTIV));
+        tMotiv.font = Font.boldMonospacedSystemFont(FONT_SIZE);
+        tMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
+
+        // 6. REGIONAL STD (Left Aligned via padding)
+        let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
+        if (!regionalStr) regionalStr = ""; // Ensure string
+        const tReg = row.addText(` ${regionalStr}`.padEnd(W_REG + 1));
+        tReg.font = Font.monospacedSystemFont(8);
+        tReg.textColor = Color.white();
+
+        // 7. MOTIV DELTA (Right Aligned via padding)
+        const { text: deltaText, color: deltaColor } = (timeSec !== null)
+          ? getDelta(timeSec, levels)
+          : { text: "", color: Color.white() };
+
+        const tDelta = row.addText(deltaText.padStart(W_DELTA));
+        tDelta.font = Font.monospacedSystemFont(FONT_SIZE);
+        tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
+
+        // 8. REGIONAL DELTA (Left Aligned via padding)
+        const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
+        const tRegDelta = row.addText(` ${regDeltaText}`.padEnd(W_REG_DELTA + 1));
+        tRegDelta.font = Font.monospacedSystemFont(8);
+        tRegDelta.textColor = Color.white();
+      }
+    }
+
+    // === RIGHT SIDE (stroke selection) ===
+    const sidebarStack = root.addStack();
+    sidebarStack.layoutVertically();
+    // Sidebar styling - mimicking manual padding without spacers
+    sidebarStack.setPadding(0, 10, 0, 0);
+
+    const nameContainer = sidebarStack.addStack();
+    const nameText = nameContainer.addText(swimmerName.split(" ")[0]);
+    nameText.font = Font.boldMonospacedSystemFont(FONT_SIZE + 4);
+    nameText.textColor = Color.white();
+
+    for (let sc of STROKES) {
+      const srow = sidebarStack.addStack();
+      // Removed fixed pixel size, using content padding
+      const lab = srow.addText(STROKE_SHORT[sc]);
+      lab.font = Font.monospacedSystemFont(FONT_SIZE);
+
+      if (sc === strokeCode) {
+        srow.backgroundColor = new Color("#39C570");
+        lab.textColor = Color.white();
+        srow.cornerRadius = 4;
+        srow.setPadding(2, 4, 2, 4);
+      } else {
+        lab.textColor = new Color("#888");
+        srow.setPadding(2, 4, 2, 4);
+      }
+
+      // Add freshness indicator under selected stroke
+      if (sc === strokeCode && freshnessDays !== null) {
+        const freshnessContainer = sidebarStack.addStack();
+        const freshnessText = freshnessContainer.addText(`${freshnessDays}d ago`);
+        freshnessText.font = Font.monospacedSystemFont(8);
+        freshnessText.textColor = new Color("#aaa");
+      }
+    }
+    return widget;
+
+  } catch (e) {
+    const w = new ListWidget();
+    w.addText(`Error: ${e}`);
+    return w;
   }
-
-  // === RIGHT SIDE (stroke selection) ===
-  const sidebarStack = root.addStack();
-  sidebarStack.layoutVertically();
-  // Sidebar styling - mimicking manual padding without spacers
-  sidebarStack.setPadding(0, 10, 0, 0);
-
-  const nameContainer = sidebarStack.addStack();
-  const nameText = nameContainer.addText(swimmerName.split(" ")[0]);
-  nameText.font = Font.boldMonospacedSystemFont(FONT_SIZE + 4);
-  nameText.textColor = Color.white();
-
-  for (let sc of STROKES) {
-    const srow = sidebarStack.addStack();
-    // Removed fixed pixel size, using content padding
-    const lab = srow.addText(STROKE_SHORT[sc]);
-    lab.font = Font.monospacedSystemFont(FONT_SIZE);
-
-    if (sc === strokeCode) {
-      srow.backgroundColor = new Color("#39C570");
-      lab.textColor = Color.white();
-      srow.cornerRadius = 4;
-      srow.setPadding(2, 4, 2, 4);
-    } else {
-      lab.textColor = new Color("#888");
-      srow.setPadding(2, 4, 2, 4);
-    }
-
-    // Add freshness indicator under selected stroke
-    if (sc === strokeCode && freshnessDays !== null) {
-      const freshnessContainer = sidebarStack.addStack();
-      const freshnessText = freshnessContainer.addText(`${freshnessDays}d ago`);
-      freshnessText.font = Font.monospacedSystemFont(8);
-      freshnessText.textColor = new Color("#aaa");
-    }
-  }
-  return widget;
 }
 
 // === RUN ===
 (async () => {
-  const widget = await createWidget();
-  if (config.runsInWidget) Script.setWidget(widget);
-  else await widget.presentMedium();
+  try {
+    const widget = await createWidget();
+    if (config.runsInWidget) Script.setWidget(widget);
+    else await widget.presentMedium();
+  } catch (e) {
+    console.error(e);
+  }
   Script.complete();
 })();
