@@ -18,6 +18,7 @@ const STROKE_SHORT = {
 };
 
 const FONT_SIZE = 12;
+const FONT_NAME = "Menlo";
 
 // Column width constants (in characters)
 const W_DIST = 4;  // "1650" (Right)
@@ -396,14 +397,14 @@ async function createWidget() {
 
     const nameContainer = sidebarStack.addStack();
     const nameText = nameContainer.addText(swimmerName.split(" ")[0]);
-    nameText.font = Font.boldMonospacedSystemFont(FONT_SIZE + 4);
+    nameText.font = new Font(FONT_NAME + "-Bold", FONT_SIZE + 4);
     nameText.textColor = Color.white();
 
     for (let sc of STROKES) {
       const srow = sidebarStack.addStack();
       // Removed fixed pixel size, using content padding
       const lab = srow.addText(STROKE_SHORT[sc]);
-      lab.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
+      lab.font = new Font(FONT_NAME, FONT_SIZE);
 
       if (sc === strokeCode) {
         srow.backgroundColor = new Color("#39C570");
@@ -419,7 +420,7 @@ async function createWidget() {
       if (sc === strokeCode && freshnessDays !== null) {
         const freshnessContainer = sidebarStack.addStack();
         const freshnessText = freshnessContainer.addText(`${freshnessDays}d ago`);
-        freshnessText.font = Font.mediumMonospacedSystemFont(8);
+        freshnessText.font = new Font(FONT_NAME, 10);
         freshnessText.textColor = new Color("#aaa");
       }
     }
