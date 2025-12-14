@@ -337,9 +337,9 @@ async function createWidget() {
         tDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
         tDist.textColor = Color.white();
 
-        // 2. COURSE (Left + Spacer)
-        // " SCY " -> "\u00a0" + fmtType + padding
-        const tCourse = row.addText("\u00a0" + pad(fmtType, W_COURSE + 1, "left"));
+        // 2. COURSE (Left)
+        // Removed spacer, strict width
+        const tCourse = row.addText(pad(fmtType, W_COURSE, "left"));
         tCourse.font = Font.mediumMonospacedSystemFont(8);
         tCourse.textColor = Color.white();
 
@@ -348,13 +348,13 @@ async function createWidget() {
         tTime.font = Font.boldMonospacedSystemFont(FONT_SIZE);
         tTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
 
-        // 4. DAYS (Left + Spacer)
+        // 4. DAYS (Left)
         let daysStr = "";
         if (candidate && candidate.date) {
           const d = daysSince(candidate.date);
           if (d !== null) daysStr = `(${d})`;
         }
-        const tDays = row.addText("\u00a0" + pad(daysStr, W_DAYS + 1, "left"));
+        const tDays = row.addText(pad(daysStr, W_DAYS, "left"));
         tDays.font = Font.mediumMonospacedSystemFont(8);
         tDays.textColor = new Color("#666");
 
@@ -364,10 +364,10 @@ async function createWidget() {
         tMotiv.font = Font.boldMonospacedSystemFont(FONT_SIZE);
         tMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
 
-        // 6. REGIONAL STD (Left + Spacer)
+        // 6. REGIONAL STD (Left)
         let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
         if (!regionalStr) regionalStr = "";
-        const tReg = row.addText("\u00a0" + pad(regionalStr, W_REG + 1, "left"));
+        const tReg = row.addText(pad(regionalStr, W_REG, "left"));
         tReg.font = Font.mediumMonospacedSystemFont(8);
         tReg.textColor = Color.white();
 
@@ -380,9 +380,9 @@ async function createWidget() {
         tDelta.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
         tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
 
-        // 8. REGIONAL DELTA (Left + Spacer)
+        // 8. REGIONAL DELTA (Left)
         const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
-        const tRegDelta = row.addText("\u00a0" + pad(regDeltaText, W_REG_DELTA + 1, "left"));
+        const tRegDelta = row.addText(pad(regDeltaText, W_REG_DELTA, "left"));
         tRegDelta.font = Font.mediumMonospacedSystemFont(8);
         tRegDelta.textColor = Color.white();
       }
