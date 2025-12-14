@@ -323,56 +323,72 @@ async function createWidget() {
         row.layoutHorizontally();
         row.centerAlignContent(); // Vertically center the row content
 
-        // 1. DISTANCE (Right Aligned via padding)
-        const tDist = row.addText(`${ev}`.padStart(W_DIST));
+        // Helper for non-breaking padding
+        function pad(str, len, align = "right") {
+          str = String(str);
+          const diff = len - str.length;
+          if (diff <= 0) return str;
+          const spaces = "\u00a0".repeat(diff);
+          return align === "left" ? str + spaces : spaces + str;
+        }
+
+        // ... (in createWidget loop) ...
+        // ROW
+        const row = left.addStack();
+        row.layoutHorizontally();
+        row.centerAlignContent();
+
+        // 1. DISTANCE (Right)
+        const tDist = row.addText(pad(ev, W_DIST, "right"));
         tDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
         tDist.textColor = Color.white();
 
-        // 2. COURSE (Left Aligned via padding)
-        const tCourse = row.addText(` ${fmtType}`.padEnd(W_COURSE + 1)); // +1 for spacer
-        tCourse.font = Font.mediumMonospacedSystemFont(8); // keeping smaller font for course
+        // 2. COURSE (Left + Spacer)
+        // " SCY " -> "\u00a0" + fmtType + padding
+        const tCourse = row.addText("\u00a0" + pad(fmtType, W_COURSE + 1, "left"));
+        tCourse.font = Font.mediumMonospacedSystemFont(8);
         tCourse.textColor = Color.white();
 
-        // 3. TIME (Right Aligned via padding)
-        const tTime = row.addText(fmt(timeStr).padStart(W_TIME));
+        // 3. TIME (Right)
+        const tTime = row.addText(pad(fmt(timeStr), W_TIME, "right"));
         tTime.font = Font.boldMonospacedSystemFont(FONT_SIZE);
         tTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
 
-        // 4. DAYS (Left Aligned via padding)
+        // 4. DAYS (Left + Spacer)
         let daysStr = "";
         if (candidate && candidate.date) {
           const d = daysSince(candidate.date);
           if (d !== null) daysStr = `(${d})`;
         }
-        const tDays = row.addText(` ${daysStr}`.padEnd(W_DAYS + 1));
+        const tDays = row.addText("\u00a0" + pad(daysStr, W_DAYS + 1, "left"));
         tDays.font = Font.mediumMonospacedSystemFont(8);
         tDays.textColor = new Color("#666");
 
-        // 5. MOTIVATIONAL (Right Aligned via padding)
+        // 5. MOTIVATIONAL (Right)
         let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
-        const tMotiv = row.addText(level.padStart(W_MOTIV));
+        const tMotiv = row.addText(pad(level, W_MOTIV, "right"));
         tMotiv.font = Font.boldMonospacedSystemFont(FONT_SIZE);
         tMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
 
-        // 6. REGIONAL STD (Left Aligned via padding)
+        // 6. REGIONAL STD (Left + Spacer)
         let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
-        if (!regionalStr) regionalStr = ""; // Ensure string
-        const tReg = row.addText(` ${regionalStr}`.padEnd(W_REG + 1));
+        if (!regionalStr) regionalStr = "";
+        const tReg = row.addText("\u00a0" + pad(regionalStr, W_REG + 1, "left"));
         tReg.font = Font.mediumMonospacedSystemFont(8);
         tReg.textColor = Color.white();
 
-        // 7. MOTIV DELTA (Right Aligned via padding)
+        // 7. MOTIV DELTA (Right)
         const { text: deltaText, color: deltaColor } = (timeSec !== null)
           ? getDelta(timeSec, levels)
           : { text: "", color: Color.white() };
 
-        const tDelta = row.addText(deltaText.padStart(W_DELTA));
+        const tDelta = row.addText(pad(deltaText, W_DELTA, "right"));
         tDelta.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
         tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
 
-        // 8. REGIONAL DELTA (Left Aligned via padding)
+        // 8. REGIONAL DELTA (Left + Spacer)
         const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
-        const tRegDelta = row.addText(` ${regDeltaText}`.padEnd(W_REG_DELTA + 1));
+        const tRegDelta = row.addText("\u00a0" + pad(regDeltaText, W_REG_DELTA + 1, "left"));
         tRegDelta.font = Font.mediumMonospacedSystemFont(8);
         tRegDelta.textColor = Color.white();
       }
