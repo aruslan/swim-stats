@@ -53,15 +53,41 @@ if (!STROKES.includes(strokeCode)) strokeCode = "BR";
 let swimmerName = SWIMMERS[swimmerKey].name;
 
 // === DATA LOADING ===
-async function fetchJson(url) {
-  try { return await new Request(url).loadJSON(); }
-  catch (e) { console.error(`Failed to load ${url}: ${e}`); return null; }
+const CACHE_DIR = FileManager.local().joinPath(FileManager.local().documentsDirectory(), "swim_stats_cache");
+
+async function fetchWithCache(url, cacheKey) {
+  const fm = FileManager.local();
+  if (!fm.fileExists(CACHE_DIR)) fm.createDirectory(CACHE_DIR, true);
+  const cachePath = fm.joinPath(CACHE_DIR, cacheKey + ".json");
+
+  // Try network with timeout
+  try {
+    let req = new Request(url);
+    req.timeoutInterval = 5; // 5 seconds timeout
+    let json = await req.loadJSON();
+    // Save to cache
+    fm.writeString(cachePath, JSON.stringify(json));
+    return json;
+  } catch (e) {
+    console.error(`Fetch failed for ${url}: ${e}`);
+    // Fallback to cache
+    if (fm.fileExists(cachePath)) {
+      console.log(`Using cache for ${cacheKey}`);
+      try {
+        return JSON.parse(fm.readString(cachePath));
+      } catch (parseErr) {
+        console.error(`Cache parse failed: ${parseErr}`);
+        return null;
+      }
+    }
+    return null;
+  }
 }
 
 async function loadMotivational() {
   let [m11_12, m13_14] = await Promise.all([
-    fetchJson(MOTIVATIONAL_11_12_URL),
-    fetchJson(MOTIVATIONAL_13_14_URL)
+    fetchWithCache(MOTIVATIONAL_11_12_URL, "motiv_11_12"),
+    fetchWithCache(MOTIVATIONAL_13_14_URL, "motiv_13_14")
   ]);
   let MOTIV = {};
   if (m11_12?.Girls?.["11-12"]) MOTIV["11-12"] = m11_12.Girls["11-12"];
@@ -213,11 +239,11 @@ function getRegionalDelta(timeSec, courseCode, strokeCode, dist, agcData, fwData
 async function createWidget() {
   try {
     let [timesData, unofficialData, MOTIV, agcData, fwData] = await Promise.all([
-      fetchJson(TIMES_URL),
-      fetchJson(UNOFFICIAL_URL),
+      fetchWithCache(TIMES_URL, "times"),
+      fetchWithCache(UNOFFICIAL_URL, "unofficial"),
       loadMotivational(),
-      fetchJson(AGC_URL),
-      fetchJson(FW_URL)
+      fetchWithCache(AGC_URL, "agc"),
+      fetchWithCache(FW_URL, "fw")
     ]);
 
     const widget = new ListWidget();
