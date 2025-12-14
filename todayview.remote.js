@@ -282,39 +282,37 @@ async function createWidget() {
       row.size = new Size(ROW_WIDTH, ROW_HEIGHT);
       row.layoutHorizontally(); // Ensure row is horizontal
 
-      // DISTANCE (Right Aligned)
+      // DISTANCE (Right Aligned via padding)
       const cDist = row.addStack()
       cDist.size = new Size(COL_DIST, ROW_HEIGHT)
-      cDist.layoutHorizontally()
+      cDist.layoutVertically()
       cDist.centerAlignContent()
-      cDist.addSpacer()
-      const lDist = cDist.addText(`${ev}`)
+      const lDist = cDist.addText(`${ev}`.padStart(3))
       lDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE)
       lDist.textColor = Color.white()
 
       // COURSE (Left Aligned)
       const cCourse = row.addStack()
       cCourse.size = new Size(COL_COURSE, ROW_HEIGHT)
-      cCourse.layoutHorizontally()
+      cCourse.layoutVertically()
       cCourse.centerAlignContent()
       const lCourse = cCourse.addText(fmtType)
-      lCourse.font = Font.systemFont(8) // Small font for unit
+      lCourse.font = Font.systemFont(8)
       lCourse.textColor = Color.white()
 
-      // TIME (Right Aligned)
+      // TIME (Right Aligned via padding)
       const cTime = row.addStack()
       cTime.size = new Size(COL_TIME, ROW_HEIGHT)
-      cTime.layoutHorizontally()
+      cTime.layoutVertically()
       cTime.centerAlignContent()
-      cTime.addSpacer()
-      const lTime = cTime.addText(fmt(timeStr))
+      const lTime = cTime.addText(fmt(timeStr).padStart(7))
       lTime.font = Font.boldMonospacedSystemFont(FONT_SIZE)
       lTime.textColor = isUnofficial ? new Color("#aaa") : Color.white()
 
       // DAYS (Left Aligned)
       const cDays = row.addStack()
       cDays.size = new Size(COL_DAYS, ROW_HEIGHT)
-      cDays.layoutHorizontally()
+      cDays.layoutVertically()
       cDays.centerAlignContent()
       if (candidate && candidate.date) {
         const daysAgo = daysSince(candidate.date);
@@ -325,23 +323,22 @@ async function createWidget() {
         }
       }
 
-      // MOTIVATIONAL (Right Aligned)
+      // MOTIVATIONAL (Right Aligned via padding)
       const cMotiv = row.addStack()
       cMotiv.size = new Size(COL_MOTIV, ROW_HEIGHT)
-      cMotiv.layoutHorizontally()
+      cMotiv.layoutVertically()
       cMotiv.centerAlignContent()
       let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
-      cMotiv.addSpacer()
       if (level) {
-        const lMotiv = cMotiv.addText(level)
-        lMotiv.font = Font.boldSystemFont(FONT_SIZE)
+        const lMotiv = cMotiv.addText(level.padStart(4))
+        lMotiv.font = Font.boldMonospacedSystemFont(FONT_SIZE)
         lMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
       }
 
       // REGIONAL STD (Left Aligned)
       const cRegional = row.addStack()
       cRegional.size = new Size(COL_REGIONAL, ROW_HEIGHT)
-      cRegional.layoutHorizontally()
+      cRegional.layoutVertically()
       cRegional.centerAlignContent()
       let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
       if (regionalStr) {
@@ -350,10 +347,10 @@ async function createWidget() {
         lReg.textColor = Color.white()
       }
 
-      // DELTA (Left Aligned - Based on screenshot)
+      // DELTA (Left Aligned)
       const cDelta = row.addStack()
       cDelta.size = new Size(COL_DELTA, ROW_HEIGHT)
-      cDelta.layoutHorizontally()
+      cDelta.layoutVertically()
       cDelta.centerAlignContent()
       const { text: deltaText, color: deltaColor } = (timeSec !== null)
         ? getDelta(timeSec, levels)
@@ -367,7 +364,7 @@ async function createWidget() {
       // REGIONAL DELTA (Left Aligned)
       const cRegDelta = row.addStack()
       cRegDelta.size = new Size(COL_REG_DELTA, ROW_HEIGHT)
-      cRegDelta.layoutHorizontally()
+      cRegDelta.layoutVertically()
       cRegDelta.centerAlignContent()
       const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
       if (regDeltaText) {
