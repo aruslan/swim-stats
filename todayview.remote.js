@@ -290,6 +290,7 @@ async function createWidget() {
       const lDist = cDist.addText(`${ev}`.padStart(3))
       lDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE)
       lDist.textColor = Color.white()
+      lDist.rightAlignText()
 
       // COURSE (Left Aligned)
       const cCourse = row.addStack()
@@ -308,6 +309,7 @@ async function createWidget() {
       const lTime = cTime.addText(fmt(timeStr).padStart(7))
       lTime.font = Font.boldMonospacedSystemFont(FONT_SIZE)
       lTime.textColor = isUnofficial ? new Color("#aaa") : Color.white()
+      lTime.rightAlignText()
 
       // DAYS (Left Aligned)
       const cDays = row.addStack()
@@ -333,6 +335,7 @@ async function createWidget() {
         const lMotiv = cMotiv.addText(level.padStart(4))
         lMotiv.font = Font.boldMonospacedSystemFont(FONT_SIZE)
         lMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
+        lMotiv.rightAlignText()
       }
 
       // REGIONAL STD (Left Aligned)
