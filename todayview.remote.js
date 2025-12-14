@@ -325,12 +325,12 @@ async function createWidget() {
 
         // 1. DISTANCE (Right Aligned via padding)
         const tDist = row.addText(`${ev}`.padStart(W_DIST));
-        tDist.font = Font.monospacedSystemFont(FONT_SIZE);
+        tDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
         tDist.textColor = Color.white();
 
         // 2. COURSE (Left Aligned via padding)
         const tCourse = row.addText(` ${fmtType}`.padEnd(W_COURSE + 1)); // +1 for spacer
-        tCourse.font = Font.monospacedSystemFont(8); // keeping smaller font for course
+        tCourse.font = Font.mediumMonospacedSystemFont(8); // keeping smaller font for course
         tCourse.textColor = Color.white();
 
         // 3. TIME (Right Aligned via padding)
@@ -345,7 +345,7 @@ async function createWidget() {
           if (d !== null) daysStr = `(${d})`;
         }
         const tDays = row.addText(` ${daysStr}`.padEnd(W_DAYS + 1));
-        tDays.font = Font.monospacedSystemFont(8);
+        tDays.font = Font.mediumMonospacedSystemFont(8);
         tDays.textColor = new Color("#666");
 
         // 5. MOTIVATIONAL (Right Aligned via padding)
@@ -358,7 +358,7 @@ async function createWidget() {
         let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
         if (!regionalStr) regionalStr = ""; // Ensure string
         const tReg = row.addText(` ${regionalStr}`.padEnd(W_REG + 1));
-        tReg.font = Font.monospacedSystemFont(8);
+        tReg.font = Font.mediumMonospacedSystemFont(8);
         tReg.textColor = Color.white();
 
         // 7. MOTIV DELTA (Right Aligned via padding)
@@ -367,13 +367,13 @@ async function createWidget() {
           : { text: "", color: Color.white() };
 
         const tDelta = row.addText(deltaText.padStart(W_DELTA));
-        tDelta.font = Font.monospacedSystemFont(FONT_SIZE);
+        tDelta.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
         tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
 
         // 8. REGIONAL DELTA (Left Aligned via padding)
         const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
         const tRegDelta = row.addText(` ${regDeltaText}`.padEnd(W_REG_DELTA + 1));
-        tRegDelta.font = Font.monospacedSystemFont(8);
+        tRegDelta.font = Font.mediumMonospacedSystemFont(8);
         tRegDelta.textColor = Color.white();
       }
     }
@@ -393,7 +393,7 @@ async function createWidget() {
       const srow = sidebarStack.addStack();
       // Removed fixed pixel size, using content padding
       const lab = srow.addText(STROKE_SHORT[sc]);
-      lab.font = Font.monospacedSystemFont(FONT_SIZE);
+      lab.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
 
       if (sc === strokeCode) {
         srow.backgroundColor = new Color("#39C570");
