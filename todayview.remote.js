@@ -18,16 +18,17 @@ const STROKE_SHORT = {
 };
 
 const FONT_SIZE = 12;
-const ROW_HEIGHT = 19;
-const ROW_WIDTH = 316;
-const COL_DIST = 29;      // Distance number (50, 100, 200) right-aligned
-const COL_COURSE = 28;    // Course type (SCY, LCM) left-aligned, small
-const COL_TIME = 55;      // Time right-aligned
-const COL_DAYS = 32;      // Days ago in parens, left-aligned, small
-const COL_MOTIV = 30;     // Motivational standard right-aligned
-const COL_REGIONAL = 28;  // Regional standard left-aligned, small (placeholder)
-const COL_DELTA = 57;     // Next target delta
-const COL_REG_DELTA = 57; // Next regional target delta
+
+// Column width constants (in characters)
+const W_DIST = 4;  // "1650" (Right)
+const W_COURSE = 4;  // "SCY " (Left)
+const W_TIME = 8;  // " 1:21.62" (Right)
+const W_DAYS = 6;  // " (165)" (Left)
+const W_MOTIV = 5;  // "   AA" (Right)
+const W_REG = 4;  // " AGC" (Left)
+const W_DELTA = 10; // " BB +0.20" (Right)
+const W_REG_DELTA = 9;  // " AGC +5.00" (Left)
+
 const MAX_DISTANCE = 500;  // Maximum distance to display
 const TIMES_URL = "https://aruslan.io/swim-stats/times.json";
 const UNOFFICIAL_URL = "https://aruslan.io/swim-stats/unofficial_times.json";
@@ -217,13 +218,15 @@ async function createWidget() {
     fetchJson(AGC_URL),
     fetchJson(FW_URL)
   ]);
+
+  const widget = new ListWidget();
+  widget.backgroundColor = new Color("#000");
+
   if (!Array.isArray(timesData) || !MOTIV) {
-    let w = new ListWidget();
-    w.backgroundColor = new Color("#000");
-    let t = w.addText("⚠️ Failed to load data");
-    t.font = Font.boldSystemFont(FONT_SIZE);
+    let t = widget.addText("⚠️ Failed to load data");
+    t.font = Font.boldMonospacedSystemFont(FONT_SIZE);
     t.textColor = Color.red();
-    return w;
+    return widget;
   }
 
   const unofficialTimes = Array.isArray(unofficialData)
@@ -231,16 +234,13 @@ async function createWidget() {
     : [];
   const swimmerTimes = timesData.filter(r => r.name === swimmerName);
 
-  const widget = new ListWidget();
-  widget.backgroundColor = new Color("#000");
-  // widget.setPadding(8, 4, 8, 4);  // Reduced horizontal padding for balance
-
   const root = widget.addStack();
   root.layoutHorizontally();
 
   // === LEFT SIDE (table) ===
   const left = root.addStack();
   left.layoutVertically();
+  // left.size = new Size(0, 0); // No size constraint
 
   const strokeFull = STROKE_LABELS[strokeCode];
   const FORMATS_ORDERED = ["SCY", "LCM"];  // SCY first, then LCM
@@ -279,147 +279,97 @@ async function createWidget() {
 
       // ROW
       const row = left.addStack();
-      row.size = new Size(ROW_WIDTH, ROW_HEIGHT);
-      row.layoutHorizontally(); // Ensure row is horizontal
+      row.layoutHorizontally();
+      row.centerAlignContent(); // Vertically center the row content
 
-      // DISTANCE (Right Aligned)
-      const cDist = row.addStack()
-      cDist.size = new Size(COL_DIST, ROW_HEIGHT)
-      cDist.layoutVertically()
-      cDist.centerAlignContent()
-      const lDist = cDist.addText(`${ev}`.padStart(3))
-      lDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE)
-      lDist.textColor = Color.white()
-      lDist.rightAlignText()
+      // 1. DISTANCE (Right Aligned via padding)
+      const tDist = row.addText(`${ev}`.padStart(W_DIST));
+      tDist.font = Font.monospacedSystemFont(FONT_SIZE);
+      tDist.textColor = Color.white();
 
-      // COURSE (Left Aligned)
-      const cCourse = row.addStack()
-      cCourse.size = new Size(COL_COURSE, ROW_HEIGHT)
-      cCourse.layoutVertically()
-      cCourse.centerAlignContent()
-      const lCourse = cCourse.addText(fmtType)
-      lCourse.font = Font.systemFont(8)
-      lCourse.textColor = Color.white()
+      // 2. COURSE (Left Aligned via padding)
+      const tCourse = row.addText(` ${fmtType}`.padEnd(W_COURSE + 1)); // +1 for spacer
+      tCourse.font = Font.monospacedSystemFont(8); // keeping smaller font for course
+      tCourse.textColor = Color.white();
 
-      // TIME (Right Aligned)
-      const cTime = row.addStack()
-      cTime.size = new Size(COL_TIME, ROW_HEIGHT)
-      cTime.layoutVertically()
-      cTime.centerAlignContent()
-      const lTime = cTime.addText(fmt(timeStr).padStart(7))
-      lTime.font = Font.boldMonospacedSystemFont(FONT_SIZE)
-      lTime.textColor = isUnofficial ? new Color("#aaa") : Color.white()
-      lTime.rightAlignText()
+      // 3. TIME (Right Aligned via padding)
+      const tTime = row.addText(fmt(timeStr).padStart(W_TIME));
+      tTime.font = Font.boldMonospacedSystemFont(FONT_SIZE);
+      tTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
 
-      // DAYS (Left Aligned)
-      const cDays = row.addStack()
-      cDays.size = new Size(COL_DAYS, ROW_HEIGHT)
-      cDays.layoutVertically()
-      cDays.centerAlignContent()
+      // 4. DAYS (Left Aligned via padding)
+      let daysStr = "";
       if (candidate && candidate.date) {
-        const daysAgo = daysSince(candidate.date);
-        if (daysAgo !== null) {
-          const lDays = cDays.addText(`(${daysAgo})`)
-          lDays.font = Font.systemFont(8)
-          lDays.textColor = new Color("#666")
-        }
+        const d = daysSince(candidate.date);
+        if (d !== null) daysStr = `(${d})`;
       }
+      const tDays = row.addText(` ${daysStr}`.padEnd(W_DAYS + 1));
+      tDays.font = Font.monospacedSystemFont(8);
+      tDays.textColor = new Color("#666");
 
-      // MOTIVATIONAL (Right Aligned)
-      const cMotiv = row.addStack()
-      cMotiv.size = new Size(COL_MOTIV, ROW_HEIGHT)
-      cMotiv.layoutVertically()
-      cMotiv.centerAlignContent()
+      // 5. MOTIVATIONAL (Right Aligned via padding)
       let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
-      if (level) {
-        const lMotiv = cMotiv.addText(level.padStart(4))
-        lMotiv.font = Font.boldMonospacedSystemFont(FONT_SIZE)
-        lMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
-        lMotiv.rightAlignText()
-      }
+      const tMotiv = row.addText(level.padStart(W_MOTIV));
+      tMotiv.font = Font.boldMonospacedSystemFont(FONT_SIZE);
+      tMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
 
-      // REGIONAL STD (Left Aligned)
-      const cRegional = row.addStack()
-      cRegional.size = new Size(COL_REGIONAL, ROW_HEIGHT)
-      cRegional.layoutVertically()
-      cRegional.centerAlignContent()
+      // 6. REGIONAL STD (Left Aligned via padding)
       let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
-      if (regionalStr) {
-        const lReg = cRegional.addText(regionalStr)
-        lReg.font = Font.systemFont(8)
-        lReg.textColor = Color.white()
-      }
+      if (!regionalStr) regionalStr = ""; // Ensure string
+      const tReg = row.addText(` ${regionalStr}`.padEnd(W_REG + 1));
+      tReg.font = Font.monospacedSystemFont(8);
+      tReg.textColor = Color.white();
 
-      // DELTA (Left Aligned)
-      const cDelta = row.addStack()
-      cDelta.size = new Size(COL_DELTA, ROW_HEIGHT)
-      cDelta.layoutVertically()
-      cDelta.centerAlignContent()
+      // 7. MOTIV DELTA (Right Aligned via padding)
       const { text: deltaText, color: deltaColor } = (timeSec !== null)
         ? getDelta(timeSec, levels)
         : { text: "", color: Color.white() };
-      if (deltaText) {
-        const lDelta = cDelta.addText(deltaText)
-        lDelta.font = Font.mediumMonospacedSystemFont(FONT_SIZE)
-        lDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
-      }
 
-      // REGIONAL DELTA (Left Aligned)
-      const cRegDelta = row.addStack()
-      cRegDelta.size = new Size(COL_REG_DELTA, ROW_HEIGHT)
-      cRegDelta.layoutVertically()
-      cRegDelta.centerAlignContent()
+      const tDelta = row.addText(deltaText.padStart(W_DELTA));
+      tDelta.font = Font.monospacedSystemFont(FONT_SIZE);
+      tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
+
+      // 8. REGIONAL DELTA (Left Aligned via padding)
       const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
-      if (regDeltaText) {
-        const lRegDelta = cRegDelta.addText(regDeltaText)
-        lRegDelta.font = Font.systemFont(8)
-        lRegDelta.textColor = Color.white()
-      }
+      const tRegDelta = row.addText(` ${regDeltaText}`.padEnd(W_REG_DELTA + 1));
+      tRegDelta.font = Font.monospacedSystemFont(8);
+      tRegDelta.textColor = Color.white();
     }
   }
 
   // === RIGHT SIDE (stroke selection) ===
   const sidebarStack = root.addStack();
-  sidebarStack.size = new Size(60, 0);
   sidebarStack.layoutVertically();
-  // sidebarStack.centerAlignContent();
+  // Sidebar styling - mimicking manual padding without spacers
+  sidebarStack.setPadding(0, 10, 0, 0);
 
   const nameContainer = sidebarStack.addStack();
-  nameContainer.size = new Size(60, 22);
-  // nameContainer.centerAlignContent();
   const nameText = nameContainer.addText(swimmerName.split(" ")[0]);
-  nameText.font = Font.boldSystemFont(FONT_SIZE + 4);
+  nameText.font = Font.boldMonospacedSystemFont(FONT_SIZE + 4);
   nameText.textColor = Color.white();
-  // nameText.centerAlignText();
-  // sidebarStack.addSpacer(6);
 
   for (let sc of STROKES) {
     const srow = sidebarStack.addStack();
-    srow.size = new Size(60, 20);
-    // srow.centerAlignContent();
+    // Removed fixed pixel size, using content padding
     const lab = srow.addText(STROKE_SHORT[sc]);
-    lab.font = Font.mediumSystemFont(FONT_SIZE);
-    // lab.centerAlignText();
+    lab.font = Font.monospacedSystemFont(FONT_SIZE);
+
     if (sc === strokeCode) {
       srow.backgroundColor = new Color("#39C570");
       lab.textColor = Color.white();
-      srow.cornerRadius = 7;
+      srow.cornerRadius = 4;
+      srow.setPadding(2, 4, 2, 4);
     } else {
       lab.textColor = new Color("#888");
+      srow.setPadding(2, 4, 2, 4);
     }
-    // srow.setPadding(1, 8, 1, 8);
-    // sidebarStack.addSpacer(3);
 
     // Add freshness indicator under selected stroke
     if (sc === strokeCode && freshnessDays !== null) {
       const freshnessContainer = sidebarStack.addStack();
-      freshnessContainer.size = new Size(60, 10);
-      // freshnessContainer.centerAlignContent();
-      const freshnessText = freshnessContainer.addText(`${freshnessDays} days ago`);
-      freshnessText.font = Font.systemFont(7);
+      const freshnessText = freshnessContainer.addText(`${freshnessDays}d ago`);
+      freshnessText.font = Font.monospacedSystemFont(8);
       freshnessText.textColor = new Color("#aaa");
-      // freshnessText.centerAlignText();
-      // sidebarStack.addSpacer(3);
     }
   }
   return widget;
