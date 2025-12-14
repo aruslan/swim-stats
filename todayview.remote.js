@@ -124,6 +124,15 @@ function daysSince(dateStr) {
   return Math.floor(diff / (1000 * 60 * 60 * 24));
 }
 
+
+function pad(str, len, align = "right") {
+  str = String(str);
+  const diff = len - str.length;
+  if (diff <= 0) return str;
+  const spaces = "\u00a0".repeat(diff);
+  return align === "left" ? str + spaces : spaces + str;
+}
+
 function fmt(s) { return s || "—"; }
 
 // Get events from motivational standards, filtered by MAX_DISTANCE
@@ -318,21 +327,6 @@ async function createWidget() {
         const timeSec = candidate ? parseTime(candidate.time) : null;
         const isUnofficial = candidate ? !!candidate.unofficial : false;
 
-        // ROW
-        const row = left.addStack();
-        row.layoutHorizontally();
-        row.centerAlignContent(); // Vertically center the row content
-
-        // Helper for non-breaking padding
-        function pad(str, len, align = "right") {
-          str = String(str);
-          const diff = len - str.length;
-          if (diff <= 0) return str;
-          const spaces = "\u00a0".repeat(diff);
-          return align === "left" ? str + spaces : spaces + str;
-        }
-
-        // ... (in createWidget loop) ...
         // ROW
         const row = left.addStack();
         row.layoutHorizontally();
