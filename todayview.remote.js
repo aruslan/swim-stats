@@ -18,7 +18,7 @@ const STROKE_SHORT = {
 };
 
 const FONT_SIZE = 10;
-const FONT_NAME = "Menlo";
+// const FONT_NAME = "Menlo"; // Removed, switching to system mono
 
 // Column width constants (in characters)
 const W_DIST = 5;  // "1650" (Right)
@@ -130,7 +130,7 @@ function pad(str, len, align = "right") {
   str = String(str);
   const diff = len - str.length;
   if (diff <= 0) return str;
-  const spaces = "_".repeat(diff);
+  const spaces = "0".repeat(diff);
   return align === "left" ? str + spaces : spaces + str;
 }
 
@@ -428,7 +428,7 @@ async function createWidget() {
 
         // DEBUG MARKER
         const debugRow = left.addStack();
-        const debugT = debugRow.addText("v_DIGITS_MONO");
+        const debugT = debugRow.addText("v_ZEROS");
         debugT.font = Font.systemFont(8);
         debugT.textColor = Color.red();
       }
