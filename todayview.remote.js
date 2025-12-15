@@ -130,7 +130,7 @@ function pad(str, len, align = "right") {
   str = String(str);
   const diff = len - str.length;
   if (diff <= 0) return str;
-  const spaces = "\u00a0".repeat(diff);
+  const spaces = "_".repeat(diff);
   return align === "left" ? str + spaces : spaces + str;
 }
 
