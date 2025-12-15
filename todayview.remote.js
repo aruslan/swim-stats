@@ -336,18 +336,18 @@ async function createWidget() {
 
         // 1. DISTANCE (Right)
         const tDist = row.addText(pad(ev, W_DIST, "right"));
-        tDist.font = new Font(FONT_NAME, FONT_SIZE); // Defaulting to regular for Menlo
+        tDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
         tDist.textColor = Color.white();
 
         // 2. COURSE (Left)
         // Removed spacer, strict width
         const tCourse = row.addText(pad(fmtType, W_COURSE, "left"));
-        tCourse.font = new Font(FONT_NAME, 10); // Slightly larger than 8 to be readable in Menlo
+        tCourse.font = Font.mediumMonospacedSystemFont(10);
         tCourse.textColor = Color.white();
 
         // 3. TIME (Right)
-        const tTime = row.addText(pad(fmt(timeStr), 9, "right"));
-        tTime.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
+        const tTime = row.addText(pad(fmt(timeStr), W_TIME, "right"));
+        tTime.font = Font.boldMonospacedSystemFont(FONT_SIZE);
         tTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
 
         // 4. DAYS (Left)
@@ -357,20 +357,20 @@ async function createWidget() {
           if (d !== null) daysStr = `(${d})`;
         }
         const tDays = row.addText(pad(daysStr, W_DAYS, "left"));
-        tDays.font = new Font(FONT_NAME, 10);
+        tDays.font = Font.mediumMonospacedSystemFont(10);
         tDays.textColor = new Color("#666");
 
         // 5. MOTIVATIONAL (Right)
         let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
         const tMotiv = row.addText(pad(level, W_MOTIV, "right"));
-        tMotiv.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
+        tMotiv.font = Font.boldMonospacedSystemFont(FONT_SIZE);
         tMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
 
         // 6. REGIONAL STD (Left)
         let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
         if (!regionalStr) regionalStr = "";
         const tReg = row.addText(pad(regionalStr, W_REG, "left"));
-        tReg.font = new Font(FONT_NAME, 10);
+        tReg.font = Font.mediumMonospacedSystemFont(10);
         tReg.textColor = Color.white();
 
         // 7. MOTIV DELTA (Right)
@@ -379,14 +379,14 @@ async function createWidget() {
           : { text: "", color: Color.white() };
 
         const tDelta = row.addText(pad(deltaText, 12, "right"));
-        tDelta.font = new Font(FONT_NAME, FONT_SIZE);
+        tDelta.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
         tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
 
         // 8. REGIONAL DELTA (Left) - DISABLED TEMPORARILY
         /*
         const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
         const tRegDelta = row.addText(pad(regDeltaText, W_REG_DELTA, "left"));
-        tRegDelta.font = new Font(FONT_NAME, 10);
+        tRegDelta.font = Font.mediumMonospacedSystemFont(10);
         tRegDelta.textColor = Color.white();
         */
       }
