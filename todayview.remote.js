@@ -423,8 +423,14 @@ async function createWidget() {
       if (sc === strokeCode && freshnessDays !== null) {
         const freshnessContainer = sidebarStack.addStack();
         const freshnessText = freshnessContainer.addText(`${freshnessDays}d ago`);
-        freshnessText.font = new Font(FONT_NAME, 10);
+        freshnessText.font = Font.mediumMonospacedSystemFont(10);
         freshnessText.textColor = new Color("#aaa");
+
+        // DEBUG MARKER
+        const debugRow = left.addStack();
+        const debugT = debugRow.addText("v_DIGITS_MONO");
+        debugT.font = Font.systemFont(8);
+        debugT.textColor = Color.red();
       }
     }
     return widget;
