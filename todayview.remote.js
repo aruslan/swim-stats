@@ -452,15 +452,11 @@ async function createWidget() {
       // Add freshness indicator under selected stroke
       if (sc === strokeCode && freshnessDays !== null) {
         const freshnessContainer = sidebarStack.addStack();
-        const freshnessText = freshnessContainer.addText(`${freshnessDays}d ago`);
+        const freshnessText = freshnessContainer.addText(`${freshnessDays}d v_FINAL`);
         freshnessText.font = new Font(FONT_NAME, 8);
         freshnessText.textColor = new Color("#aaa");
 
-        // Version Marker
-        const debugRow = sidebarStack.addStack();
-        const debugT = debugRow.addText("v_DELTA_8");
-        debugT.font = new Font(FONT_NAME, 8);
-        debugT.textColor = Color.red();
+
       }
     }
     return widget;
