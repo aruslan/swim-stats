@@ -357,7 +357,7 @@ async function createWidget() {
           if (d !== null) daysStr = `(${d})`;
         }
         const tDays = row.addText(pad(daysStr, W_DAYS, "left"));
-        tDays.font = new Font(FONT_NAME, 10);
+        tDays.font = new Font(FONT_NAME, 8);
         tDays.textColor = new Color("#666");
 
         // 5. MOTIVATIONAL (Right)
@@ -370,7 +370,7 @@ async function createWidget() {
         let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
         if (!regionalStr) regionalStr = "";
         const tReg = row.addText(pad(regionalStr, W_REG, "left"));
-        tReg.font = new Font(FONT_NAME, 10);
+        tReg.font = new Font(FONT_NAME, 8);
         tReg.textColor = Color.white();
 
         // 7. MOTIV DELTA (Right)
@@ -430,7 +430,7 @@ async function createWidget() {
 
         // Version Marker
         const debugRow = sidebarStack.addStack();
-        const debugT = debugRow.addText("v_DEBUG_GRID");
+        const debugT = debugRow.addText("v_SMALL_FONTS");
         debugT.font = Font.systemFont(8);
         debugT.textColor = Color.red();
       }
