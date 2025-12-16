@@ -455,8 +455,8 @@ async function createWidget() {
 
         // Version Marker
         const debugRow = sidebarStack.addStack();
-        const debugT = debugRow.addText("v_FINAL_TWEAK");
-        debugT.font = Font.systemFont(8);
+        const debugT = debugRow.addText("v_FINAL_DONE");
+        debugT.font = new Font(FONT_NAME, 8);
         debugT.textColor = Color.red();
       }
     }
