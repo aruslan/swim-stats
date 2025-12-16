@@ -451,7 +451,7 @@ async function createWidget() {
       // Add freshness indicator under selected stroke
       if (sc === strokeCode && freshnessDays !== null) {
         const freshnessContainer = sidebarStack.addStack();
-        const freshnessText = freshnessContainer.addText(`${freshnessDays}d v_LAYOUT_DEBUG`);
+        const freshnessText = freshnessContainer.addText(`${freshnessDays} v2`);
         freshnessText.font = new Font(FONT_NAME, 8);
         freshnessText.textColor = new Color("#aaa");
 
