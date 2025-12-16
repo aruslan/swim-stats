@@ -17,7 +17,7 @@ const STROKE_SHORT = {
   "FR": "Free", "BK": "Back", "BR": "Breast", "FL": "Fly", "IM": "IM"
 };
 
-const FONT_SIZE = 13;
+const FONT_SIZE = 14;
 const FONT_NAME = "Menlo";
 
 // Column width constants (in characters)
@@ -27,7 +27,7 @@ const W_TIME = 7;  // " 1:21.62" (Right)
 const W_DAYS = 5;  // " (165)" (Left)
 const W_MOTIV = 2;  // "AA" (Right)
 const W_REG = 3;  // " AGC" (Left)
-const W_DELTA = 8; // "BB +0.20" (Right)
+const W_DELTA = 7; // "BB+0.20" (Right)
 const W_REG_DELTA = 9;  // " AGC +5.00" (Left)
 
 const MAX_DISTANCE = 500;  // Maximum distance to display
@@ -344,7 +344,7 @@ async function createWidget() {
         // 2. COURSE (Left)
         // Removed spacer, strict width
         const tCourse = row.addText(pad(fmtType, W_COURSE, "left"));
-        tCourse.font = new Font(FONT_NAME, 10);
+        tCourse.font = new Font(FONT_NAME, 12);
         tCourse.textColor = Color.white();
 
         // SPACER 2 (Regular) - KEEPER
@@ -426,9 +426,8 @@ async function createWidget() {
     // Sidebar styling - mimicking manual padding without spacers
     sidebarStack.setPadding(0, 6, 0, 0);
 
-    const nameContainer = sidebarStack.addStack();
     const nameText = nameContainer.addText(swimmerName.split(" ")[0]);
-    nameText.font = new Font(FONT_NAME + "-Bold", FONT_SIZE + 4);
+    nameText.font = new Font(FONT_NAME + "-Bold", 16);
     nameText.textColor = Color.white();
 
     for (let sc of STROKES) {
@@ -451,12 +450,12 @@ async function createWidget() {
       if (sc === strokeCode && freshnessDays !== null) {
         const freshnessContainer = sidebarStack.addStack();
         const freshnessText = freshnessContainer.addText(`${freshnessDays}d ago`);
-        freshnessText.font = new Font(FONT_NAME, 10);
+        freshnessText.font = new Font(FONT_NAME, 8);
         freshnessText.textColor = new Color("#aaa");
 
         // Version Marker
         const debugRow = sidebarStack.addStack();
-        const debugT = debugRow.addText("v_FINAL_SPACING");
+        const debugT = debugRow.addText("v_FINAL_TWEAK");
         debugT.font = Font.systemFont(8);
         debugT.textColor = Color.red();
       }
