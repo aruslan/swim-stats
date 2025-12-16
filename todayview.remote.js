@@ -173,6 +173,7 @@ function getDelta(time, levels) {
     if (!levels[lvl]) continue;
     if (time > parseTime(levels[lvl])) {
       let diff = time - parseTime(levels[lvl]);
+      if (diff >= 10.00) return { text: "", color: Color.white() };
       return { text: `${lvl} +${diff.toFixed(2)}`, color: Color.white() };
     }
   }
@@ -182,6 +183,7 @@ function getDelta(time, levels) {
       let nextLvl = order[i + 1];
       if (nextLvl && levels[nextLvl]) {
         let diff = parseTime(levels[nextLvl]) - time;
+        if (diff >= 10.00) return { text: "", color: Color.white() };
         return { text: `${nextLvl} -${diff.toFixed(2)}`, color: Color.white() };
       }
       break;
@@ -230,14 +232,14 @@ function getRegionalDelta(timeSec, courseCode, strokeCode, dist, agcData, fwData
 
   if (agcSec && timeSec > agcSec) {
     let diff = timeSec - agcSec;
-    if (diff <= 7.0) {
+    if (diff <= 10.0) {
       return { text: `AGC +${diff.toFixed(2)}`, color: Color.white() };
     }
   }
 
   if (fwSec && timeSec > fwSec) {
     let diff = timeSec - fwSec;
-    if (diff <= 7.0) {
+    if (diff <= 10.0) {
       return { text: `FW +${diff.toFixed(2)}`, color: Color.white() };
     }
   }
@@ -339,11 +341,21 @@ async function createWidget() {
         tDist.font = new Font(FONT_NAME, FONT_SIZE);
         tDist.textColor = Color.white();
 
+        // SPACER 1 (Small)
+        const tSp1 = row.addText("."); // Debug dot
+        tSp1.font = new Font(FONT_NAME, 8); // Small
+        tSp1.textColor = new Color("#666");
+
         // 2. COURSE (Left)
         // Removed spacer, strict width
         const tCourse = row.addText(pad(fmtType, W_COURSE, "left"));
         tCourse.font = new Font(FONT_NAME, 10);
         tCourse.textColor = Color.white();
+
+        // SPACER 2 (Regular)
+        const tSp2 = row.addText("."); // Debug dot
+        tSp2.font = new Font(FONT_NAME, 12); // Regular (FONT_SIZE)
+        tSp2.textColor = new Color("#666");
 
         // 3. TIME (Right)
         const tTime = row.addText(pad(fmt(timeStr), W_TIME, "right"));
@@ -430,7 +442,7 @@ async function createWidget() {
 
         // Version Marker
         const debugRow = sidebarStack.addStack();
-        const debugT = debugRow.addText("v_SIZE_12_MIXED");
+        const debugT = debugRow.addText("v_SPACED");
         debugT.font = Font.systemFont(8);
         debugT.textColor = Color.red();
       }
