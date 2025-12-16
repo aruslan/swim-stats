@@ -425,12 +425,6 @@ async function createWidget() {
         const freshnessText = freshnessContainer.addText(`${freshnessDays}d ago`);
         freshnessText.font = Font.mediumMonospacedSystemFont(10);
         freshnessText.textColor = new Color("#aaa");
-
-        // DEBUG MARKER
-        const debugRow = left.addStack();
-        const debugT = debugRow.addText("v_FIX_REF");
-        debugT.font = Font.systemFont(8);
-        debugT.textColor = Color.red();
       }
     }
     return widget;
