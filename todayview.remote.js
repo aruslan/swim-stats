@@ -17,7 +17,7 @@ const STROKE_SHORT = {
   "FR": "Free", "BK": "Back", "BR": "Breast", "FL": "Fly", "IM": "IM"
 };
 
-const FONT_SIZE = 10;
+const FONT_SIZE = 12;
 const FONT_NAME = "Menlo";
 
 // Column width constants (in characters)
@@ -430,7 +430,7 @@ async function createWidget() {
 
         // Version Marker
         const debugRow = sidebarStack.addStack();
-        const debugT = debugRow.addText("v_SMALL_FONTS");
+        const debugT = debugRow.addText("v_SIZE_12_MIXED");
         debugT.font = Font.systemFont(8);
         debugT.textColor = Color.red();
       }
