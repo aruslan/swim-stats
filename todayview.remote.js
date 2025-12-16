@@ -400,14 +400,14 @@ async function createWidget() {
 
     const nameContainer = sidebarStack.addStack();
     const nameText = nameContainer.addText(swimmerName.split(" ")[0]);
-    nameText.font = new Font(FONT_NAME + "-Bold", FONT_SIZE + 4);
+    nameText.font = Font.boldMonospacedSystemFont(FONT_SIZE + 4);
     nameText.textColor = Color.white();
 
     for (let sc of STROKES) {
       const srow = sidebarStack.addStack();
       // Removed fixed pixel size, using content padding
       const lab = srow.addText(STROKE_SHORT[sc]);
-      lab.font = new Font(FONT_NAME, FONT_SIZE);
+      lab.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
 
       if (sc === strokeCode) {
         srow.backgroundColor = new Color("#39C570");
@@ -428,7 +428,7 @@ async function createWidget() {
 
         // DEBUG MARKER
         const debugRow = left.addStack();
-        const debugT = debugRow.addText("v_ZEROS");
+        const debugT = debugRow.addText("v_FIX_REF");
         debugT.font = Font.systemFont(8);
         debugT.textColor = Color.red();
       }
