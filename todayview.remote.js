@@ -18,7 +18,7 @@ const STROKE_SHORT = {
 };
 
 const FONT_SIZE = 10;
-// const FONT_NAME = "Menlo"; // Removed, switching to system mono
+const FONT_NAME = "Menlo";
 
 // Column width constants (in characters)
 const W_DIST = 3;  // "500" (Right)
@@ -261,13 +261,13 @@ async function createWidget() {
 
     if (!Array.isArray(timesData)) {
       let t = widget.addText("⚠️ Times data missing");
-      t.font = Font.boldMonospacedSystemFont(FONT_SIZE);
+      t.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
       t.textColor = Color.red();
       return widget;
     }
     if (!MOTIV || Object.keys(MOTIV).length === 0) {
       let t = widget.addText("⚠️ Motivational data missing");
-      t.font = Font.boldMonospacedSystemFont(FONT_SIZE);
+      t.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
       t.textColor = Color.red();
       return widget;
     }
@@ -336,18 +336,18 @@ async function createWidget() {
 
         // 1. DISTANCE (Right)
         const tDist = row.addText(pad(ev, W_DIST, "right"));
-        tDist.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
+        tDist.font = new Font(FONT_NAME, FONT_SIZE);
         tDist.textColor = Color.white();
 
         // 2. COURSE (Left)
         // Removed spacer, strict width
         const tCourse = row.addText(pad(fmtType, W_COURSE, "left"));
-        tCourse.font = Font.mediumMonospacedSystemFont(10);
+        tCourse.font = new Font(FONT_NAME, 10);
         tCourse.textColor = Color.white();
 
         // 3. TIME (Right)
         const tTime = row.addText(pad(fmt(timeStr), W_TIME, "right"));
-        tTime.font = Font.boldMonospacedSystemFont(FONT_SIZE);
+        tTime.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
         tTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
 
         // 4. DAYS (Left)
@@ -357,20 +357,20 @@ async function createWidget() {
           if (d !== null) daysStr = `(${d})`;
         }
         const tDays = row.addText(pad(daysStr, W_DAYS, "left"));
-        tDays.font = Font.mediumMonospacedSystemFont(10);
+        tDays.font = new Font(FONT_NAME, 10);
         tDays.textColor = new Color("#666");
 
         // 5. MOTIVATIONAL (Right)
         let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
         const tMotiv = row.addText(pad(level, W_MOTIV, "right"));
-        tMotiv.font = Font.boldMonospacedSystemFont(FONT_SIZE);
+        tMotiv.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
         tMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
 
         // 6. REGIONAL STD (Left)
         let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
         if (!regionalStr) regionalStr = "";
         const tReg = row.addText(pad(regionalStr, W_REG, "left"));
-        tReg.font = Font.mediumMonospacedSystemFont(10);
+        tReg.font = new Font(FONT_NAME, 10);
         tReg.textColor = Color.white();
 
         // 7. MOTIV DELTA (Right)
@@ -379,7 +379,7 @@ async function createWidget() {
           : { text: "", color: Color.white() };
 
         const tDelta = row.addText(pad(deltaText, W_DELTA, "right"));
-        tDelta.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
+        tDelta.font = new Font(FONT_NAME, FONT_SIZE);
         tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
 
         // 8. REGIONAL DELTA (Left)
@@ -387,7 +387,7 @@ async function createWidget() {
           ? getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge)
           : { text: "", color: Color.white() };
         const tRegDelta = row.addText(pad(regDeltaText, W_REG_DELTA, "left"));
-        tRegDelta.font = Font.mediumMonospacedSystemFont(10);
+        tRegDelta.font = new Font(FONT_NAME, 10);
         tRegDelta.textColor = regDeltaColor;
       }
     }
@@ -400,14 +400,14 @@ async function createWidget() {
 
     const nameContainer = sidebarStack.addStack();
     const nameText = nameContainer.addText(swimmerName.split(" ")[0]);
-    nameText.font = Font.boldMonospacedSystemFont(FONT_SIZE + 4);
+    nameText.font = new Font(FONT_NAME + "-Bold", FONT_SIZE + 4);
     nameText.textColor = Color.white();
 
     for (let sc of STROKES) {
       const srow = sidebarStack.addStack();
       // Removed fixed pixel size, using content padding
       const lab = srow.addText(STROKE_SHORT[sc]);
-      lab.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
+      lab.font = new Font(FONT_NAME, FONT_SIZE);
 
       if (sc === strokeCode) {
         srow.backgroundColor = new Color("#39C570");
@@ -423,12 +423,12 @@ async function createWidget() {
       if (sc === strokeCode && freshnessDays !== null) {
         const freshnessContainer = sidebarStack.addStack();
         const freshnessText = freshnessContainer.addText(`${freshnessDays}d ago`);
-        freshnessText.font = Font.mediumMonospacedSystemFont(10);
+        freshnessText.font = new Font(FONT_NAME, 10);
         freshnessText.textColor = new Color("#aaa");
 
         // Version Marker
         const debugRow = sidebarStack.addStack();
-        const debugT = debugRow.addText("v_STRICT");
+        const debugT = debugRow.addText("v_MENLO");
         debugT.font = Font.systemFont(8);
         debugT.textColor = Color.red();
       }
