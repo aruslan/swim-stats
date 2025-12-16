@@ -22,7 +22,7 @@ const FONT_SIZE = 10;
 
 // Column width constants (in characters)
 const W_DIST = 3;  // "500" (Right)
-const W_COURSE = 4;  // "SCY " (Left)
+const W_COURSE = 3;  // "SCY" (Left)
 const W_TIME = 7;  // " 1:21.62" (Right)
 const W_DAYS = 5;  // " (165)" (Left)
 const W_MOTIV = 2;  // "AA" (Right)
