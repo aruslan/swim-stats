@@ -382,29 +382,27 @@ async function createWidget() {
         tSp5.font = new Font(FONT_NAME, 8); // Small
         tSp5.textColor = new Color("#666");
 
-        // 6. REGIONAL STD (Left, Small, Green) - HIDDEN
-        /*
+        // 6. REGIONAL STD (Left, Small, Green)
         let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
         if (!regionalStr) regionalStr = "";
         const tReg = row.addText(pad(regionalStr, W_REG, "right"));
         tReg.font = new Font(FONT_NAME, 8); // Small
         tReg.textColor = new Color("#39C570"); // Green
-        */
 
-        // SPACER 6 (Small) - HIDDEN
-        /*
+        // SPACER 6 (Small)
         const tSp6 = row.addText("\u00a0"); // Debug dot
         tSp6.font = new Font(FONT_NAME, 8); // Small
         tSp6.textColor = new Color("#666");
-        */
 
-        // 8. REGIONAL DELTA (RIGHT now, Small) - UNHIDDEN
+        // 8. REGIONAL DELTA (RIGHT now, Small) - HIDDEN
+        /*
         const { text: regDeltaText, color: regDeltaColor } = (timeSec !== null)
           ? getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge)
           : { text: "", color: Color.white() };
         const tRegDelta = row.addText(pad(regDeltaText, W_REG_DELTA, "right"));
         tRegDelta.font = new Font(FONT_NAME, 8); // Small
         tRegDelta.textColor = regDeltaColor;
+        */
 
         // 4. DAYS (Hidden/Last)
         /*
@@ -456,7 +454,7 @@ async function createWidget() {
 
         // Version Marker
         const debugRow = sidebarStack.addStack();
-        const debugT = debugRow.addText("v_CLEAN_13");
+        const debugT = debugRow.addText("v_CLEAN_CORRECT");
         debugT.font = Font.systemFont(8);
         debugT.textColor = Color.red();
       }
