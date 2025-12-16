@@ -48,7 +48,9 @@ let paramArr = param.split(",");
 let swimmerKey = paramArr[0] || "AA";
 let strokeCode = (paramArr.length >= 2) ? paramArr[1] : "BR";
 let swimmerAge = (paramArr.length >= 3 && /^\d+$/.test(paramArr[2])) ? parseInt(paramArr[2], 10) : 12;
-const USE_DOTS = paramArr.includes("D") || paramArr.includes("DOTS");
+// Extract flags (4th parameter, index 3). Supports sparse arrays e.g. "VD,,,d"
+const flags = paramArr[3] || "";
+const USE_DOTS = flags.includes("D");
 const SPACER_CHAR = USE_DOTS ? "." : "\u00a0";
 
 if (!SWIMMERS[swimmerKey]) swimmerKey = "AA";
@@ -451,7 +453,7 @@ async function createWidget() {
       // Add freshness indicator under selected stroke
       if (sc === strokeCode && freshnessDays !== null) {
         const freshnessContainer = sidebarStack.addStack();
-        const freshnessText = freshnessContainer.addText(`${freshnessDays} v2`);
+        const freshnessText = freshnessContainer.addText(`${freshnessDays}d v3`);
         freshnessText.font = new Font(FONT_NAME, 8);
         freshnessText.textColor = new Color("#aaa");
 
