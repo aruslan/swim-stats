@@ -130,11 +130,11 @@ function pad(str, len, align = "right") {
   str = String(str);
   const diff = len - str.length;
   if (diff <= 0) return str;
-  const spaces = "0".repeat(diff);
+  const spaces = "\u00a0".repeat(diff);
   return align === "left" ? str + spaces : spaces + str;
 }
 
-function fmt(s) { return s || "—"; }
+function fmt(s) { return String(s || "—").trim(); }
 
 // Get events from motivational standards, filtered by MAX_DISTANCE
 function getEventList(strokeFull, fmtType) {
@@ -378,17 +378,17 @@ async function createWidget() {
           ? getDelta(timeSec, levels)
           : { text: "", color: Color.white() };
 
-        const tDelta = row.addText(pad(deltaText, 12, "right"));
+        const tDelta = row.addText(pad(deltaText, W_DELTA, "right"));
         tDelta.font = Font.mediumMonospacedSystemFont(FONT_SIZE);
         tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
 
-        // 8. REGIONAL DELTA (Left) - DISABLED TEMPORARILY
-        /*
-        const { text: regDeltaText } = getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
+        // 8. REGIONAL DELTA (Left)
+        const { text: regDeltaText, color: regDeltaColor } = (timeSec !== null)
+          ? getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge)
+          : { text: "", color: Color.white() };
         const tRegDelta = row.addText(pad(regDeltaText, W_REG_DELTA, "left"));
         tRegDelta.font = Font.mediumMonospacedSystemFont(10);
-        tRegDelta.textColor = Color.white();
-        */
+        tRegDelta.textColor = regDeltaColor;
       }
     }
 
@@ -396,7 +396,7 @@ async function createWidget() {
     const sidebarStack = root.addStack();
     sidebarStack.layoutVertically();
     // Sidebar styling - mimicking manual padding without spacers
-    sidebarStack.setPadding(0, 10, 0, 0);
+    sidebarStack.setPadding(0, 6, 0, 0);
 
     const nameContainer = sidebarStack.addStack();
     const nameText = nameContainer.addText(swimmerName.split(" ")[0]);
