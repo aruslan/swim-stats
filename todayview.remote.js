@@ -23,11 +23,11 @@ const FONT_SIZE = 10;
 // Column width constants (in characters)
 const W_DIST = 5;  // "1650" (Right)
 const W_COURSE = 4;  // "SCY " (Left)
-const W_TIME = 9;  // " 1:21.62" (Right) - Increased
-const W_DAYS = 7;  // " (165)" (Left) - Increased
-const W_MOTIV = 5;  // "   AA" (Right) - Increased
-const W_REG = 4;  // " AGC" (Left) - Increased
-const W_DELTA = 12; // " BB +0.20" (Right) - Increased
+const W_TIME = 7;  // " 1:21.62" (Right)
+const W_DAYS = 5;  // " (165)" (Left)
+const W_MOTIV = 4;  // "   AA" (Right)
+const W_REG = 3;  // " AGC" (Left)
+const W_DELTA = 9; // " BB +0.20" (Right) - Increased
 const W_REG_DELTA = 9;  // " AGC +5.00" (Left)
 
 const MAX_DISTANCE = 500;  // Maximum distance to display
