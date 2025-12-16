@@ -17,7 +17,7 @@ const STROKE_SHORT = {
   "FR": "Free", "BK": "Back", "BR": "Breast", "FL": "Fly", "IM": "IM"
 };
 
-const FONT_SIZE = 12;
+const FONT_SIZE = 13;
 const FONT_NAME = "Menlo";
 
 // Column width constants (in characters)
@@ -130,7 +130,7 @@ function pad(str, len, align = "right") {
   str = String(str);
   const diff = len - str.length;
   if (diff <= 0) return str;
-  const spaces = ".".repeat(diff);
+  const spaces = "\u00a0".repeat(diff);
   return align === "left" ? str + spaces : spaces + str;
 }
 
@@ -348,8 +348,8 @@ async function createWidget() {
         tCourse.textColor = Color.white();
 
         // SPACER 2 (Regular) - KEEPER
-        const tSp2 = row.addText("."); // Debug dot
-        tSp2.font = new Font(FONT_NAME, 12); // Regular (FONT_SIZE)
+        const tSp2 = row.addText("\u00a0");
+        tSp2.font = new Font(FONT_NAME, FONT_SIZE); // Regular (FONT_SIZE)
         tSp2.textColor = new Color("#666");
 
         // 3. TIME (Right)
@@ -364,7 +364,7 @@ async function createWidget() {
         tMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
 
         // SPACER 4 (Small)
-        const tSp4 = row.addText("."); // Debug dot
+        const tSp4 = row.addText("\u00a0");
         tSp4.font = new Font(FONT_NAME, 8); // Small
         tSp4.textColor = new Color("#666");
 
@@ -378,21 +378,25 @@ async function createWidget() {
         tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
 
         // SPACER 5 (Small)
-        const tSp5 = row.addText("."); // Debug dot
+        const tSp5 = row.addText("\u00a0");
         tSp5.font = new Font(FONT_NAME, 8); // Small
         tSp5.textColor = new Color("#666");
 
-        // 6. REGIONAL STD (RIGHT now, Small, Green)
+        // 6. REGIONAL STD (Left, Small, Green) - HIDDEN
+        /*
         let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
         if (!regionalStr) regionalStr = "";
         const tReg = row.addText(pad(regionalStr, W_REG, "right"));
         tReg.font = new Font(FONT_NAME, 8); // Small
         tReg.textColor = new Color("#39C570"); // Green
+        */
 
-        // SPACER 6 (Small)
-        const tSp6 = row.addText("."); // Debug dot
+        // SPACER 6 (Small) - HIDDEN
+        /*
+        const tSp6 = row.addText("\u00a0"); // Debug dot
         tSp6.font = new Font(FONT_NAME, 8); // Small
         tSp6.textColor = new Color("#666");
+        */
 
         // 8. REGIONAL DELTA (RIGHT now, Small) - UNHIDDEN
         const { text: regDeltaText, color: regDeltaColor } = (timeSec !== null)
@@ -452,7 +456,7 @@ async function createWidget() {
 
         // Version Marker
         const debugRow = sidebarStack.addStack();
-        const debugT = debugRow.addText("v_REFINED");
+        const debugT = debugRow.addText("v_CLEAN_13");
         debugT.font = Font.systemFont(8);
         debugT.textColor = Color.red();
       }
