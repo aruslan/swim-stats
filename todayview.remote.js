@@ -48,6 +48,8 @@ let paramArr = param.split(",");
 let swimmerKey = paramArr[0] || "AA";
 let strokeCode = (paramArr.length >= 2) ? paramArr[1] : "BR";
 let swimmerAge = (paramArr.length >= 3 && /^\d+$/.test(paramArr[2])) ? parseInt(paramArr[2], 10) : 12;
+const USE_DOTS = paramArr.includes("D") || paramArr.includes("DOTS");
+const SPACER_CHAR = USE_DOTS ? "." : "\u00a0";
 
 if (!SWIMMERS[swimmerKey]) swimmerKey = "AA";
 if (!STROKES.includes(strokeCode)) strokeCode = "BR";
@@ -130,7 +132,7 @@ function pad(str, len, align = "right") {
   str = String(str);
   const diff = len - str.length;
   if (diff <= 0) return str;
-  const spaces = "\u00a0".repeat(diff);
+  const spaces = SPACER_CHAR.repeat(diff);
   return align === "left" ? str + spaces : spaces + str;
 }
 
@@ -345,10 +347,9 @@ async function createWidget() {
         // Removed spacer, strict width
         const tCourse = row.addText(pad(fmtType, W_COURSE, "left"));
         tCourse.font = new Font(FONT_NAME, 12);
-        tCourse.textColor = Color.white();
 
         // SPACER 2 (Regular) - KEEPER
-        const tSp2 = row.addText("\u00a0");
+        const tSp2 = row.addText(SPACER_CHAR);
         tSp2.font = new Font(FONT_NAME, FONT_SIZE); // Regular (FONT_SIZE)
         tSp2.textColor = new Color("#666");
 
@@ -358,7 +359,7 @@ async function createWidget() {
         tTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
 
         // SPACER 3 (Small) - NEW
-        const tSp3 = row.addText("\u00a0");
+        const tSp3 = row.addText(SPACER_CHAR);
         tSp3.font = new Font(FONT_NAME, 8); // Small
         tSp3.textColor = new Color("#666");
 
@@ -380,7 +381,7 @@ async function createWidget() {
         tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
 
         // SPACER 5 (Small)
-        const tSp5 = row.addText("\u00a0");
+        const tSp5 = row.addText(SPACER_CHAR);
         tSp5.font = new Font(FONT_NAME, 8); // Small
         tSp5.textColor = new Color("#666");
 
@@ -392,7 +393,7 @@ async function createWidget() {
         tReg.textColor = new Color("#39C570"); // Green
 
         // SPACER 6 (Small)
-        const tSp6 = row.addText("\u00a0"); // Debug dot
+        const tSp6 = row.addText(SPACER_CHAR); // Debug dot
         tSp6.font = new Font(FONT_NAME, 8); // Small
         tSp6.textColor = new Color("#666");
 
@@ -450,7 +451,7 @@ async function createWidget() {
       // Add freshness indicator under selected stroke
       if (sc === strokeCode && freshnessDays !== null) {
         const freshnessContainer = sidebarStack.addStack();
-        const freshnessText = freshnessContainer.addText(`${freshnessDays}d v_DELTA_FIX`);
+        const freshnessText = freshnessContainer.addText(`${freshnessDays}d v_LAYOUT_DEBUG`);
         freshnessText.font = new Font(FONT_NAME, 8);
         freshnessText.textColor = new Color("#aaa");
 
