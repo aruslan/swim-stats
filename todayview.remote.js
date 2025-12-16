@@ -425,6 +425,12 @@ async function createWidget() {
         const freshnessText = freshnessContainer.addText(`${freshnessDays}d ago`);
         freshnessText.font = Font.mediumMonospacedSystemFont(10);
         freshnessText.textColor = new Color("#aaa");
+
+        // Version Marker
+        const debugRow = sidebarStack.addStack();
+        const debugT = debugRow.addText("v_STRICT");
+        debugT.font = Font.systemFont(8);
+        debugT.textColor = Color.red();
       }
     }
     return widget;
