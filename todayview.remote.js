@@ -130,7 +130,7 @@ function pad(str, len, align = "right") {
   str = String(str);
   const diff = len - str.length;
   if (diff <= 0) return str;
-  const spaces = "\u00a0".repeat(diff);
+  const spaces = ".".repeat(diff);
   return align === "left" ? str + spaces : spaces + str;
 }
 
@@ -428,7 +428,7 @@ async function createWidget() {
 
         // Version Marker
         const debugRow = sidebarStack.addStack();
-        const debugT = debugRow.addText("v_MENLO");
+        const debugT = debugRow.addText("v_DEBUG_GRID");
         debugT.font = Font.systemFont(8);
         debugT.textColor = Color.red();
       }
