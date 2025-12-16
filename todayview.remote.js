@@ -382,13 +382,15 @@ async function createWidget() {
         tDelta.font = new Font(FONT_NAME, FONT_SIZE);
         tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
 
-        // 8. REGIONAL DELTA (Left)
+        // 8. REGIONAL DELTA (Left) - DISABLED due to wrap
+        /*
         const { text: regDeltaText, color: regDeltaColor } = (timeSec !== null)
           ? getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge)
           : { text: "", color: Color.white() };
         const tRegDelta = row.addText(pad(regDeltaText, W_REG_DELTA, "left"));
         tRegDelta.font = new Font(FONT_NAME, 10);
         tRegDelta.textColor = regDeltaColor;
+        */
       }
     }
 
