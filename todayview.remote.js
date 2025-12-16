@@ -347,7 +347,6 @@ async function createWidget() {
         tSp1.textColor = new Color("#666");
 
         // 2. COURSE (Left)
-        // Removed spacer, strict width
         const tCourse = row.addText(pad(fmtType, W_COURSE, "left"));
         tCourse.font = new Font(FONT_NAME, 10);
         tCourse.textColor = Color.white();
@@ -362,30 +361,25 @@ async function createWidget() {
         tTime.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
         tTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
 
-        // 4. DAYS (Left)
-        let daysStr = "";
-        if (candidate && candidate.date) {
-          const d = daysSince(candidate.date);
-          if (d !== null) daysStr = `(${d})`;
-        }
-        const tDays = row.addText(pad(daysStr, W_DAYS, "left"));
-        tDays.font = new Font(FONT_NAME, 8);
-        tDays.textColor = new Color("#666");
+        // SPACER 3 (Regular) - NEW
+        const tSp3 = row.addText("."); // Debug dot
+        tSp3.font = new Font(FONT_NAME, 12); // Regular
+        tSp3.textColor = new Color("#666");
 
-        // 5. MOTIVATIONAL (Right)
+        // 5. MOTIVATIONAL (LEFT now)
         let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
-        const tMotiv = row.addText(pad(level, W_MOTIV, "right"));
+        const tMotiv = row.addText(pad(level, W_MOTIV, "left"));
         tMotiv.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
         tMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
 
-        // 6. REGIONAL STD (Left)
+        // 6. REGIONAL STD (LEFT, Small, No Spacer)
         let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
         if (!regionalStr) regionalStr = "";
         const tReg = row.addText(pad(regionalStr, W_REG, "left"));
-        tReg.font = new Font(FONT_NAME, 8);
+        tReg.font = new Font(FONT_NAME, 8); // Small
         tReg.textColor = Color.white();
 
-        // 7. MOTIV DELTA (Right)
+        // 7. MOTIV DELTA (RIGHT, No Spacer)
         const { text: deltaText, color: deltaColor } = (timeSec !== null)
           ? getDelta(timeSec, levels)
           : { text: "", color: Color.white() };
@@ -394,14 +388,24 @@ async function createWidget() {
         tDelta.font = new Font(FONT_NAME, FONT_SIZE);
         tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
 
-        // 8. REGIONAL DELTA (Left) - DISABLED due to wrap
-        /*
+        // 8. REGIONAL DELTA (LEFT, Small, No Spacer) - UNHIDDEN
         const { text: regDeltaText, color: regDeltaColor } = (timeSec !== null)
           ? getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge)
           : { text: "", color: Color.white() };
         const tRegDelta = row.addText(pad(regDeltaText, W_REG_DELTA, "left"));
-        tRegDelta.font = new Font(FONT_NAME, 10);
+        tRegDelta.font = new Font(FONT_NAME, 8); // Small
         tRegDelta.textColor = regDeltaColor;
+
+        // 4. DAYS (Hidden/Last)
+        /*
+        let daysStr = "";
+        if (candidate && candidate.date) {
+          const d = daysSince(candidate.date);
+          if (d !== null) daysStr = `(${d})`;
+        }
+        const tDays = row.addText(pad(daysStr, W_DAYS, "left"));
+        tDays.font = new Font(FONT_NAME, 8);
+        tDays.textColor = new Color("#666");
         */
       }
     }
@@ -442,7 +446,7 @@ async function createWidget() {
 
         // Version Marker
         const debugRow = sidebarStack.addStack();
-        const debugT = debugRow.addText("v_SPACED");
+        const debugT = debugRow.addText("v_REORDERED");
         debugT.font = Font.systemFont(8);
         debugT.textColor = Color.red();
       }
