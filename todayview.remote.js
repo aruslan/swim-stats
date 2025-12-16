@@ -27,7 +27,7 @@ const W_TIME = 7;  // " 1:21.62" (Right)
 const W_DAYS = 5;  // " (165)" (Left)
 const W_MOTIV = 2;  // "AA" (Right)
 const W_REG = 3;  // " AGC" (Left)
-const W_DELTA = 8; // "BB +0.20" / "BB+10.00" (Right)
+const W_DELTA = 8; // "BB+0.20" -> " BB+0.20" / "BB+10.00" (Right)
 const W_REG_DELTA = 9;  // " AGC +5.00" (Left)
 
 const MAX_DISTANCE = 500;  // Maximum distance to display
@@ -173,9 +173,8 @@ function getDelta(time, levels) {
     if (!levels[lvl]) continue;
     if (time > parseTime(levels[lvl])) {
       let diff = time - parseTime(levels[lvl]);
-      // Format: "AA +1.23" (8 chars) if < 10, "AA+10.23" (8 chars) if >= 10
-      const sep = diff < 10.0 ? " +" : "+";
-      return { text: `${lvl}${sep}${diff.toFixed(2)}`, color: Color.white() };
+      // Format: "AA+1.23" (7 chars) -> Padded to 8
+      return { text: `${lvl}+${diff.toFixed(2)}`, color: Color.white() };
     }
   }
   for (let i = order.length - 1; i >= 0; i--) {
@@ -184,9 +183,8 @@ function getDelta(time, levels) {
       let nextLvl = order[i + 1];
       if (nextLvl && levels[nextLvl]) {
         let diff = parseTime(levels[nextLvl]) - time;
-        // Format: "AA -1.23" (8 chars) if < 10, "AA-10.23" (8 chars) if >= 10
-        const sep = diff < 10.0 ? " -" : "-";
-        return { text: `${nextLvl}${sep}${diff.toFixed(2)}`, color: Color.white() };
+        // Format: "AA-1.23" (7 chars) -> Padded to 8
+        return { text: `${nextLvl}-${diff.toFixed(2)}`, color: Color.white() };
       }
       break;
     }
@@ -452,7 +450,7 @@ async function createWidget() {
       // Add freshness indicator under selected stroke
       if (sc === strokeCode && freshnessDays !== null) {
         const freshnessContainer = sidebarStack.addStack();
-        const freshnessText = freshnessContainer.addText(`${freshnessDays}d v_FINAL`);
+        const freshnessText = freshnessContainer.addText(`${freshnessDays}d v_DELTA_FIX`);
         freshnessText.font = new Font(FONT_NAME, 8);
         freshnessText.textColor = new Color("#aaa");
 
