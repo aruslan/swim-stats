@@ -426,6 +426,7 @@ async function createWidget() {
     // Sidebar styling - mimicking manual padding without spacers
     sidebarStack.setPadding(0, 6, 0, 0);
 
+    const nameContainer = sidebarStack.addStack();
     const nameText = nameContainer.addText(swimmerName.split(" ")[0]);
     nameText.font = new Font(FONT_NAME + "-Bold", 16);
     nameText.textColor = Color.white();
@@ -455,7 +456,7 @@ async function createWidget() {
 
         // Version Marker
         const debugRow = sidebarStack.addStack();
-        const debugT = debugRow.addText("v_FINAL_DONE");
+        const debugT = debugRow.addText("v_FINAL_FIX");
         debugT.font = new Font(FONT_NAME, 8);
         debugT.textColor = Color.red();
       }
