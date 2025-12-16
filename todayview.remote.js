@@ -357,16 +357,18 @@ async function createWidget() {
         tTime.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
         tTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
 
+        // SPACER 3 (Small) - NEW
+        const tSp3 = row.addText("\u00a0");
+        tSp3.font = new Font(FONT_NAME, 8); // Small
+        tSp3.textColor = new Color("#666");
+
         // 5. MOTIVATIONAL (LEFT)
         let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
         const tMotiv = row.addText(pad(level, W_MOTIV, "left"));
         tMotiv.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
         tMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
 
-        // SPACER 4 (Small)
-        const tSp4 = row.addText("\u00a0");
-        tSp4.font = new Font(FONT_NAME, 8); // Small
-        tSp4.textColor = new Color("#666");
+
 
         // 7. MOTIV DELTA (RIGHT now)
         const { text: deltaText, color: deltaColor } = (timeSec !== null)
@@ -454,7 +456,7 @@ async function createWidget() {
 
         // Version Marker
         const debugRow = sidebarStack.addStack();
-        const debugT = debugRow.addText("v_CLEAN_CORRECT");
+        const debugT = debugRow.addText("v_FINAL_SPACING");
         debugT.font = Font.systemFont(8);
         debugT.textColor = Color.red();
       }
