@@ -257,6 +257,12 @@ playwright
   - Remote code loading capability
   - Native iOS widget rendering
 
+### tvOS (SwimStatsTV)
+- **Swift / SwiftUI**: Native app and extension.
+- **TVServices**: Top Shelf extension framework.
+- **CoreGraphics**: Custom image generation.
+- **App Groups**: Shared data container between App and Extension.
+
 ### Hosting & Deployment
 - **GitHub Pages**: Static file hosting
 - **GitHub Secrets**: Stores `GH_PAT` for automated commits
@@ -297,6 +303,33 @@ playwright
 │  4. Renders widget with 7 rows of swim data                 │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+##  tvOS Companion App (SwimStatsTV)
+
+A native tvOS application that provides a localized "Top Shelf" experience on the Apple TV Home Screen.
+
+### Top Shelf Extension
+
+Displays a row of the swimmer's latest achievements (Best Times, New Standards) directly on the dashboard.
+
+**Key Features**:
+- **Dynamic Card Generation**: Native CoreGraphics rendering of swim cards.
+- **Layout**: Vertical design (Date -> Icon -> Time -> Distance -> Stroke -> Standards).
+- **Visuals**: "Deep Water" textured background with darker scrim and pool tile accents.
+- **Standards**: Real-time calculation of Motivational (B-AAAA) and Regional (AGC, FW) standards.
+- **Deep Linking**: Tapping a card opens the app to that specific swimmer (Scheme: `swimstats://`).
+
+### Technical Implementation
+
+- **App Group**: `group.me.aruslan.SwimStatsTV.v4` (Shared container).
+- **Storage Strategy**:
+  - Images are generated and stored in `Library/Caches/TopShelfImages` within the shared container to strict Sandbox rules and HeadBoard process limitations.
+  - `TVContentItem` points to these local file URLs.
+- **Standards Data**:
+  - Loads `motivational_24_girls_11-12.json` for national standards.
+  - Loads `agc_25_girls.json` and `farwestern_25_girls.json` for regional qualifiers.
 
 ---
 
