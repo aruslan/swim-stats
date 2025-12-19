@@ -10,7 +10,7 @@ This project automatically scrapes swimming times for youth swimmers from the US
 - Updates automatically via GitHub Actions at 9pm PST daily
 - Shows both official and unofficial times
 
-**Primary Use Case**: Track competitive swimming progress for age-group swimmers (11-14 years old) with instant access to current times and time standard achievements via iPhone widget.
+**Primary Use Case**: Track competitive swimming progress for age-group swimmers (11-14 years old) with instant access to current times via iPhone widget and Apple TV Top Shelf.
 
 ---
 
