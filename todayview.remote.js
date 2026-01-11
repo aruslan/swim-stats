@@ -494,8 +494,8 @@ async function createWidget() {
     sidebarStack.setPadding(0, 6, 0, 0);
 
     const nameContainer = sidebarStack.addStack();
-    const nameText = nameContainer.addText(swimmerName.split(" ")[0] + " " + swimmerAge);
-    nameText.font = new Font(FONT_NAME + "-Bold", 16);
+    const nameText = nameContainer.addText(swimmerName.split(" ")[0] + "." + swimmerAge);
+    nameText.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
     nameText.textColor = Color.white();
 
     for (let sc of STROKES) {
