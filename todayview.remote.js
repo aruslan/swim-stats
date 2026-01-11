@@ -392,11 +392,11 @@ async function createWidget() {
         let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
         if (!regionalStr) regionalStr = "";
 
-        // Days (Right, 3 chars, Grey)
+        // Days (Right, 2 chars preferred, Grey)
         let daysStr = "";
         if (candidate && candidate.date) {
           const d = daysSince(candidate.date);
-          if (d !== null) daysStr = `${d}d`;
+          if (d !== null) daysStr = `${d}`;
         }
 
         // Render Combined Block
@@ -404,7 +404,7 @@ async function createWidget() {
         tReg.font = new Font(FONT_NAME, 8);
         tReg.textColor = new Color("#39C570"); // Green
 
-        const tDays = row.addText(pad(daysStr, 3, "right"));
+        const tDays = row.addText(pad(daysStr, 2, "right"));
         tDays.font = new Font(FONT_NAME, 8);
         tDays.textColor = new Color("#666");
 
