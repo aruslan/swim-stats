@@ -387,37 +387,70 @@ async function createWidget() {
         tSp5.font = new Font(FONT_NAME, 8); // Small
         tSp5.textColor = new Color("#666");
 
-        // 6. COMBINED REGIONAL + DAYS (Strict 5 chars, Split Colors)
-
+        // 6. COMBINED REGIONAL + DAYS (Complex Formatting)
         let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge) || "";
-
         let daysStr = "";
         if (candidate && candidate.date) {
           const d = daysSince(candidate.date);
           if (d !== null) daysStr = `${d}`;
         }
 
-        // Logic: 
-        // 1. Calculate spacing.
-        // 2. Split into part1 (Green - Regional) and part2 (Grey - Dots+Days).
-        // 3. Ensure total length is 5.
+        let part1 = regionalStr; // Green part
+        let part2 = "";          // Grey part
 
-        let part1 = ""; // Green
-        let part2 = ""; // Grey
+        // Logic Implementation based on examples:
+        // 1. Base needed: len(Reg) + len(Days) + 1 (for 'd')
+        // 2. If fits <= 5, pad with dots.
+        //    - If Reg is empty: "9d" -> "9d..." (Pad Right)
+        //    - If Reg is present: "FW"+"9d" -> "FW.9d" (Pad Middle)
+        // 3. If > 5, drop 'd'.
+        //    - "FW"+"999"+"d" (6) -> "FW999"
+        // 4. If still > 5, truncate Days constraints allowed = 5 - len(Reg).
+        //    - "AGC"+"999" (6) -> "AGC99"
 
-        const spaceForDots = 5 - regionalStr.length - daysStr.length;
+        const lenReg = regionalStr.length;
+        const lenDays = daysStr.length;
 
-        if (spaceForDots >= 0) {
-          part1 = regionalStr;
-          // Dots per user request "....1"
-          part2 = ".".repeat(spaceForDots) + daysStr;
+        if (lenReg === 0) {
+          // Case 1: No Regional
+          // "9d..."
+          // "999d."
+          let base = daysStr + "d";
+          if (base.length <= 5) {
+            part2 = base.padEnd(5, ".");
+          } else {
+            // Should practically not happen for days < 10000, but if so:
+            part2 = base.substring(0, 5); // Truncate
+          }
         } else {
-          // Overflow. Prioritize Regional. Truncate Days from Left.
-          part1 = regionalStr;
-          const charsForDays = 5 - regionalStr.length;
-          // Take last N chars of daysStr
-          // e.g. Reg="AGC", Days="344", chars=2 -> "44". part2="44".
-          part2 = daysStr.slice(-charsForDays);
+          // Case 2: Regional Present
+          const neededWithD = lenReg + lenDays + 1;
+
+          if (neededWithD <= 5) {
+            // Fits with 'd'
+            const gap = 5 - neededWithD;
+            // "FW.9d" (Gap=1)
+            part2 = ".".repeat(gap) + daysStr + "d";
+          } else {
+            // Try dropping 'd'
+            const neededWithoutD = lenReg + lenDays;
+            if (neededWithoutD <= 5) {
+              // Fits without 'd'
+              const gap = 5 - neededWithoutD;
+              part2 = ".".repeat(gap) + daysStr;
+            } else {
+              // Still too long. Truncate Days.
+              // "AGC"+"999" -> "AGC99"
+              const allowedDays = 5 - lenReg;
+              if (allowedDays > 0) {
+                part2 = daysStr.substring(0, allowedDays);
+              } else {
+                // Regional takes all space? (e.g. 5 char regional?)
+                // Usually regional is 2 or 3 chars.
+                part2 = "";
+              }
+            }
+          }
         }
 
         // Render Part 1 (Green)
