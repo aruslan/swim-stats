@@ -409,17 +409,15 @@ async function createWidget() {
         tRegDelta.textColor = regDeltaColor;
         */
 
-        // 4. DAYS (Hidden/Last)
-        /*
+        // 4. DAYS (Last)
         let daysStr = "";
         if (candidate && candidate.date) {
           const d = daysSince(candidate.date);
-          if (d !== null) daysStr = `(${d})`;
+          if (d !== null) daysStr = `${d}d`;
         }
         const tDays = row.addText(pad(daysStr, W_DAYS, "left"));
-        tDays.font = new Font(FONT_NAME, 8);
+        tDays.font = new Font(FONT_NAME, 9);
         tDays.textColor = new Color("#666");
-        */
       }
     }
 
