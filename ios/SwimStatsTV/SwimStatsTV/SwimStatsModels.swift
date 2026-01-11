@@ -36,6 +36,36 @@ struct SwimMetadata: Codable {
     }
 }
 
+/// Represents a single unofficial swim result from unofficial_times.json
+struct UnofficialSwimResult: Codable {
+    let name: String
+    let event: String
+    let time: String
+    let date: String
+    let meet: String
+    let timeStandard: String
+    
+    enum CodingKeys: String, CodingKey {
+        case name, event, time, date, meet
+        case timeStandard = "time_standard"
+    }
+    
+    /// Converts to the standard SwimResult
+    func toOfficial() -> SwimResult {
+        return SwimResult(
+            name: self.name,
+            event: self.event,
+            time: self.time,
+            age: "N/A",      // Not present in unofficial
+            date: self.date,
+            meet: self.meet,
+            timeStandard: self.timeStandard,
+            lsc: "N/A",      // Not present in unofficial
+            team: "Unattached" // Default
+        )
+    }
+}
+
 // MARK: - Extensions & Helpers
 
 extension SwimResult {
