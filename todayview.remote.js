@@ -387,27 +387,52 @@ async function createWidget() {
         tSp5.font = new Font(FONT_NAME, 8); // Small
         tSp5.textColor = new Color("#666");
 
-        // 6. COMBINED REGIONAL + DAYS (6 chars max)
-        // Regional (Left, 3 chars, Green)
-        let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
-        if (!regionalStr) regionalStr = "";
+        // 6. COMBINED REGIONAL + DAYS (Strict 5 chars, Split Colors)
 
-        // Days (Right, 2 chars preferred, Grey)
+        let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge) || "";
+
         let daysStr = "";
         if (candidate && candidate.date) {
           const d = daysSince(candidate.date);
           if (d !== null) daysStr = `${d}`;
         }
 
-        // Render Combined Block
-        const tReg = row.addText(pad(regionalStr, 3, "left"));
-        tReg.font = new Font(FONT_NAME, 8);
-        tReg.textColor = new Color("#39C570"); // Green
+        // Logic: 
+        // 1. Calculate spacing.
+        // 2. Split into part1 (Green - Regional) and part2 (Grey - Dots+Days).
+        // 3. Ensure total length is 5.
 
-        const tDays = row.addText(pad(daysStr, 2, "right"));
-        tDays.font = new Font(FONT_NAME, 8);
-        tDays.textColor = new Color("#666");
+        let part1 = ""; // Green
+        let part2 = ""; // Grey
 
+        const spaceForDots = 5 - regionalStr.length - daysStr.length;
+
+        if (spaceForDots >= 0) {
+          part1 = regionalStr;
+          // Dots per user request "....1"
+          part2 = ".".repeat(spaceForDots) + daysStr;
+        } else {
+          // Overflow. Prioritize Regional. Truncate Days from Left.
+          part1 = regionalStr;
+          const charsForDays = 5 - regionalStr.length;
+          // Take last N chars of daysStr
+          // e.g. Reg="AGC", Days="344", chars=2 -> "44". part2="44".
+          part2 = daysStr.slice(-charsForDays);
+        }
+
+        // Render Part 1 (Green)
+        if (part1) {
+          const t1 = row.addText(part1);
+          t1.font = new Font(FONT_NAME, 8);
+          t1.textColor = new Color("#39C570");
+        }
+
+        // Render Part 2 (Grey)
+        if (part2) {
+          const t2 = row.addText(part2);
+          t2.font = new Font(FONT_NAME, 8);
+          t2.textColor = new Color("#666");
+        }
 
         // SPACER 6 (Small)
         const tSp6 = row.addText(SPACER_CHAR); // Debug dot
