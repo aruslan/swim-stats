@@ -411,28 +411,31 @@ async function createWidget() {
         const lenReg = regionalStr.length;
         const lenDays = daysStr.length;
 
+        const suffix = daysStr ? "d" : "";
+
         if (lenReg === 0) {
           // Case 1: No Regional
           // "9d   "
           // "999d "
-          let base = daysStr + "d";
-          if (base.length <= 5) {
+          let base = daysStr + suffix;
+          if (base.length === 0) {
+            part2 = ""; // No data
+          } else if (base.length <= 5) {
             part2 = base.padEnd(5, SPACER_CHAR);
           } else {
-            // Should practically not happen for days < 10000, but if so:
             part2 = base.substring(0, 5); // Truncate
           }
         } else {
           // Case 2: Regional Present
-          const neededWithD = lenReg + lenDays + 1;
+          const neededWithD = lenReg + lenDays + suffix.length;
 
           if (neededWithD <= 5) {
             // Fits with 'd'
             const gap = 5 - neededWithD;
-            // "FW 9d" (Gap=1)
-            part2 = SPACER_CHAR.repeat(gap) + daysStr + "d";
+            // "FW 9d"
+            part2 = SPACER_CHAR.repeat(gap) + daysStr + suffix;
           } else {
-            // Try dropping 'd'
+            // Try dropping 'd' (suffix)
             const neededWithoutD = lenReg + lenDays;
             if (neededWithoutD <= 5) {
               // Fits without 'd'
@@ -445,8 +448,6 @@ async function createWidget() {
               if (allowedDays > 0) {
                 part2 = daysStr.substring(0, allowedDays);
               } else {
-                // Regional takes all space? (e.g. 5 char regional?)
-                // Usually regional is 2 or 3 chars.
                 part2 = "";
               }
             }
