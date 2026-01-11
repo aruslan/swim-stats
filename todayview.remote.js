@@ -387,12 +387,27 @@ async function createWidget() {
         tSp5.font = new Font(FONT_NAME, 8); // Small
         tSp5.textColor = new Color("#666");
 
-        // 6. REGIONAL STD (Left, Small, Green)
+        // 6. COMBINED REGIONAL + DAYS (6 chars max)
+        // Regional (Left, 3 chars, Green)
         let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge);
         if (!regionalStr) regionalStr = "";
-        const tReg = row.addText(pad(regionalStr, W_REG, "right"));
-        tReg.font = new Font(FONT_NAME, 8); // Small
+
+        // Days (Right, 3 chars, Grey)
+        let daysStr = "";
+        if (candidate && candidate.date) {
+          const d = daysSince(candidate.date);
+          if (d !== null) daysStr = `${d}d`;
+        }
+
+        // Render Combined Block
+        const tReg = row.addText(pad(regionalStr, 3, "left"));
+        tReg.font = new Font(FONT_NAME, 8);
         tReg.textColor = new Color("#39C570"); // Green
+
+        const tDays = row.addText(pad(daysStr, 3, "right"));
+        tDays.font = new Font(FONT_NAME, 8);
+        tDays.textColor = new Color("#666");
+
 
         // SPACER 6 (Small)
         const tSp6 = row.addText(SPACER_CHAR); // Debug dot
@@ -409,15 +424,7 @@ async function createWidget() {
         tRegDelta.textColor = regDeltaColor;
         */
 
-        // 4. DAYS (Last)
-        let daysStr = "";
-        if (candidate && candidate.date) {
-          const d = daysSince(candidate.date);
-          if (d !== null) daysStr = `${d}d`;
-        }
-        const tDays = row.addText(pad(daysStr, W_DAYS, "left"));
-        tDays.font = new Font(FONT_NAME, 9);
-        tDays.textColor = new Color("#666");
+
       }
     }
 
