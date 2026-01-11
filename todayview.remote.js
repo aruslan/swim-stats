@@ -494,7 +494,7 @@ async function createWidget() {
     sidebarStack.setPadding(0, 6, 0, 0);
 
     const nameContainer = sidebarStack.addStack();
-    const nameText = nameContainer.addText(swimmerName.split(" ")[0] + "." + swimmerAge);
+    const nameText = nameContainer.addText(swimmerName.split(" ")[0].slice(0, 4) + "." + swimmerAge);
     nameText.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
     nameText.textColor = Color.white();
 
