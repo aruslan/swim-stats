@@ -413,11 +413,11 @@ async function createWidget() {
 
         if (lenReg === 0) {
           // Case 1: No Regional
-          // "9d..."
-          // "999d."
+          // "9d   "
+          // "999d "
           let base = daysStr + "d";
           if (base.length <= 5) {
-            part2 = base.padEnd(5, ".");
+            part2 = base.padEnd(5, SPACER_CHAR);
           } else {
             // Should practically not happen for days < 10000, but if so:
             part2 = base.substring(0, 5); // Truncate
@@ -429,15 +429,15 @@ async function createWidget() {
           if (neededWithD <= 5) {
             // Fits with 'd'
             const gap = 5 - neededWithD;
-            // "FW.9d" (Gap=1)
-            part2 = ".".repeat(gap) + daysStr + "d";
+            // "FW 9d" (Gap=1)
+            part2 = SPACER_CHAR.repeat(gap) + daysStr + "d";
           } else {
             // Try dropping 'd'
             const neededWithoutD = lenReg + lenDays;
             if (neededWithoutD <= 5) {
               // Fits without 'd'
               const gap = 5 - neededWithoutD;
-              part2 = ".".repeat(gap) + daysStr;
+              part2 = SPACER_CHAR.repeat(gap) + daysStr;
             } else {
               // Still too long. Truncate Days.
               // "AGC"+"999" -> "AGC99"
