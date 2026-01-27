@@ -1,6 +1,72 @@
 [
   {
     "name": "Anna Abdikeeva",
+    "event": "100 FR SCY",
+    "time": "1:09.32",
+    "age": "12",
+    "date": "01/25/2026",
+    "meet": "2026 PC Zone 1N Short Course Championships",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "50 BK SCY",
+    "time": "38.16",
+    "age": "12",
+    "date": "01/25/2026",
+    "meet": "2026 PC Zone 1N Short Course Championships",
+    "time_standard": "B",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "50 FL SCY",
+    "time": "35.61",
+    "age": "12",
+    "date": "01/25/2026",
+    "meet": "2026 PC Zone 1N Short Course Championships",
+    "time_standard": "B",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "50 FR SCY",
+    "time": "30.11",
+    "age": "12",
+    "date": "01/24/2026",
+    "meet": "2026 PC Zone 1N Short Course Championships",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "50 BR SCY",
+    "time": "38.02",
+    "age": "12",
+    "date": "01/24/2026",
+    "meet": "2026 PC Zone 1N Short Course Championships",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "100 IM SCY",
+    "time": "1:14.66",
+    "age": "12",
+    "date": "01/24/2026",
+    "meet": "2026 PC Zone 1N Short Course Championships",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
     "event": "50 FR SCY",
     "time": "30.96",
     "age": "12",
@@ -2658,6 +2724,61 @@
     "date": "02/03/2024",
     "meet": "2024 PC ALTO Short Course CBA+",
     "time_standard": "2020-2024 B",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Evelyn Mieszkowski",
+    "event": "100 FR SCY",
+    "time": "1:09.04",
+    "age": "12",
+    "date": "01/25/2026",
+    "meet": "2026 PC Zone 1N Short Course Championships",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Evelyn Mieszkowski",
+    "event": "50 BK SCY",
+    "time": "34.71r",
+    "age": "12",
+    "date": "01/25/2026",
+    "meet": "2026 PC Zone 1N Short Course Championships",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Evelyn Mieszkowski",
+    "event": "50 BK SCY",
+    "time": "36.38r",
+    "age": "12",
+    "date": "01/25/2026",
+    "meet": "2026 PC Zone 1N Short Course Championships",
+    "time_standard": "B",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Evelyn Mieszkowski",
+    "event": "50 BK SCY",
+    "time": "37.89",
+    "age": "12",
+    "date": "01/25/2026",
+    "meet": "2026 PC Zone 1N Short Course Championships",
+    "time_standard": "B",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Evelyn Mieszkowski",
+    "event": "50 FL SCY",
+    "time": "34.56",
+    "age": "12",
+    "date": "01/25/2026",
+    "meet": "2026 PC Zone 1N Short Course Championships",
+    "time_standard": "B",
     "lsc": "PC",
     "team": "Burlingame Aquatic Club"
   },
