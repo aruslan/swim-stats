@@ -169,86 +169,57 @@ function getMotivationalLevel(time, levels) {
   return achieved;
 }
 
-function getDelta(time, levels) {
+function getUnifiedTarget(time, levels, agcData, fwData, age, courseCode, strokeCode, dist) {
   if (typeof time !== "number" || isNaN(time)) return { text: "", color: Color.white() };
-  const order = ["B", "BB", "A", "AA", "AAA", "AAAA"];
-  for (let i = 0; i < order.length; i++) {
-    let lvl = order[i];
-    if (!levels[lvl]) continue;
-    if (time > parseTime(levels[lvl])) {
-      let diff = time - parseTime(levels[lvl]);
-      // Format: "AA+1.23" (7 chars) -> Padded to 8
-      return { text: `${lvl}+${diff.toFixed(2)}`, color: Color.white() };
-    }
-  }
-  for (let i = order.length - 1; i >= 0; i--) {
-    let lvl = order[i];
-    if (levels[lvl] && time <= parseTime(levels[lvl])) {
-      let nextLvl = order[i + 1];
-      if (nextLvl && levels[nextLvl]) {
-        let diff = parseTime(levels[nextLvl]) - time;
-        // Format: "AA-1.23" (7 chars) -> Padded to 8
-        return { text: `${nextLvl}-${diff.toFixed(2)}`, color: Color.white() };
-      }
-      break;
-    }
-  }
-  return { text: "", color: Color.white() };
-}
 
-function getRegionalQualifications(timeSec, courseCode, strokeCode, dist, agcData, fwData, age) {
-  if (timeSec === null) return "";
+  // 1. Collect Standards
+  let standards = [];
 
-  // Check FW (Far Westerns) - uses 11-12, 13-14
-  let fwAgeGroup = age >= 13 ? "13-14" : "11-12";
-  let fwCut = fwData?.Girls?.[fwAgeGroup]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
-  if (fwCut && timeSec <= parseTime(fwCut)) {
-    return "FW"; // FW dominates AGC
+  // Motivational
+  const motivOrder = ["B", "BB", "A", "AA", "AAA", "AAAA"];
+  for (let lvl of motivOrder) {
+    if (levels[lvl]) standards.push({ label: lvl, time: parseTime(levels[lvl]) });
   }
 
-  // Check AGC (Age Group Champs) - uses single ages 11, 12, 13, 14
-  let agcAgeKey = String(age);
-  let agcCut = agcData?.Girls?.[agcAgeKey]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
-  if (agcCut && timeSec <= parseTime(agcCut)) {
-    return "AGC";
-  }
+  // Regional
+  let agcAge = String(age);
+  let agcCut = agcData?.Girls?.[agcAge]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
+  if (agcCut) standards.push({ label: "AGC", time: parseTime(agcCut) });
 
-  return "";
-}
+  let fwAge = age >= 13 ? "13-14" : "11-12";
+  let fwCut = fwData?.Girls?.[fwAge]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
+  if (fwCut) standards.push({ label: "FW", time: parseTime(fwCut) });
 
-function getRegionalDelta(timeSec, courseCode, strokeCode, dist, agcData, fwData, age) {
-  if (timeSec === null) return { text: "", color: Color.white() };
+  // 2. Sort Descending by Time (Slower -> Faster)
+  standards.sort((a, b) => b.time - a.time);
 
-  // Calculate targets
-  let agcAgeKey = String(age);
-  let agcCut = agcData?.Girls?.[agcAgeKey]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
-  let agcSec = agcCut ? parseTime(agcCut) : null;
-
-  let fwAgeGroup = age >= 13 ? "13-14" : "11-12";
-  let fwCut = fwData?.Girls?.[fwAgeGroup]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
-  let fwSec = fwCut ? parseTime(fwCut) : null;
-
-  // Logic: 
-  // If slower than AGC -> Show AGC delta
-  // If faster/equal AGC but slower than FW -> Show FW delta
-  // If faster/equal FW -> Show nothing (or could show Next Level?)
-  // Filter: Only show if within 7 seconds
-
-  if (agcSec && timeSec > agcSec) {
-    let diff = timeSec - agcSec;
-    if (diff <= 10.0) {
-      return { text: `AGC+${diff.toFixed(2)}`, color: Color.white() };
-    }
-  }
-
-  if (fwSec && timeSec > fwSec) {
-    let diff = timeSec - fwSec;
-    if (diff <= 10.0) {
-      return { text: `FW+${diff.toFixed(2)}`, color: Color.white() };
+  // 3. Find Next Target
+  for (let std of standards) {
+    if (time > std.time) {
+      let diff = time - std.time;
+      // "FW+1.23"
+      return { text: `${std.label}+${diff.toFixed(2)}`, color: Color.white() };
     }
   }
 
   return { text: "", color: Color.white() };
+}
+
+function getRegionalStatus(time, agcData, fwData, age, courseCode, strokeCode, dist) {
+  if (time === null) return "";
+  let s = "";
+
+  // FW
+  let fwAge = age >= 13 ? "13-14" : "11-12";
+  let fwCut = fwData?.Girls?.[fwAge]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
+  if (fwCut && time <= parseTime(fwCut)) s += "FW";
+
+  // AGC
+  let agcAge = String(age);
+  let agcCut = agcData?.Girls?.[agcAge]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
+  if (agcCut && time <= parseTime(agcCut)) s += "AGC";
+
+  return s;
 }
 
 // === MAIN ===
@@ -373,9 +344,9 @@ async function createWidget() {
 
 
 
-        // 7. MOTIV DELTA (RIGHT now)
+        // 7. UNIFIED TARGET DELTA (RIGHT)
         const { text: deltaText, color: deltaColor } = (timeSec !== null)
-          ? getDelta(timeSec, levels)
+          ? getUnifiedTarget(timeSec, levels, agcData, fwData, swimmerAge, fmtType, strokeCode, ev)
           : { text: "", color: Color.white() };
 
         const tDelta = row.addText(pad(deltaText, W_DELTA, "right"));
@@ -387,101 +358,37 @@ async function createWidget() {
         tSp5.font = new Font(FONT_NAME, 8); // Small
         tSp5.textColor = new Color("#666");
 
-        // 6. COMBINED REGIONAL + DAYS (Complex Formatting)
-        let regionalStr = getRegionalQualifications(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge) || "";
+        // 6. COMBINED REGIONAL STATUS + DAYS
+        let regionalStr = getRegionalStatus(timeSec, agcData, fwData, swimmerAge, fmtType, strokeCode, ev) || "";
         let daysStr = "";
         if (candidate && candidate.date) {
           const d = daysSince(candidate.date);
           if (d !== null) daysStr = `${d}`;
         }
 
-        let part1 = regionalStr; // Green part
-        let part2 = "";          // Grey part
+        // Status Row (Left part Green, Right part Grey)
+        // "FWAGC" (Green) + "123d" (Grey)
 
-        // Logic Implementation based on examples:
-        // 1. Base needed: len(Reg) + len(Days) + 1 (for 'd')
-        // 2. If fits <= 5, pad with dots.
-        //    - If Reg is empty: "9d" -> "9d..." (Pad Right)
-        //    - If Reg is present: "FW"+"9d" -> "FW.9d" (Pad Middle)
-        // 3. If > 5, drop 'd'.
-        //    - "FW"+"999"+"d" (6) -> "FW999"
-        // 4. If still > 5, truncate Days constraints allowed = 5 - len(Reg).
-        //    - "AGC"+"999" (6) -> "AGC99"
+        let part1 = regionalStr;
+        let part2 = daysStr ? daysStr + "d" : "";
 
-        const lenReg = regionalStr.length;
-        const lenDays = daysStr.length;
+        // Check fit? 
+        // User said: "left side ... shows ... FWAGC or nothing"
+        // "right side ... shows whatever fits from 123d"
+        // We will display them as two texts in a stack for tight layout?
+        // Or just assume column matches.
 
-        const suffix = daysStr ? "d" : "";
-
-        if (lenReg === 0) {
-          // Case 1: No Regional
-          // "9d   "
-          // "999d "
-          let base = daysStr + suffix;
-          if (base.length === 0) {
-            part2 = ""; // No data
-          } else if (base.length <= 5) {
-            part2 = base.padEnd(5, SPACER_CHAR);
-          } else {
-            part2 = base.substring(0, 5); // Truncate
-          }
-        } else {
-          // Case 2: Regional Present
-          const neededWithD = lenReg + lenDays + suffix.length;
-
-          if (neededWithD <= 5) {
-            // Fits with 'd'
-            const gap = 5 - neededWithD;
-            // "FW 9d"
-            part2 = SPACER_CHAR.repeat(gap) + daysStr + suffix;
-          } else {
-            // Try dropping 'd' (suffix)
-            const neededWithoutD = lenReg + lenDays;
-            if (neededWithoutD <= 5) {
-              // Fits without 'd'
-              const gap = 5 - neededWithoutD;
-              part2 = SPACER_CHAR.repeat(gap) + daysStr;
-            } else {
-              // Still too long. Truncate Days.
-              // "AGC"+"999" -> "AGC99"
-              const allowedDays = 5 - lenReg;
-              if (allowedDays > 0) {
-                part2 = daysStr.substring(0, allowedDays);
-              } else {
-                part2 = "";
-              }
-            }
-          }
-        }
-
-        // Render Part 1 (Green)
         if (part1) {
           const t1 = row.addText(part1);
           t1.font = new Font(FONT_NAME, 8);
           t1.textColor = new Color("#39C570");
         }
 
-        // Render Part 2 (Grey)
         if (part2) {
           const t2 = row.addText(part2);
           t2.font = new Font(FONT_NAME, 8);
           t2.textColor = new Color("#666");
         }
-
-        // SPACER 6 (Small)
-        const tSp6 = row.addText(SPACER_CHAR); // Debug dot
-        tSp6.font = new Font(FONT_NAME, 8); // Small
-        tSp6.textColor = new Color("#666");
-
-        // 8. REGIONAL DELTA (RIGHT now, Small) - HIDDEN
-        /*
-        const { text: regDeltaText, color: regDeltaColor } = (timeSec !== null)
-          ? getRegionalDelta(timeSec, fmtType, strokeCode, ev, agcData, fwData, swimmerAge)
-          : { text: "", color: Color.white() };
-        const tRegDelta = row.addText(pad(regDeltaText, W_REG_DELTA, "right"));
-        tRegDelta.font = new Font(FONT_NAME, 8); // Small
-        tRegDelta.textColor = regDeltaColor;
-        */
 
 
       }
