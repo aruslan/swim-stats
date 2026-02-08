@@ -150,6 +150,7 @@ Standards follow USA Swimming's 2024 Motivational Times for Girls:
 - **FW**: Far Westerns (Western Zone)
 
 Each event has specific time cutoffs for each standard. Times slower than B standard show as "Slower than B" or no standard.
+Regional standards are interleaved with motivational standards to determine the "Next Goal" displayed in the widget.
 
 ---
 
@@ -213,7 +214,8 @@ swim-stats/
 **todayview.remote.js**:
 - Main widget rendering logic
 - Fetches times.json and motivational standards
-- Displays 7 rows of swim data with times, standards, and delta to next level
+- Displays 7 rows of swim data with times, standards, and unified delta to the next immediate target (Motivational or Regional)
+- Consolidated status column showing achieved regional cuts (e.g., FWAGC) and days since best time
 - Shows swimmer name and stroke selector on right side
 - Updates automatically when pushed to GitHub
 
@@ -483,7 +485,7 @@ git push origin main
 ## Contact & Maintenance
 
 **Repository Owner**: aruslan
-**Last Updated**: December 2025
+**Last Updated**: February 2026
 **Project Status**: Active, daily automated updates
 
 For issues or questions, open an issue on the GitHub repository.
