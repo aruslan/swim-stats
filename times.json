@@ -1,6 +1,72 @@
 [
   {
     "name": "Anna Abdikeeva",
+    "event": "100 BR SCY",
+    "time": "1:21.01",
+    "age": "12",
+    "date": "02/08/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "A",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "200 IM SCY",
+    "time": "2:38.88",
+    "age": "12",
+    "date": "02/08/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "400 IM SCY",
+    "time": "5:39.73",
+    "age": "12",
+    "date": "02/08/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "100 FR SCY",
+    "time": "1:06.60",
+    "age": "12",
+    "date": "02/07/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "500 FR SCY",
+    "time": "6:26.37",
+    "age": "12",
+    "date": "02/07/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
+    "event": "200 BR SCY",
+    "time": "2:47.31",
+    "age": "12",
+    "date": "02/07/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "AA",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Anna Abdikeeva",
     "event": "100 FR SCY",
     "time": "1:09.32",
     "age": "12",
@@ -942,6 +1008,39 @@
     "date": "03/29/2025",
     "meet": "2025 PC ALTO Short Course T/F Invitational",
     "time_standard": "Slower than B",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 BK SCY",
+    "time": "39.02",
+    "age": "12",
+    "date": "02/07/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "Slower than B",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "200 BR SCY",
+    "time": "3:01.96",
+    "age": "12",
+    "date": "02/07/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Kexin Liu",
+    "event": "50 FL SCY",
+    "time": "34.85",
+    "age": "12",
+    "date": "02/07/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "B",
     "lsc": "PC",
     "team": "Burlingame Aquatic Club"
   },
@@ -2724,6 +2823,72 @@
     "date": "02/03/2024",
     "meet": "2024 PC ALTO Short Course CBA+",
     "time_standard": "2020-2024 B",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Evelyn Mieszkowski",
+    "event": "50 FR SCY",
+    "time": "28.62",
+    "age": "12",
+    "date": "02/08/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "A",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Evelyn Mieszkowski",
+    "event": "100 BR SCY",
+    "time": "1:28.39",
+    "age": "12",
+    "date": "02/08/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Evelyn Mieszkowski",
+    "event": "50 FL SCY",
+    "time": "32.60",
+    "age": "12",
+    "date": "02/08/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Evelyn Mieszkowski",
+    "event": "100 FR SCY",
+    "time": "1:06.86",
+    "age": "12",
+    "date": "02/07/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Evelyn Mieszkowski",
+    "event": "200 BR SCY",
+    "time": "3:10.56",
+    "age": "12",
+    "date": "02/07/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "BB",
+    "lsc": "PC",
+    "team": "Burlingame Aquatic Club"
+  },
+  {
+    "name": "Evelyn Mieszkowski",
+    "event": "100 IM SCY",
+    "time": "1:17.71",
+    "age": "12",
+    "date": "02/07/2026",
+    "meet": "2026 PC ALTO Short Course CBA+",
+    "time_standard": "BB",
     "lsc": "PC",
     "team": "Burlingame Aquatic Club"
   },
