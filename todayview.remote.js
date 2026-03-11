@@ -51,10 +51,11 @@ let swimmerAge = (paramArr.length >= 3 && /^\d+$/.test(paramArr[2])) ? parseInt(
 // Extract flags (4th parameter, index 3). Supports sparse arrays e.g. "VD,,,d"
 const flags = paramArr[3] || "";
 const USE_DOTS = flags.includes("D");
-const USE_NCAA = flags.includes("N");
+const USE_NCAA = !flags.includes("F"); // Enabled by default, 'F' (Factual) overrides
 const SPACER_CHAR = USE_DOTS ? "." : "\u00a0";
 
 if (!SWIMMERS[swimmerKey]) swimmerKey = "AA";
+
 if (!STROKES.includes(strokeCode)) strokeCode = "BR";
 let swimmerName = SWIMMERS[swimmerKey].name;
 
