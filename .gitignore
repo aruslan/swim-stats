@@ -68,3 +68,6 @@ playground.xcworkspace
 ## Local Config
 config.local.js
 secrets.js
+
+## Build output
+ios/SwimStatsTV/build/
