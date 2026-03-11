@@ -59,26 +59,37 @@ if (!STROKES.includes(strokeCode)) strokeCode = "BR";
 let swimmerName = SWIMMERS[swimmerKey].name;
 
 // === NCAA CONVERSION ===
-// Based on NCAA administrative factors for LCM to SCY: LCM * Factor = SCY.
-// Therefore, to convert SCY to LCM: SCY / Factor = LCM.
-function getNCAAConversionFactor(distanceSCY) {
-  if (distanceSCY === 500) return 1.153;
-  if (distanceSCY === 1000) return 1.153;
-  if (distanceSCY === 1650) return 1.013;
-  return 0.906; // Applies to 50, 100, 200, 400 SCY/IM events
-}
+// Based on 2023-24 NCAA Women's Division I Conversion Factors (LCM to SCY).
+// LCM * Factor = SCY  =>  SCY / Factor = LCM.
+const NCAA_WOMEN_FACTORS = {
+  "50": 0.881,
+  "100": 0.884,
+  "200": 0.884,
+  "400": 1.122,  // 500y to 400m
+  "500": 1.122,  // mapped for convenience
+  "800": 1.13,   // 1000y to 800m
+  "1000": 1.13,  // mapped for convenience
+  "1500": 0.985, // 1650y to 1500m
+  "1650": 0.985, // mapped for convenience
+  "BK_100": 0.863, "BK_200": 0.867,
+  "BR_100": 0.88,  "BR_200": 0.888,
+  "FL_100": 0.887, "FL_200": 0.891,
+  "IM_200": 0.877, "IM_400": 0.886
+};
 
-// Converts a raw SCY numerical time in seconds to an LCM numerical time
-function convertSCYtoLCM(timeSCY, distanceSCY) {
-  const factor = getNCAAConversionFactor(distanceSCY);
-  return timeSCY / factor;
+function getNCAAConversionFactor(distanceSCY, strokeCode) {
+  const d = String(distanceSCY);
+  if (strokeCode === "FR") return NCAA_WOMEN_FACTORS[d] || 0.906;
+  const key = `${strokeCode}_${d}`;
+  return NCAA_WOMEN_FACTORS[key] || NCAA_WOMEN_FACTORS[d] || 0.906;
 }
 
 // Formats a raw numerical time in seconds back to M:SS.SS or SS.SS
 function formatTime(seconds) {
   if (seconds >= 60) {
     const mins = Math.floor(seconds / 60);
-    const secs = (seconds % 60).toFixed(2).padStart(5, '0');
+    let secs = (seconds % 60).toFixed(2);
+    if (seconds % 60 < 10) secs = "0" + secs;
     return `${mins}:${secs}`;
   }
   return seconds.toFixed(2);
@@ -334,43 +345,42 @@ async function createWidget() {
         let isUnofficial = candidate ? !!candidate.unofficial : false;
         let isNCAAConverted = false;
 
-        // Apply NCAA conversion logic if SCY is requested, it's older than 180 days, and N flag is active
-        if (candidate && fmtType === "SCY" && USE_NCAA) {
-          const daysOld = daysSince(candidate.date);
-          if (daysOld !== null && daysOld > 180) {
-            // Find equivalent LCM event
-            let distanceLCM = ev;
-            if (ev === 500) distanceLCM = 400;
-            if (ev === 1000) distanceLCM = 800;
-            if (ev === 1650) distanceLCM = 1500;
-            
-            const wantedLCM = `${distanceLCM} ${strokeCode} LCM`;
-            const candidatesLCM = swimmerTimes.concat(unofficialTimes)
-              .filter(r => r.event === wantedLCM)
+        // Apply NCAA conversion logic if LCM is requested and it's either missing or older than 180 days
+        if (fmtType === "LCM" && USE_NCAA) {
+          const daysOldLCM = candidate ? daysSince(candidate.date) : 999;
+          if (daysOldLCM === null || daysOldLCM > 180) {
+            // Find compatible SCY event
+            let distanceSCY = ev;
+            if (ev === 400) distanceSCY = 500;
+            if (ev === 800) distanceSCY = 1000;
+            if (ev === 1500) distanceSCY = 1650;
+
+            const wantedSCY = `${distanceSCY} ${strokeCode} SCY`;
+            const candidatesSCY = swimmerTimes.concat(unofficialTimes)
+              .filter(r => r.event === wantedSCY)
               .sort((a, b) => parseTime(a.time) - parseTime(b.time));
-              
-            if (candidatesLCM.length > 0) {
-              const candidateLCM = candidatesLCM[0];
-              const daysOldLCM = daysSince(candidateLCM.date);
-              
-              // Only override if the LCM time is strictly newer than the SCY time
-              if (daysOldLCM !== null && daysOldLCM < daysOld) {
-                const lcmTimeSec = parseTime(candidateLCM.time);
+
+            if (candidatesSCY.length > 0) {
+              const candidateSCY = candidatesSCY[0];
+              const daysOldSCY = daysSince(candidateSCY.date);
+
+              // Use SCY as base if it's newer than the LCM swim
+              if (daysOldSCY !== null && (candidate === null || daysOldSCY < daysOldLCM)) {
+                const scyTimeSec = parseTime(candidateSCY.time);
+                const factor = getNCAAConversionFactor(distanceSCY, strokeCode);
                 
-                // Convert LCM to SCY utilizing NCAA administrative multipliers
-                const factor = getNCAAConversionFactor(ev);
-                timeSec = lcmTimeSec * factor; // To obtain SCY time from LCM: LCM * Factor = SCY
+                // Formula: SCY / Factor = LCM
+                timeSec = scyTimeSec / factor;
                 timeStr = formatTime(timeSec);
                 
-                // Adopt the metadata of the LCM swim for recency and UI display
-                candidate = candidateLCM;
-                isUnofficial = !!candidateLCM.unofficial;
+                candidate = candidateSCY;
+                isUnofficial = !!candidateSCY.unofficial;
                 isNCAAConverted = true;
               }
             }
           }
         }
-
+        
         // ROW
         const row = left.addStack();
         row.layoutHorizontally();
