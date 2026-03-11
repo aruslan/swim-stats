@@ -245,19 +245,18 @@ function getUnifiedTarget(time, levels, agcData, fwData, age, courseCode, stroke
 
 function getRegionalStatus(time, agcData, fwData, age, courseCode, strokeCode, dist) {
   if (time === null) return "";
-  let s = "";
 
-  // FW
+  // 1. Check Far Westerns (Higher Standard)
   let fwAge = age >= 13 ? "13-14" : "11-12";
   let fwCut = fwData?.Girls?.[fwAge]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
-  if (fwCut && time <= parseTime(fwCut)) s += "FW";
+  if (fwCut && time <= parseTime(fwCut)) return "FW";
 
-  // AGC
+  // 2. Check Age Group Champs
   let agcAge = String(age);
   let agcCut = agcData?.Girls?.[agcAge]?.[courseCode]?.[strokeCode]?.[String(dist)]?.CUT;
-  if (agcCut && time <= parseTime(agcCut)) s += "AGC";
+  if (agcCut && time <= parseTime(agcCut)) return "AGC";
 
-  return s;
+  return "";
 }
 
 // === MAIN ===
