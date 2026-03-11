@@ -104,9 +104,10 @@ class SwimCardRendererV7 {
             }
 
             if let icon = strokeIcon {
-                let iconSize = CGSize(width: 140, height: 140)
+                // Increased by 1.75x: 140 -> 245
+                let iconSize = CGSize(width: 245, height: 245)
                 let iconRect = CGRect(x: (size.width - iconSize.width)/2, 
-                                      y: 90, // Moved down further (was 70)
+                                      y: 50, // Moved up to accommodate 1.75x size
                                       width: iconSize.width, 
                                       height: iconSize.height)
                 icon.draw(in: iconRect)
