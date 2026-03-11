@@ -46,17 +46,29 @@ class ContentProvider: TVTopShelfContentProvider {
                     return (result, achieved)
                 }
                 
-                // Sort by Date
+                // Sort by Date First
                 let sorted = validResults.sorted {
                     ($0.0.dateObject ?? Date.distantPast) > ($1.0.dateObject ?? Date.distantPast)
                 }
                 
-                let top5 = sorted.prefix(5)
+                // Keep only the most recent result per event
+                var uniqueEvents = Set<String>()
+                var deduplicatedResults: [(SwimResult, String)] = []
+                
+                for item in sorted {
+                    let eventKey = item.0.event
+                    if !uniqueEvents.contains(eventKey) {
+                        uniqueEvents.insert(eventKey)
+                        deduplicatedResults.append(item)
+                    }
+                }
+                
+                let top15 = deduplicatedResults.prefix(15)
                 
                 // 3. Create TV Items
                 var items: [TVTopShelfSectionedItem] = []
                 
-                for (result, standard) in top5 {
+                for (result, standard) in top15 {
                     autoreleasepool {
                         // Standard Title
                         // SANITIZE: Remove / and : from ID so it doesn't create invalid file paths
