@@ -349,7 +349,7 @@ async function createWidget() {
         if (fmtType === "LCM" && USE_NCAA) {
           const daysOldLCM = candidate ? daysSince(candidate.date) : 999;
           if (daysOldLCM === null || daysOldLCM > 180) {
-            // Find compatible SCY event
+            // Find absolute best SCY event (candidates are already sorted fastest-to-slowest)
             let distanceSCY = ev;
             if (ev === 400) distanceSCY = 500;
             if (ev === 800) distanceSCY = 1000;
@@ -362,21 +362,17 @@ async function createWidget() {
 
             if (candidatesSCY.length > 0) {
               const candidateSCY = candidatesSCY[0];
-              const daysOldSCY = daysSince(candidateSCY.date);
-
-              // Use SCY as base if it's newer than the LCM swim
-              if (daysOldSCY !== null && (candidate === null || daysOldSCY < daysOldLCM)) {
-                const scyTimeSec = parseTime(candidateSCY.time);
-                const factor = getNCAAConversionFactor(distanceSCY, strokeCode);
-                
-                // Formula: SCY / Factor = LCM
-                timeSec = scyTimeSec / factor;
-                timeStr = formatTime(timeSec);
-                
-                candidate = candidateSCY;
-                isUnofficial = !!candidateSCY.unofficial;
-                isNCAAConverted = true;
-              }
+              
+              const scyTimeSec = parseTime(candidateSCY.time);
+              const factor = getNCAAConversionFactor(distanceSCY, strokeCode);
+              
+              // Formula: SCY / Factor = LCM
+              timeSec = scyTimeSec / factor;
+              timeStr = formatTime(timeSec);
+              
+              candidate = candidateSCY;
+              isUnofficial = !!candidateSCY.unofficial;
+              isNCAAConverted = true;
             }
           }
         }
