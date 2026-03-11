@@ -51,11 +51,38 @@ let swimmerAge = (paramArr.length >= 3 && /^\d+$/.test(paramArr[2])) ? parseInt(
 // Extract flags (4th parameter, index 3). Supports sparse arrays e.g. "VD,,,d"
 const flags = paramArr[3] || "";
 const USE_DOTS = flags.includes("D");
+const USE_NCAA = flags.includes("N");
 const SPACER_CHAR = USE_DOTS ? "." : "\u00a0";
 
 if (!SWIMMERS[swimmerKey]) swimmerKey = "AA";
 if (!STROKES.includes(strokeCode)) strokeCode = "BR";
 let swimmerName = SWIMMERS[swimmerKey].name;
+
+// === NCAA CONVERSION ===
+// Based on NCAA administrative factors for LCM to SCY: LCM * Factor = SCY.
+// Therefore, to convert SCY to LCM: SCY / Factor = LCM.
+function getNCAAConversionFactor(distanceSCY) {
+  if (distanceSCY === 500) return 1.153;
+  if (distanceSCY === 1000) return 1.153;
+  if (distanceSCY === 1650) return 1.013;
+  return 0.906; // Applies to 50, 100, 200, 400 SCY/IM events
+}
+
+// Converts a raw SCY numerical time in seconds to an LCM numerical time
+function convertSCYtoLCM(timeSCY, distanceSCY) {
+  const factor = getNCAAConversionFactor(distanceSCY);
+  return timeSCY / factor;
+}
+
+// Formats a raw numerical time in seconds back to M:SS.SS or SS.SS
+function formatTime(seconds) {
+  if (seconds >= 60) {
+    const mins = Math.floor(seconds / 60);
+    const secs = (seconds % 60).toFixed(2).padStart(5, '0');
+    return `${mins}:${secs}`;
+  }
+  return seconds.toFixed(2);
+}
 
 // === DATA LOADING ===
 const CACHE_DIR = FileManager.local().joinPath(FileManager.local().documentsDirectory(), "swim_stats_cache");
@@ -300,16 +327,56 @@ async function createWidget() {
         const candidates = swimmerTimes.concat(unofficialTimes)
           .filter(r => r.event === wanted)
           .sort((a, b2) => parseTime(a.time) - parseTime(b2.time));
-        const candidate = candidates[0];
-        const timeStr = candidate ? candidate.time : "";
-        const timeSec = candidate ? parseTime(candidate.time) : null;
-        const isUnofficial = candidate ? !!candidate.unofficial : false;
+        
+        let candidate = candidates[0];
+        let timeStr = candidate ? candidate.time : "";
+        let timeSec = candidate ? parseTime(candidate.time) : null;
+        let isUnofficial = candidate ? !!candidate.unofficial : false;
+        let isNCAAConverted = false;
+
+        // Apply NCAA conversion logic if SCY is requested, it's older than 180 days, and N flag is active
+        if (candidate && fmtType === "SCY" && USE_NCAA) {
+          const daysOld = daysSince(candidate.date);
+          if (daysOld !== null && daysOld > 180) {
+            // Find equivalent LCM event
+            let distanceLCM = ev;
+            if (ev === 500) distanceLCM = 400;
+            if (ev === 1000) distanceLCM = 800;
+            if (ev === 1650) distanceLCM = 1500;
+            
+            const wantedLCM = `${distanceLCM} ${strokeCode} LCM`;
+            const candidatesLCM = swimmerTimes.concat(unofficialTimes)
+              .filter(r => r.event === wantedLCM)
+              .sort((a, b) => parseTime(a.time) - parseTime(b.time));
+              
+            if (candidatesLCM.length > 0) {
+              const candidateLCM = candidatesLCM[0];
+              const daysOldLCM = daysSince(candidateLCM.date);
+              
+              // Only override if the LCM time is strictly newer than the SCY time
+              if (daysOldLCM !== null && daysOldLCM < daysOld) {
+                const lcmTimeSec = parseTime(candidateLCM.time);
+                
+                // Convert LCM to SCY utilizing NCAA administrative multipliers
+                const factor = getNCAAConversionFactor(ev);
+                timeSec = lcmTimeSec * factor; // To obtain SCY time from LCM: LCM * Factor = SCY
+                timeStr = formatTime(timeSec);
+                
+                // Adopt the metadata of the LCM swim for recency and UI display
+                candidate = candidateLCM;
+                isUnofficial = !!candidateLCM.unofficial;
+                isNCAAConverted = true;
+              }
+            }
+          }
+        }
 
         // ROW
         const row = left.addStack();
         row.layoutHorizontally();
         row.centerAlignContent();
         row.spacing = 0; // Remove default spacing between columns to fit content
+
 
         // 1. DISTANCE (Right)
         const tDist = row.addText(pad(ev, W_DIST, "right"));
@@ -367,10 +434,16 @@ async function createWidget() {
         }
 
         // Status Row (Left part Green, Right part Grey)
-        // "FWAGC" (Green) + "123d" (Grey)
+        // "FWAGC" (Green) + "123d" (Grey) or "NCAA"
 
         let part1 = regionalStr;
-        let part2 = daysStr ? daysStr + "d" : "";
+        let part2 = "";
+        
+        if (isNCAAConverted) {
+          part2 = "NCAA";
+        } else if (daysStr) {
+          part2 = daysStr + "d";
+        }
 
         // Check fit? 
         // User said: "left side ... shows ... FWAGC or nothing"
