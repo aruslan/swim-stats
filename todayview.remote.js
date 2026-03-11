@@ -96,6 +96,12 @@ function formatTime(seconds) {
   return seconds.toFixed(2);
 }
 
+function shortenStandard(label) {
+  if (label === "AAAA") return "4A";
+  return label;
+}
+
+
 // === DATA LOADING ===
 const CACHE_DIR = FileManager.local().joinPath(FileManager.local().documentsDirectory(), "swim_stats_cache");
 
@@ -202,7 +208,7 @@ function getMotivationalLevel(time, levels) {
     const lvl = order[i];
     if (!levels[lvl]) continue;
     if (time <= parseTime(levels[lvl])) {
-      achieved = lvl;
+      achieved = shortenStandard(lvl);
     }
   }
   return achieved;
@@ -236,9 +242,10 @@ function getUnifiedTarget(time, levels, agcData, fwData, age, courseCode, stroke
   for (let std of standards) {
     if (time > std.time) {
       let diff = time - std.time;
-      // "FW+1.23"
-      return { text: `${std.label}+${diff.toFixed(2)}`, color: Color.white() };
+      // "FW+1.23", "4A+6.3"
+      return { text: `${shortenStandard(std.label)}+${diff.toFixed(2)}`, color: Color.white() };
     }
+
   }
 
   return { text: "", color: Color.white() };
