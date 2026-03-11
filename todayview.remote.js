@@ -465,8 +465,9 @@ async function createWidget() {
         if (part2) {
           const t2 = row.addText(part2);
           t2.font = new Font(FONT_NAME, 8);
-          t2.textColor = new Color("#666");
+          t2.textColor = isNCAAConverted ? new Color("#cc0000") : new Color("#666");
         }
+
 
 
       }
