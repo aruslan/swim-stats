@@ -402,7 +402,7 @@ async function createWidget() {
         // 3. TIME (Right)
         const tTime = row.addText(pad(fmt(timeStr), W_TIME, "right"));
         tTime.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
-        tTime.textColor = isUnofficial ? new Color("#aaa") : Color.white();
+        tTime.textColor = (isUnofficial || isNCAAConverted) ? new Color("#aaa") : Color.white();
 
         // SPACER 3 (Small) - NEW
         const tSp3 = row.addText(SPACER_CHAR);
@@ -413,7 +413,7 @@ async function createWidget() {
         let level = (timeSec !== null) ? getMotivationalLevel(timeSec, levels) : "";
         const tMotiv = row.addText(pad(level, W_MOTIV, "left"));
         tMotiv.font = new Font(FONT_NAME + "-Bold", FONT_SIZE);
-        tMotiv.textColor = isUnofficial ? new Color("#66A786") : new Color("#39C570");
+        tMotiv.textColor = (isUnofficial || isNCAAConverted) ? new Color("#66A786") : new Color("#39C570");
 
 
 
@@ -424,7 +424,7 @@ async function createWidget() {
 
         const tDelta = row.addText(pad(deltaText, W_DELTA, "right"));
         tDelta.font = new Font(FONT_NAME, FONT_SIZE);
-        tDelta.textColor = isUnofficial ? new Color("#bbb") : deltaColor;
+        tDelta.textColor = (isUnofficial || isNCAAConverted) ? new Color("#bbb") : deltaColor;
 
         // SPACER 5 (Small)
         const tSp5 = row.addText(SPACER_CHAR);
