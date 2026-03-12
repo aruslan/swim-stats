@@ -358,9 +358,11 @@ async function createWidget() {
           if (daysOldLCM === null || daysOldLCM > 180) {
             // Find absolute best SCY event (candidates are already sorted fastest-to-slowest)
             let distanceSCY = ev;
-            if (ev === 400) distanceSCY = 500;
-            if (ev === 800) distanceSCY = 1000;
-            if (ev === 1500) distanceSCY = 1650;
+            if (strokeCode === "FR") {
+              if (ev === 400) distanceSCY = 500;
+              if (ev === 800) distanceSCY = 1000;
+              if (ev === 1500) distanceSCY = 1650;
+            }
 
             const wantedSCY = `${distanceSCY} ${strokeCode} SCY`;
             const candidatesSCY = swimmerTimes.concat(unofficialTimes)
